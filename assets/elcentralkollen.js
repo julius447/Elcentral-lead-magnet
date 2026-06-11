@@ -1,21 +1,22 @@
 /* ============================================================================
-   Elcentral-kollen — diagnosmotor + wizard (vanilla ES6, no build)
-   Forkad från Elkollen (ampy-behorighetskollen) men anpassad för:
+   Elcentral-kollen v2 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
-     2. ENGINE — pure compute: addition -> golv -> osäkerhet -> 2x2-cell
-     3. VIEW   — 6-stegs wizard (single + multi) -> tvåaxlat besked
+     2. ENGINE — pure compute (UNCHANGED v1→v2; oracle 13/13) : addition -> golv
+                 -> osäkerhet -> 2x2-cell
+     3. VIEW   — 6-stegs wizard -> tvåaxlat besked (authored, säkerhets-/redo-medvetet)
    Doktrin: docs/SPEC.md. Fakta: research/FACTS.md. UI-copy är svensk by design.
    ============================================================================ */
 (function () {
   'use strict';
 
-  /* ---------- Ikoner (inline SVG, stroke-baserade) ---------------------- */
+  /* ---------- Ikoner (inline SVG) --------------------------------------- */
   const ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>',
     ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="12" x2="18" y2="12"/></svg>',
     arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
     external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>',
@@ -49,7 +50,7 @@
   const iconSpan = (name, cls) => el('span', { class: cls || null, html: icon(name), 'aria-hidden': 'true', style: 'display:inline-flex' });
 
   /* =====================================================================
-     ENGINE — ren beräkning. Inga DOM-beroenden. Testbar i isolering.
+     ENGINE — ren beräkning (oförändrad v1→v2; engine.test.js måste vara grön)
      ===================================================================== */
   const LEVEL_ORDER = { lag: 0, forhojd: 1, hog: 2 };
   const maxLevel = (a, b) => (LEVEL_ORDER[a] >= LEVEL_ORDER[b] ? a : b);
@@ -66,60 +67,45 @@
     const t = data.scoring.thresholds;
     let level = score >= t.hog ? 'hog' : (score >= t.forhojd ? 'forhojd' : 'lag');
 
-    // GOLV (vinner över additionen) ------------------------------------
     const floors = data.scoring.floors;
     const presentSymptom = floors.present_symptom.trigger_ids.some(id => warn.includes(id));
     if (presentSymptom) level = maxLevel(level, floors.present_symptom.min_level);
-
     const escalation = warn.includes(floors.escalation.trigger_id);
     if (escalation) level = maxLevel(level, floors.escalation.min_level);
 
-    // OSÄKERHET ≠ RISK -------------------------------------------------
     const unc = data.scoring.uncertainty;
     const uncertaintyCount = unc.counts_fields.filter(f => answers[f] === 'vet_inte').length;
 
     let state = level;
-    if (level === 'lag' && uncertaintyCount >= unc.min_count && !presentSymptom && !escalation) {
-      state = 'oklart';
-    }
+    if (level === 'lag' && uncertaintyCount >= unc.min_count && !presentSymptom && !escalation) state = 'oklart';
     return { score, level, state, uncertaintyCount, presentSymptom, escalation };
   }
 
   function pickPrimaryPlan(planer) {
-    const order = ['elbil', 'varmepump', 'solceller', 'renovering'];
-    return order.find(p => (planer || []).includes(p)) || null;
+    return ['elbil', 'varmepump', 'solceller', 'renovering'].find(p => (planer || []).includes(p)) || null;
   }
-
   function computeReady(answers, data) {
     const planer = answers.planer || [];
     if (!planer.length || planer.includes('inget')) return { state: 'ej_bedomd', plan: null };
     const plan = pickPrimaryPlan(planer);
-    const rules = data.scoring.ready.rules;
-    for (const r of rules) {
+    for (const r of data.scoring.ready.rules) {
       if (r.plan !== plan) continue;
       if (r.huvudsakring && !r.huvudsakring.includes(answers.huvudsakring)) continue;
       return { state: r.state, plan };
     }
     return { state: 'kraver_bedomning', plan };
   }
-
   function computeCrossAxis(answers, data) {
     const out = {};
     (data.scoring.cross_axis_rules || []).forEach(rule => {
-      const c = rule.if;
-      let ok = true;
+      const c = rule.if; let ok = true;
       if (c.alder_in && !c.alder_in.includes(answers.alder)) ok = false;
       if (c.sakringstyp && answers.sakringstyp !== c.sakringstyp) ok = false;
-      if (c.has_any_plan) {
-        const p = answers.planer || [];
-        if (!p.length || (p.length === 1 && p.includes('inget'))) ok = false;
-      }
+      if (c.has_any_plan) { const p = answers.planer || []; if (!p.length || (p.length === 1 && p.includes('inget'))) ok = false; }
       if (ok) { out.ready_finding = rule.then.ready_finding; out.strengthen_cell = rule.then.strengthen_cell; }
     });
     return out;
   }
-
-  // 2x2-kollaps (enkelriktad). ej_bedomd -> ingen Redo-claim (säkerhet styr cellen).
   function computeCell(safety, ready) {
     const safe = (safety.state === 'lag' || safety.state === 'oklart');
     if (ready.state === 'ej_bedomd') return safe ? 'sr' : 'rs';
@@ -127,17 +113,13 @@
     if (safe) return redo ? 'sr' : 'si';
     return redo ? 'rs' : 'rr';
   }
-
-  // Hela diagnosen i ett objekt.
   function diagnose(answers, data) {
     const safety = computeSafety(answers, data);
     const ready = computeReady(answers, data);
     const crossAxis = computeCrossAxis(answers, data);
-    const cell = computeCell(safety, ready);
-    return { answers, safety, ready, crossAxis, cell };
+    return { answers, safety, ready, crossAxis, cell: computeCell(safety, ready) };
   }
 
-  /* ---------- Findings: matcha when-villkor mot svar + states ----------- */
   function findingMatches(when, dx) {
     const a = dx.answers;
     if (when.sakringstyp && a.sakringstyp !== when.sakringstyp) return false;
@@ -148,98 +130,74 @@
     if (when.varningstecken_has && !(a.varningstecken || []).includes(when.varningstecken_has)) return false;
     if (when.ready_state && dx.ready.state !== when.ready_state) return false;
     if (when.cross_axis && dx.crossAxis.ready_finding !== when.cross_axis) return false;
-    if (when.no_plan) {
-      const p = a.planer || [];
-      if (p.length && !(p.length === 1 && p.includes('inget'))) return false;
-    }
+    if (when.no_plan) { const p = a.planer || []; if (p.length && !(p.length === 1 && p.includes('inget'))) return false; }
     return true;
   }
-
+  // Rank-aware + grön-cellen leder med lugn (ok först när inga varningar finns).
   function collectFindings(dx, data) {
-    const order = { warn: 0, info: 1, ok: 2 };
-    return (data.findings || [])
-      .filter(f => findingMatches(f.when, dx))
-      // bränd lukt visas som akut-alert överst, inte som dubblerad fyndrad
-      .filter(f => f.id !== 'f_brand_lukt')
-      .sort((x, y) => order[x.icon] - order[y.icon]);
+    const matched = (data.findings || []).filter(f => findingMatches(f.when, dx)).filter(f => f.id !== 'f_brand_lukt');
+    const hasWarn = matched.some(f => f.icon === 'warn');
+    const order = hasWarn ? { warn: 0, info: 1, ok: 2 } : { ok: 0, info: 1, warn: 2 };
+    return matched.sort((x, y) => (order[x.icon] - order[y.icon]) || ((x.rank || 50) - (y.rank || 50)));
   }
 
   /* =====================================================================
-     APP — wizard + besked
+     APP
      ===================================================================== */
   class ElcentralApp {
     constructor(mount, data) {
       this.mount = mount;
       this.data = data;
       this.questions = data.questions;
-      this.answers = {};        // { questionId: optionId | [optionIds] }
-      this.step = 1;            // 1..6 = fråga, 7 = besked
-      this.activeTab = 'fynd';
+      this.answers = {};
+      this.step = 1;
+      this.housingType = 'villa';
       this._flashT = null;
       this.hydrateFromUrl();
       this.bindHistory();
     }
 
-    /* ---- URL = state (svarsvektor) ---- */
     encodeVector() {
       const pre = this.data.state_schema.prefixes;
       return this.questions.map(q => {
         const ans = this.answers[q.id];
         if (ans == null) return null;
         const idxOf = (id) => q.options.findIndex(o => o.id === id);
-        if (q.type === 'multi') {
-          const ids = Array.isArray(ans) ? ans : [ans];
-          return pre[q.id] + ids.map(idxOf).filter(i => i >= 0).sort((a, b) => a - b).join('');
-        }
+        if (q.type === 'multi') { const ids = Array.isArray(ans) ? ans : [ans]; return pre[q.id] + ids.map(idxOf).filter(i => i >= 0).sort((a, b) => a - b).join(''); }
         return pre[q.id] + idxOf(ans);
       }).filter(Boolean).join('.');
     }
-
     decodeVector(str) {
       if (!str) return {};
       const byPrefix = {};
       Object.entries(this.data.state_schema.prefixes).forEach(([qid, p]) => { byPrefix[p] = qid; });
       const out = {};
       str.split('.').forEach(seg => {
-        const p = seg[0]; const digits = seg.slice(1);
-        const qid = byPrefix[p]; if (!qid) return;
+        const qid = byPrefix[seg[0]]; if (!qid) return;
         const q = this.questions.find(qq => qq.id === qid); if (!q) return;
-        if (q.type === 'multi') {
-          out[qid] = digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id);
-        } else {
-          const o = q.options[parseInt(digits, 10)];
-          if (o) out[qid] = o.id;
-        }
+        const digits = seg.slice(1);
+        if (q.type === 'multi') out[qid] = digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id);
+        else { const o = q.options[parseInt(digits, 10)]; if (o) out[qid] = o.id; }
       });
       return out;
     }
-
     hydrateFromUrl() {
-      const p = new URLSearchParams(window.location.search);
-      const vec = p.get('q');
+      const vec = new URLSearchParams(window.location.search).get('q');
       if (vec) {
         this.answers = this.decodeVector(vec);
         const complete = this.questions.every(q => this.answers[q.id] != null);
         this.step = complete ? 7 : (this.questions.findIndex(q => this.answers[q.id] == null) + 1 || 7);
       }
     }
-
     writeResultUrl(push) {
       const p = new URLSearchParams(window.location.search);
       p.set('q', this.encodeVector());
       const url = window.location.pathname + '?' + p.toString() + window.location.hash;
       if (push) history.pushState({ step: 7 }, '', url); else history.replaceState({ step: 7 }, '', url);
     }
+    bindHistory() { window.addEventListener('popstate', () => { this.hydrateFromUrl(); this.render(); }); }
 
-    bindHistory() {
-      window.addEventListener('popstate', () => { this.hydrateFromUrl(); this.activeTab = 'fynd'; this.render(); });
-    }
-
-    /* ---- navigation ---- */
-    answerSingle(q, optionId) {
-      this.answers[q.id] = optionId;
-      this.advance();
-    }
+    answerSingle(q, optionId) { this.answers[q.id] = optionId; this.advance(); }
     toggleMulti(q, optionId) {
       const opt = q.options.find(o => o.id === optionId);
       let cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
@@ -250,69 +208,42 @@
       }
       this.answers[q.id] = cur;
     }
-    advance() {
-      if (this.step >= 6) { this.step = 7; this.writeResultUrl(true); }
-      else { this.step += 1; }
-      this.activeTab = 'fynd';
-      this.render();
-    }
-    back() {
-      if (this.step > 1) this.step -= 1;
-      this.activeTab = 'fynd';
-      this.render();
-    }
-    restart() {
-      this.answers = {}; this.step = 1;
-      const url = window.location.pathname + window.location.hash;
-      history.pushState({ step: 1 }, '', url);
-      this.render();
-    }
+    advance() { if (this.step >= 6) { this.step = 7; this.writeResultUrl(true); } else { this.step += 1; } this.render(); }
+    back() { if (this.step > 1) this.step -= 1; this.render(); }
+    restart() { this.answers = {}; this.step = 1; history.pushState({ step: 1 }, '', window.location.pathname + window.location.hash); this.render(); }
 
-    /* ---- render dispatcher + fokushantering ---- */
     render() {
       const noscript = this.mount.querySelector('.ampy-ec__noscript');
       if (noscript) noscript.remove();
       this.mount.dataset.booted = 'true';
-
       const block = (this.step >= 7) ? this.renderResult() : this.renderQuestion(this.questions[this.step - 1]);
       this.mount.replaceChildren(block);
-
-      // En enda announcement-kanal: flytta fokus till stegets/beskedets rubrik.
       const focusTarget = this.mount.querySelector('[data-focus]');
       if (focusTarget) { try { focusTarget.focus({ preventScroll: false }); } catch (e) { focusTarget.focus(); } }
     }
 
-    /* =================================================================
-       FRÅGESTEG (single + multi)
-       ================================================================= */
+    /* ---------------- FRÅGESTEG ---------------- */
     renderQuestion(q) {
       const block = el('div', { class: 'ampy-ec__block', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
 
-      // Förloppsrad + tillbaka
+      if (this.step === 1 && this.data.meta.tool_intro) block.appendChild(el('p', { class: 'ampy-ec__intro' }, this.data.meta.tool_intro));
+
       const crumb = el('div', { class: 'ampy-ec__crumb' });
       if (this.step > 1) {
-        crumb.appendChild(el('button', {
-          class: 'ampy-ec__crumb-back', type: 'button',
-          'aria-label': 'Tillbaka till föregående fråga', onclick: () => this.back()
-        }, [iconSpan('arrowLeft'), 'Tillbaka']));
+        crumb.appendChild(el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till föregående fråga', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']));
         crumb.appendChild(el('span', { class: 'ampy-ec__crumb-sep', 'aria-hidden': 'true' }, '·'));
       }
+      const steps = el('div', { class: 'ampy-ec__steps', 'aria-hidden': 'true' });
+      for (let i = 1; i <= 6; i++) steps.appendChild(el('span', { class: i < this.step ? 'is-done' : (i === this.step ? 'is-current' : '') }));
+      crumb.appendChild(steps);
       crumb.appendChild(el('p', { class: 'ampy-ec__progress' }, this.data.copy.progress.replace('{n}', String(this.step))));
       block.appendChild(crumb);
 
-      // Frågetitel (fokusmål)
       block.appendChild(el('h2', { class: 'ampy-ec__q-title', id: 'ampy-ec-q', tabindex: '-1', 'data-focus': 'true' }, q.title));
       if (q.subtitle) block.appendChild(el('p', { class: 'ampy-ec__q-subtitle' }, q.subtitle));
 
-      if (q.type === 'multi') block.appendChild(this.renderMultiOptions(q));
-      else block.appendChild(this.renderSingleOptions(q));
-
-      // Alltid synlig lugn infonotis (aldrig expansion)
-      block.appendChild(el('div', { class: 'ampy-ec__info', role: 'note' }, [
-        iconSpan('info', 'ampy-ec__info-icon'),
-        el('p', { class: 'ampy-ec__info-text' }, q.note)
-      ]));
-
+      block.appendChild(q.type === 'multi' ? this.renderMultiOptions(q) : this.renderSingleOptions(q));
+      block.appendChild(el('div', { class: 'ampy-ec__info', role: 'note' }, [iconSpan('info', 'ampy-ec__info-icon'), el('p', { class: 'ampy-ec__info-text' }, q.note)]));
       return block;
     }
 
@@ -320,218 +251,217 @@
       const list = el('ul', { class: 'ampy-ec__options', role: 'list' });
       q.options.forEach(opt => {
         const selected = this.answers[q.id] === opt.id;
-        const btn = el('button', {
-          class: 'ampy-ec__option' + (selected ? ' is-selected' : ''),
-          type: 'button', onclick: () => this.answerSingle(q, opt.id)
+        list.appendChild(el('li', {}, el('button', {
+          class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id)
         }, [
           el('span', { class: 'ampy-ec__option-body' }, [
             el('span', { class: 'ampy-ec__option-title' }, opt.label),
             opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
           ]),
           iconSpan('arrowRight', 'ampy-ec__option-arrow')
-        ]);
-        list.appendChild(el('li', {}, btn));
+        ])));
       });
       return list;
     }
 
+    // In-place mutation (behåller fokus + tillförlitlig live-räkning). Aldrig replaceWith.
     renderMultiOptions(q) {
-      const wrap = document.createDocumentFragment();
       const group = el('ul', { class: 'ampy-ec__options', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
-      const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
+      const refs = {};
       q.options.forEach(opt => {
-        const checked = cur.includes(opt.id);
+        const checked = (Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []).includes(opt.id);
+        const check = el('span', { class: 'ampy-ec__check', 'aria-hidden': 'true' }, checked ? iconSpan('check') : null);
         const btn = el('button', {
           class: 'ampy-ec__option ampy-ec__option--multi' + (checked ? ' is-selected' : ''),
           type: 'button', role: 'checkbox', 'aria-checked': String(checked),
-          onclick: () => {
-            this.toggleMulti(q, opt.id);
-            // Re-rendera bara gruppen + fortsätt-knappens disabled-läge (behåll fokus i flödet)
-            const fresh = this.renderMultiOptions(q);
-            wrapNode.replaceWith(fresh);
-          }
-        }, [
-          el('span', { class: 'ampy-ec__check', 'aria-hidden': 'true' }, checked ? iconSpan('check') : null),
-          el('span', { class: 'ampy-ec__option-body' }, [
-            el('span', { class: 'ampy-ec__option-title' }, opt.label),
-            opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
-          ])
-        ]);
+          onclick: () => { this.toggleMulti(q, opt.id); sync(); }
+        }, [check, el('span', { class: 'ampy-ec__option-body' }, [
+          el('span', { class: 'ampy-ec__option-title' }, opt.label),
+          opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
+        ])]);
+        refs[opt.id] = { btn, check };
         group.appendChild(el('li', {}, btn));
       });
 
-      const count = cur.filter(id => id !== 'inget').length;
-      const fortsatt = el('div', { class: 'ampy-ec__multi-foot' }, [
-        el('span', { class: 'ampy-ec__multi-count', role: 'status', 'aria-live': 'polite' },
-          cur.length ? (cur.includes('inget') ? '' : (count + ' valda')) : ''),
-        el('button', {
-          class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline',
-          type: 'button',
-          disabled: cur.length === 0,
-          onclick: () => { if (cur.length) this.advance(); }
-        }, ['Fortsätt', iconSpan('arrowRight')])
-      ]);
+      const countSpan = el('span', { class: 'ampy-ec__multi-count', id: 'ampy-ec-multi-hint', role: 'status', 'aria-live': 'polite' });
+      const fortsatt = el('button', {
+        class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint',
+        onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) this.advance(); }
+      }, ['Fortsätt', iconSpan('arrowRight')]);
 
-      const wrapNode = el('div', { class: 'ampy-ec__multi' }, [group, fortsatt]);
-      wrap.appendChild(wrapNode);
-      return wrap;
+      const sync = () => {
+        const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
+        q.options.forEach(opt => {
+          const on = cur.includes(opt.id); const r = refs[opt.id];
+          r.btn.classList.toggle('is-selected', on);
+          r.btn.setAttribute('aria-checked', String(on));
+          r.check.replaceChildren(); if (on) r.check.appendChild(iconSpan('check'));
+        });
+        const n = cur.filter(id => id !== 'inget').length;
+        countSpan.textContent = cur.length ? (cur.includes('inget') ? '' : (n + (n === 1 ? ' vald' : ' valda'))) : this.data.copy.multi_hint;
+        fortsatt.setAttribute('aria-disabled', String(cur.length === 0));
+      };
+      sync();
+      return el('div', { class: 'ampy-ec__multi' }, [group, el('div', { class: 'ampy-ec__multi-foot' }, [countSpan, fortsatt])]);
     }
 
-    /* =================================================================
-       BESKED — tvåaxlat
-       ================================================================= */
+    /* ---------------- BESKED ---------------- */
     renderResult() {
       const dx = diagnose(this.answers, this.data);
       const data = this.data;
+      const m = data.verdict_matrix[dx.cell];
       const block = el('div', { class: 'ampy-ec__block ampy-ec__result', role: 'region', 'aria-labelledby': 'ampy-ec-result-h' });
 
-      // Tillbaka
       block.appendChild(el('div', { class: 'ampy-ec__crumb' }, [
-        el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till frågorna', onclick: () => this.back() },
-          [iconSpan('arrowLeft'), 'Tillbaka']),
+        el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till frågorna', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']),
         el('span', { class: 'ampy-ec__crumb-sep', 'aria-hidden': 'true' }, '·'),
         el('button', { class: 'ampy-ec__crumb-restart', type: 'button', onclick: () => this.restart() }, 'Börja om')
       ]));
 
-      // AKUT-notis (role=alert, FÖRST i DOM) — om bränd lukt
       if (dx.safety.escalation) {
         block.appendChild(el('div', { class: 'ampy-ec__akut', role: 'alert' }, [
           iconSpan('alert', 'ampy-ec__akut-icon'),
-          el('div', {}, [
-            el('p', { class: 'ampy-ec__akut-label' }, data.akut_notis.label),
-            el('p', { class: 'ampy-ec__akut-text' }, data.akut_notis.text)
-          ])
+          el('div', {}, [el('p', { class: 'ampy-ec__akut-label' }, data.akut_notis.label), el('p', { class: 'ampy-ec__akut-text' }, data.akut_notis.text)])
         ]));
       }
 
-      // Kombinerad summeringsmening = ljud-motsvarighet till squint-testet (fokusmål)
-      const summary = this.buildSummarySentence(dx);
-      block.appendChild(el('h2', { class: 'ampy-ec__result-h', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, summary));
-
-      // DUAL-STATUS (en delad accent = värsta axeln; två justerade rader)
+      block.appendChild(el('h2', { class: 'ampy-ec__result-h', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.selectHeadline(dx, m)));
       block.appendChild(this.renderDualStatus(dx));
-
-      // FYND
+      if (dx.cell !== 'sr' && m.summary) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, m.summary));
       block.appendChild(this.renderFindings(dx));
 
-      // FAKTANOTIS (den enda amber-accenten på skärmen)
       if (dx.cell === 'rs' || dx.cell === 'rr') {
         block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [
           iconSpan('info', 'ampy-ec__factnote-icon'),
           el('div', {}, [
-            el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text + ' ' + data.facts.insurance.text),
+            el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text),
+            el('p', { class: 'ampy-ec__factnote-text ampy-ec__factnote-text--quiet' }, data.facts.insurance.text),
             el('p', { class: 'ampy-ec__factnote-src' }, data.facts.brand.source)
           ])
         ]));
       }
 
-      // KOSTNAD (plain text, mono på kr-spann; två separata avdragsbaser)
       const cost = this.renderCost(dx);
       if (cost) block.appendChild(cost);
-
-      // CTA-zon
       block.appendChild(this.renderCta(dx));
-
-      // PDF-capture (lugn textlänk, aldrig en mur)
       block.appendChild(this.renderPdfCapture(dx));
-
       return block;
+    }
+
+    // Säkerhets-nivå vinner (kritiker-fix): 'hog' får alltid en bestämd rubrik.
+    selectHeadline(dx, m) {
+      if (m.headline_by_safety && m.headline_by_safety[dx.safety.state]) return m.headline_by_safety[dx.safety.state];
+      if (m.headline_by_ready && m.headline_by_ready[dx.ready.state]) return m.headline_by_ready[dx.ready.state];
+      return m.headline || this.buildSummarySentence(dx);
     }
 
     buildSummarySentence(dx) {
       const safetyPhrase = { lag: 'säker', forhojd: 'förhöjd risk', hog: 'hög risk', oklart: 'oklart läge' }[dx.safety.state];
-      const readyPhrase = {
-        redo_marginal: 'redo för elbil',
-        redo_med_atgard: 'redo för elbil med lastbalansering',
-        inte_redo: 'inte redo för elbil utan åtgärd',
-        kraver_bedomning: 'redo-läget behöver bedömas',
-        ej_bedomd: 'ingen planerad last'
-      }[dx.ready.state];
+      const readyPhrase = { redo_marginal: 'redo för elbil', redo_med_atgard: 'redo för elbil med lastbalansering', inte_redo: 'inte redo för elbil utan åtgärd', kraver_bedomning: 'redo-läget behöver bedömas', ej_bedomd: 'ingen planerad last' }[dx.ready.state];
       return 'Din central: ' + safetyPhrase + ', ' + readyPhrase + '.';
     }
 
     renderDualStatus(dx) {
       const data = this.data;
       const ss = data.safety_states[dx.safety.state];
-      const rsState = dx.ready.state;
-      const readyMeta = data.ready_states[rsState];
-      const readyPill = data.scoring.ready.pill_levels[rsState] || 'neutral';
-
-      // Accent = värsta axeln (säkerhet styr om risk; annars ready-nivå)
-      const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog')
-        ? ss.pill_level
-        : (readyPill === 'warning' ? 'warning' : ss.pill_level);
+      const readyMeta = data.ready_states[dx.ready.state];
+      const readyPill = data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
+      const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (readyPill === 'warning' ? 'warning' : ss.pill_level);
 
       const wrap = el('div', { class: 'ampy-ec__dualstatus', data: { worst } });
       wrap.appendChild(el('div', { class: 'ampy-ec__dualstatus-accent', 'aria-hidden': 'true' }));
-
       const rows = el('div', { class: 'ampy-ec__dualstatus-rows' });
-      // Rad 1: Säkerhet
       rows.appendChild(this.statusRow('Säkerhet', ss.label, ss.pill_level, ss.icon));
-      // Rad 2: Redo
-      const readyIcon = { success: 'check', warning: 'alert', info: 'info', neutral: 'info' }[readyPill] || 'info';
+      const readyIcon = { success: 'check', warning: 'alert', info: 'info', neutral: 'minus' }[readyPill] || 'minus';
       rows.appendChild(this.statusRow(readyMeta.axis_label, readyMeta.label, readyPill, readyIcon));
       wrap.appendChild(rows);
       return wrap;
     }
-
     statusRow(axisLabel, valueLabel, pillLevel, iconName) {
       return el('div', { class: 'ampy-ec__statusrow' }, [
         el('span', { class: 'ampy-ec__statusrow-axis' }, axisLabel),
-        el('span', { class: 'ampy-ec__pill', data: { level: pillLevel } }, [
-          iconSpan(iconName, 'ampy-ec__pill-icon'),
-          el('span', {}, valueLabel)
-        ])
+        el('span', { class: 'ampy-ec__pill', data: { level: pillLevel } }, [iconSpan(iconName, 'ampy-ec__pill-icon'), el('span', {}, valueLabel)])
       ]);
     }
 
     renderFindings(dx) {
       const findings = collectFindings(dx, this.data);
-      const list = el('ul', { class: 'ampy-ec__findings', role: 'list' });
+      const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
+      wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Dina fynd'));
+      const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
       findings.forEach(f => {
         const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info');
-        list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon }, [
-          iconSpan(iconName, 'ampy-ec__finding-icon'),
-          el('p', { class: 'ampy-ec__finding-text' }, f.text)
-        ]));
+        list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)]));
       });
-      return list;
+      wrap.appendChild(list);
+      return wrap;
+    }
+
+    scopeNote() {
+      const parts = (this.data.costs.date || '2026-06').split('-');
+      const months = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
+      const dlabel = ((months[(+parts[1]) - 1] || '') + ' ' + parts[0]).trim();
+      return (this.data.meta.scope_note || '').replace('{date}', dlabel);
     }
 
     renderCost(dx) {
       const c = this.data.costs;
-      const rows = [];
       const cell = dx.cell;
+      if (cell === 'sr') return null;
       const hasElbil = (this.answers.planer || []).includes('elbil');
-
-      if (cell === 'sr') return null; // inga åtgärder
-
-      if (cell === 'si') {
-        rows.push({ label: 'Laddbox med installation', value: 'Pris i offert', note: c.gron_teknik_note });
-        rows.push({ label: 'Lastbalansering', value: 'Pris i offert', note: c.gron_teknik_lastbalansering_note });
-      }
-      if (cell === 'rs' || cell === 'rr') {
-        rows.push({ label: 'Byte till modern central (villa)', value: c.centralbyte.villa.efter_rot + ' kr', note: 'efter ROT (' + c.centralbyte.villa.fore_rot + ' kr före). ' + this.data.meta.rot_note });
-        if (cell === 'rs') rows.push({ label: 'Jordfelsbrytare separat', value: c.jfb.typ_a + ' kr', note: 'installerad, typ A' });
-        // Dubbel-avdrag-skydd: laddbox med EGEN bas (grön teknik), separat rad
-        if (hasElbil) rows.push({ label: 'Laddbox (om du går vidare)', value: 'Pris i offert', note: c.gron_teknik_note });
-      }
+      const labourSigned = c.centralbyte._labour_signed === true;
 
       const block = el('div', { class: 'ampy-ec__cost' });
-      block.appendChild(el('p', { class: 'ampy-ec__cost-head' }, 'Indikativ kostnad'));
-      rows.forEach(r => {
-        block.appendChild(el('div', { class: 'ampy-ec__cost-row' }, [
-          el('span', { class: 'ampy-ec__cost-label' }, r.label),
-          el('span', { class: 'ampy-ec__cost-value' }, r.value)
-        ]));
-        if (r.note) block.appendChild(el('p', { class: 'ampy-ec__cost-note' }, r.note));
-      });
-      // Grönt avdrag som inline textlänk (cell si)
+      block.appendChild(el('p', { class: 'ampy-ec__cost-head' }, c.cost_head || 'Vad det ungefär kostar'));
+      let showedRotRow = false;
+      const addRow = (label, value, note) => {
+        block.appendChild(el('div', { class: 'ampy-ec__cost-row' }, [el('span', { class: 'ampy-ec__cost-label' }, label), el('span', { class: 'ampy-ec__cost-value' }, value)]));
+        if (note) block.appendChild(el('p', { class: 'ampy-ec__cost-note' }, note));
+      };
+
       if (cell === 'si') {
-        block.appendChild(el('a', { class: 'ampy-ec__cost-link', href: this.data.meta.laddbox_calc_url }, 'Räkna det gröna avdraget'));
+        if (dx.ready.state === 'inte_redo') {
+          addRow('Lastbalansering', 'Pris i offert', 'ofta det billigaste alternativet vid kapacitetsbrist.');
+          addRow('Uppsäkring eller byte', 'Pris i offert', 'om kapaciteten behöver höjas.');
+        } else {
+          addRow('Laddbox med installation', 'Pris i offert', c.gron_teknik_note);
+          addRow('Lastbalansering', 'Pris i offert', c.gron_teknik_lastbalansering_note);
+        }
       }
-      block.appendChild(el('p', { class: 'ampy-ec__cost-scope' }, this.data.meta.scope_note));
+      if (cell === 'rs' || cell === 'rr') {
+        const type = this.housingType || 'villa';
+        const typeLabel = { lagenhet: 'lägenhet', radhus: 'radhus', villa: 'villa' }[type];
+        const cb = c.centralbyte[type];
+        const value = labourSigned ? ('ca ' + cb.efter_rot + ' kr efter ROT') : (cb.fore_rot + ' kr');
+        addRow('Byte till modern central (' + typeLabel + ')', value, labourSigned ? null : 'före ROT.');
+        showedRotRow = true;
+        block.appendChild(this.renderHousingControl(dx));
+        if (cell === 'rs') { addRow('Jordfelsbrytare separat', c.jfb.typ_a + ' kr', 'installerad, typ A. ROT 30 % gäller arbetet.'); }
+        if (hasElbil) addRow('Laddbox (om du går vidare)', 'Pris i offert', c.gron_teknik_note);
+      }
+
+      if (showedRotRow && this.data.meta.rot_note) block.appendChild(el('p', { class: 'ampy-ec__cost-foot' }, this.data.meta.rot_note));
+      if (cell === 'si') block.appendChild(el('a', { class: 'ampy-ec__cost-link', href: this.data.meta.laddbox_calc_url }, 'Räkna det gröna avdraget'));
+      block.appendChild(el('p', { class: 'ampy-ec__cost-scope' }, this.scopeNote()));
       return block;
+    }
+
+    renderHousingControl(dx) {
+      const types = [['lagenhet', 'Lägenhet'], ['radhus', 'Radhus'], ['villa', 'Villa']];
+      const row = el('div', { class: 'ampy-ec__cost-segmented', role: 'radiogroup', 'aria-label': 'Bostadstyp' });
+      types.forEach(([id, label]) => {
+        const sel = (this.housingType || 'villa') === id;
+        row.appendChild(el('button', {
+          class: 'ampy-ec__seg' + (sel ? ' is-selected' : ''), type: 'button', role: 'radio', 'aria-checked': String(sel),
+          onclick: () => {
+            this.housingType = id;
+            const old = this.mount.querySelector('.ampy-ec__cost');
+            const fresh = this.renderCost(dx);
+            if (old && fresh) { old.replaceWith(fresh); const nb = fresh.querySelector('.ampy-ec__seg.is-selected'); if (nb) nb.focus(); }
+          }
+        }, label));
+      });
+      return row;
     }
 
     resolveCtaUrl(def) {
@@ -547,34 +477,28 @@
       const defs = this.data.cta_defs;
       const cta = matrix.cta;
 
-      // Grön cell: dynamisk lugn brygga (plan-styrd, D1) — aldrig solid teal
       if (dx.cell === 'sr') {
         let linkDef = null;
         const planer = this.answers.planer || [];
         const hasPlan = planer.some(p => p !== 'inget') && planer.length;
         const highFuse = ['25', '35'].includes(this.answers.huvudsakring);
-        if (hasPlan) linkDef = defs.laddbox_bridge;
-        else if (highFuse) linkDef = defs.nedsakring_hook;
+        if (hasPlan) linkDef = defs.laddbox_bridge; else if (highFuse) linkDef = defs.nedsakring_hook;
         if (linkDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
         wrap.appendChild(this.renderTrustRow(dx));
         return wrap;
       }
 
-      // Övriga celler: exakt EN solid-teal primär
-      if (cta.primary) {
-        let primaryDef = defs[cta.primary];
-        // Hög risk i rr → centralbyte-offert istället för besiktning
-        if (dx.cell === 'rr' && dx.safety.state === 'hog') primaryDef = defs.centralbyte_offert;
-        wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: this.resolveCtaUrl(primaryDef) },
-          [primaryDef.label, iconSpan('arrowRight')]));
-      }
-      if (cta.secondary) {
-        const sec = defs[cta.secondary];
-        wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(sec) }, [sec.label, iconSpan('arrowRight')]));
-      }
-      // Akut-väg: telefon-CTA
-      if (dx.safety.escalation) {
-        wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: defs.ring.url }, [iconSpan('phone'), defs.ring.label]));
+      let primaryDef = defs[cta.primary];
+      if (dx.cell === 'rr' && dx.safety.state === 'hog') primaryDef = defs.centralbyte_offert;
+      const ringSigned = defs.ring && !defs.ring._pending_signoff && defs.ring.url && defs.ring.url !== 'tel:+46812345678';
+
+      if (dx.safety.escalation && ringSigned) {
+        wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: defs.ring.url }, [iconSpan('phone'), defs.ring.label]));
+        if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
+      } else {
+        if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
+        if (cta.secondary) { const sec = defs[cta.secondary]; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(sec) }, [sec.label, iconSpan('arrowRight')])); }
+        if (dx.safety.escalation) wrap.appendChild(el('p', { class: 'ampy-ec__akut-phone-note' }, 'Ring oss gärna direkt. Numret bekräftas innan lansering.'));
       }
       wrap.appendChild(this.renderTrustRow(dx));
       return wrap;
@@ -583,51 +507,51 @@
     renderTrustRow(dx) {
       const row = el('div', { class: 'ampy-ec__trust-row' });
       row.appendChild(el('p', { class: 'ampy-ec__trust' }, [
-        'Ampy är registrerat hos Elsäkerhetsverket — ',
-        el('a', { href: this.data.meta.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, 'verifiera oss'),
+        this.data.copy.trust_pre + ' ',
+        el('a', { href: this.data.meta.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, this.data.copy.trust_link),
         '.'
       ]));
-      row.appendChild(this.renderShareButton(dx));
+      const right = el('div', { class: 'ampy-ec__trust-actions' });
+      if (dx.cell === 'sr') right.appendChild(el('span', { class: 'ampy-ec__share-nudge' }, this.data.copy.share_nudge_green));
+      right.appendChild(this.renderShareButton(dx));
+      row.appendChild(right);
       return row;
     }
 
+    // Feature-flag: dölj hela capture-blocket tills webhook OCH integritetspolicy finns.
     renderPdfCapture(dx) {
-      const green = (dx.cell === 'sr');
-      const label = green ? this.data.copy.pdf_capture_green : this.data.copy.pdf_capture;
+      if (!this.data.meta.pdf_webhook_url || !this.data.meta.privacy_policy_url) return document.createComment('pdf-capture dold: webhook/integritetspolicy saknas');
+      const label = (dx.cell === 'sr') ? this.data.copy.pdf_capture_green : this.data.copy.pdf_capture;
       const wrap = el('div', { class: 'ampy-ec__pdf' });
-      wrap.appendChild(el('button', {
-        class: 'ampy-ec__pdf-toggle', type: 'button', 'aria-expanded': 'false',
-        onclick: (e) => {
-          const open = wrap.dataset.open === 'true';
-          wrap.dataset.open = open ? 'false' : 'true';
-          e.currentTarget.setAttribute('aria-expanded', String(!open));
-          form.hidden = open;
-          if (!open) { const i = form.querySelector('input[type=email]'); if (i) i.focus(); }
-        }
-      }, [iconSpan('mail'), label]));
-      const form = el('form', { class: 'ampy-ec__pdf-form', hidden: true, onsubmit: (e) => { e.preventDefault(); status.textContent = 'Tack! Rapporten är på väg till din inkorg.'; } }, [
-        el('label', { class: 'ampy-ec__pdf-flabel', for: 'ampy-ec-email' }, 'E-post'),
-        el('input', { type: 'email', id: 'ampy-ec-email', class: 'ampy-ec__pdf-input', placeholder: 'din@epost.se', required: true, autocomplete: 'email' }),
-        el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' }),
-        el('label', { class: 'ampy-ec__pdf-consent' }, [
-          el('input', { type: 'checkbox', required: true }),
-          el('span', {}, 'Jag godkänner att Ampy mejlar min rapport. Ingen spam — bara rapporten och relevanta tips.')
-        ]),
+      const status = el('p', { class: 'ampy-ec__pdf-status', role: 'status', 'aria-live': 'polite' });
+      const hp = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
+      const email = el('input', { type: 'email', id: 'ampy-ec-email', class: 'ampy-ec__pdf-input', placeholder: 'din@epost.se', required: true, autocomplete: 'email' });
+      const consentBox = el('input', { type: 'checkbox', required: true });
+      const toggle = el('button', { class: 'ampy-ec__pdf-toggle', type: 'button', 'aria-expanded': 'false' }, [iconSpan('mail'), label]);
+      const form = el('form', { class: 'ampy-ec__pdf-form', hidden: true, onsubmit: async (e) => {
+        e.preventDefault();
+        if (hp.value) { status.textContent = 'Tack!'; return; }
+        status.textContent = 'Skickar…';
+        try {
+          await fetch(this.data.meta.pdf_webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': (window.AmpyEC && window.AmpyEC.restNonce) || '' }, body: JSON.stringify({ epost: email.value, vector: this.encodeVector(), cell: dx.cell, samtycke: consentBox.checked, webbplats: hp.value }) });
+          status.textContent = 'Tack! Rapporten är på väg till din inkorg.'; form.hidden = true; toggle.setAttribute('aria-expanded', 'false');
+        } catch (err) { status.textContent = 'Kunde inte skicka just nu. Försök igen om en stund.'; }
+      } }, [
+        el('label', { class: 'ampy-ec__pdf-flabel', for: 'ampy-ec-email' }, 'E-post'), email, hp,
+        el('label', { class: 'ampy-ec__pdf-consent' }, [consentBox, el('span', {}, [this.data.copy.pdf_consent + ' ', el('a', { href: this.data.meta.privacy_policy_url, target: '_blank', rel: 'noopener noreferrer' }, 'Integritetspolicy'), '.'])]),
         el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'submit' }, 'Mejla rapporten')
       ]);
-      const status = el('p', { class: 'ampy-ec__pdf-status', role: 'status', 'aria-live': 'polite' });
-      wrap.appendChild(form);
-      wrap.appendChild(status);
+      toggle.addEventListener('click', () => { const open = form.hidden === false; form.hidden = open; toggle.setAttribute('aria-expanded', String(!open)); if (!open) email.focus(); });
+      wrap.appendChild(toggle); wrap.appendChild(form); wrap.appendChild(status);
       return wrap;
     }
 
-    /* ---- Dela (touch: native share; desktop: popover) ---- */
+    /* ---------------- Dela ---------------- */
     renderShareButton(dx) {
-      const data = this.data;
       const status = el('span', { class: 'ampy-ec__share-status', role: 'status', 'aria-live': 'polite' });
       const shareUrl = window.location.origin + window.location.pathname + '?q=' + encodeURIComponent(this.encodeVector());
       const shareTitle = 'Elcentral-kollen';
-      const shareText = this.buildSummarySentence(dx);
+      const shareText = (dx.cell === 'sr') ? ((dx.ready.state === 'redo_marginal') ? this.data.copy.share_green_marginal : this.data.copy.share_green) : this.buildSummarySentence(dx);
       const anchor = el('span', { class: 'ampy-ec__share-anchor' });
       const menu = el('div', { class: 'ampy-ec__share-menu', role: 'menu', 'aria-label': 'Dela resultatet', hidden: true });
       const enc = encodeURIComponent;
@@ -636,12 +560,8 @@
         { label: 'X', icon: 'xtwitter', href: 'https://twitter.com/intent/tweet?url=' + enc(shareUrl) + '&text=' + enc(shareText) },
         { label: 'Reddit', icon: 'reddit', href: 'https://www.reddit.com/submit?url=' + enc(shareUrl) + '&title=' + enc(shareText) },
         { label: 'E-post', icon: 'mail', href: 'mailto:?subject=' + enc(shareTitle) + '&body=' + enc(shareText + ' ' + shareUrl) }
-      ].forEach(t => menu.appendChild(el('a', { class: 'ampy-ec__share-item', role: 'menuitem', href: t.href, target: '_blank', rel: 'noopener noreferrer', onclick: () => closeMenu() },
-        [iconSpan(t.icon, 'ampy-ec__share-item-icon'), el('span', {}, t.label)])));
-      menu.appendChild(el('button', { class: 'ampy-ec__share-item', type: 'button', role: 'menuitem', onclick: async () => {
-        try { await navigator.clipboard.writeText(shareUrl); flash('Länk kopierad.'); } catch (e) { flash('Kopiera URL:en manuellt.'); }
-        closeMenu();
-      } }, [iconSpan('link', 'ampy-ec__share-item-icon'), el('span', {}, 'Kopiera länk')]));
+      ].forEach(t => menu.appendChild(el('a', { class: 'ampy-ec__share-item', role: 'menuitem', href: t.href, target: '_blank', rel: 'noopener noreferrer', onclick: () => closeMenu() }, [iconSpan(t.icon, 'ampy-ec__share-item-icon'), el('span', {}, t.label)])));
+      menu.appendChild(el('button', { class: 'ampy-ec__share-item', type: 'button', role: 'menuitem', onclick: async () => { try { await navigator.clipboard.writeText(shareUrl); flash('Länk kopierad.'); } catch (e) { flash('Kopiera URL:en manuellt.'); } closeMenu(); } }, [iconSpan('link', 'ampy-ec__share-item-icon'), el('span', {}, 'Kopiera länk')]));
 
       const flash = (msg) => { status.textContent = msg; status.dataset.visible = 'true'; clearTimeout(this._flashT); this._flashT = setTimeout(() => { status.dataset.visible = 'false'; }, 2400); };
       const closeMenu = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', onDoc, true); document.removeEventListener('keydown', onKey, true); };
@@ -649,27 +569,20 @@
       const onDoc = (e) => { if (!anchor.contains(e.target)) closeMenu(); };
       const onKey = (e) => { if (e.key === 'Escape') { closeMenu(); btn.focus(); } };
 
-      const btn = el('button', { class: 'ampy-ec__share', type: 'button', 'aria-label': 'Dela resultatet', 'aria-haspopup': 'menu', 'aria-expanded': 'false', title: 'Dela resultatet',
-        onclick: async () => {
-          const isTouch = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-          if (navigator.share && isTouch) {
-            let file = null;
-            try { file = await this.generateShareImage(dx, shareUrl); } catch (e) {}
-            try {
-              const payload = { title: shareTitle, text: shareText, url: shareUrl };
-              if (file && navigator.canShare && navigator.canShare({ files: [file] })) payload.files = [file];
-              await navigator.share(payload); return;
-            } catch (e) {}
-          }
-          if (menu.hidden) openMenu(); else closeMenu();
+      const btn = el('button', { class: 'ampy-ec__share', type: 'button', 'aria-label': 'Dela resultatet', 'aria-haspopup': 'menu', 'aria-expanded': 'false', title: 'Dela resultatet', onclick: async () => {
+        const isTouch = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+        if (navigator.share && isTouch) {
+          let file = null;
+          try { file = await this.generateShareImage(dx, shareUrl, shareText); } catch (e) {}
+          try { const payload = { title: shareTitle, text: shareText, url: shareUrl }; if (file && navigator.canShare && navigator.canShare({ files: [file] })) payload.files = [file]; await navigator.share(payload); return; } catch (e) {}
         }
-      }, iconSpan('share'));
+        if (menu.hidden) openMenu(); else closeMenu();
+      } }, iconSpan('share'));
       anchor.appendChild(btn); anchor.appendChild(menu); anchor.appendChild(status);
       return anchor;
     }
 
-    /* ---- Delningskort (1200x630). Vit bakgrund, två små pillar, accent = värsta axeln. Aldrig röd-flödad. ---- */
-    async generateShareImage(dx, urlStr) {
+    async generateShareImage(dx, urlStr, shareText) {
       const W = 1200, H = 630;
       const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext('2d');
@@ -679,22 +592,24 @@
       const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (rPill === 'warning' ? 'warning' : ss.pill_level);
 
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = pal[worst] || pal.neutral; ctx.fillRect(0, 0, 16, H); // accent-stripe
-      ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '600 24px "Plus Jakarta Sans", system-ui, sans-serif';
-      ctx.fillText('AMPY · ELCENTRAL-KOLLEN', 72, 92);
+      ctx.fillStyle = pal[worst] || pal.neutral; ctx.fillRect(0, 0, 16, H);
+      ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '600 24px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText('AMPY · ELCENTRAL-KOLLEN', 72, 84);
+      if (this.data.meta.share_card_authority) { ctx.fillStyle = 'rgba(9,11,50,0.4)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif'; ctx.fillText(this.data.meta.share_card_authority, 72, 120); }
 
-      ctx.fillStyle = '#090b32'; ctx.font = '700 52px "Plus Jakarta Sans", system-ui, sans-serif';
-      this._wrap(ctx, this.buildSummarySentence(dx), 72, 200, W - 144, 60);
+      ctx.fillStyle = '#090b32'; ctx.font = '700 50px "Plus Jakarta Sans", system-ui, sans-serif';
+      this._wrap(ctx, shareText, 72, 220, W - 144, 60);
 
       const drawPill = (x, y, label, value, lvl) => {
         ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '500 24px "Outfit", system-ui, sans-serif'; ctx.fillText(label, x, y);
         ctx.fillStyle = pal[lvl] || pal.neutral; ctx.font = '700 34px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText(value, x, y + 44);
       };
-      drawPill(72, 420, 'Säkerhet', ss.label, ss.pill_level);
-      drawPill(620, 420, this.data.ready_states[dx.ready.state].axis_label, this.data.ready_states[dx.ready.state].label, rPill);
+      drawPill(72, 430, 'Säkerhet', ss.label, ss.pill_level);
+      drawPill(620, 430, this.data.ready_states[dx.ready.state].axis_label, this.data.ready_states[dx.ready.state].label, rPill);
 
-      ctx.fillStyle = 'rgba(9,11,50,0.5)'; ctx.font = '500 22px "Outfit", system-ui, sans-serif';
-      ctx.fillText(urlStr.replace(/^https?:\/\//, ''), 72, H - 56);
+      ctx.fillStyle = 'rgba(9,11,50,0.6)'; ctx.font = '600 22px "Outfit", system-ui, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(this.data.meta.share_card_cta || 'Gör testet gratis →', 72, H - 52);
+      ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(9,11,50,0.45)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif';
+      ctx.fillText(urlStr.replace(/^https?:\/\//, '').replace(/\?.*$/, ''), W - 72, H - 52); ctx.textAlign = 'left';
 
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.92));
       if (!blob) return null;
@@ -702,8 +617,7 @@
     }
     _wrap(ctx, text, x, y, maxW, lineH) {
       const words = String(text || '').split(/\s+/); let line = '', yy = y;
-      for (let i = 0; i < words.length; i++) { const test = line ? line + ' ' + words[i] : words[i];
-        if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = words[i]; yy += lineH; } else line = test; }
+      for (let i = 0; i < words.length; i++) { const test = line ? line + ' ' + words[i] : words[i]; if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = words[i]; yy += lineH; } else line = test; }
       if (line) ctx.fillText(line, x, yy);
     }
   }
@@ -712,11 +626,16 @@
   function boot(mount) {
     if (!mount || mount.dataset.booted === 'true') return;
     const injected = (window.AmpyEC && window.AmpyEC.data) || null;
-    if (injected) { new ElcentralApp(mount, injected).render(); return; }
+    const start = (data) => {
+      // Dev-assertion: bränd lukt MÅSTE vara golv-only (vikt 0) — skyddar invariant #4/#8.
+      try { if (data.scoring.weights.varningstecken.brand_lukt !== 0) console.warn('[Elcentral-kollen] VARNING: brand_lukt-vikten är inte 0 — eskaleringen ska vara golv-only, inte en addend.'); } catch (e) {}
+      new ElcentralApp(mount, data).render();
+    };
+    if (injected) { start(injected); return; }
     const dataUrl = mount.dataset.dataUrl || '../data/elcentralkollen-data.json';
     fetch(dataUrl, { credentials: 'same-origin' })
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(data => new ElcentralApp(mount, data).render())
+      .then(start)
       .catch(err => { console.error('[Elcentral-kollen] kunde inte ladda data:', err); mount.innerHTML = '<div class="ampy-ec__block"><p>Kunde inte ladda verktyget just nu.</p></div>'; });
   }
 

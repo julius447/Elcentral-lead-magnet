@@ -18,7 +18,7 @@
 | D1 | **Redo axis splits by PLAN, not just capacity.** A "Säker & redo" user who picked Elbil/laddbox in F6 gets a *confident-but-calm* bridge into the Laddbox-kalkylatorn; the true no-sell is reserved for "Säker & redo + Inget särskilt." | UVP **critical** + CRO + architect converged. Highest single lever on lead yield; invariant-safe because it serves a *stated* plan, not an invented problem. |
 | D2 | **Exactly ONE solid-teal primary CTA per cell.** Second action = outline; third = inline text link. Green cell = **no solid teal at all**. | UVP + UI + CRO independently. Restores doctrine + diagnosis-before-quote honesty. |
 | D3 | **Keep ≤6 questions (invariant #8). Scope the Redo verdict honestly** when current load/heating is unknown ("din central klarar X kapacitetsmässigt; exakt marginal räknar en besiktning ut"). | UVP flagged the heating gap; CPO keeps the 60–90 s promise sacred and resolves via honest scoping instead of a 7th question. |
-| D4 | **Prices scoped to Stockholm-området / Ellevio.** | Ampy's service_zones = greater Stockholm; all source PDFs Stockholm-priced. National claim indefensible. |
+| D4 | **Prices are NATIONAL (hela Sverige).** Owner directive (2026-06-11) — supersedes the earlier Stockholm scope. Numbers re-researched to riksrepresentative spans (FACTS §D1), shown as **före-ROT + ROT rule** (no unsigned efter-ROT figure) until the electrician signs the labour split. | Ampy works across Sweden. The tool shows a national scope line + a post-verdict housing-type control for correct per-type pricing. |
 | D5 | **Uncertainty ≠ risk.** "Vet inte" never alone pushes to amber; an uncertainty-dominated result renders **"Oklart — det svarar en besiktning på"** (info, not risk). | Architect + a11y + UVP. Protects honesty moat (invariant #2). |
 | D6 | **Escalation + present-symptom rules are hard FLOORS, not addends.** | Architect **critical**. A "pure addition" build otherwise ships GREEN for a stated fire-precursor. |
 | D7 | **Fourth, non-risk INFO pill state** for "Redo med lastbalansering" / "kräver bedömning". Amber/red spent only on real risk. | UI designer. Protects the amber/red signal. |
@@ -217,7 +217,7 @@ Representative archetypes; full enumerated set generated at build time as the te
 4. **Bränd lukt/missfärgning → akut floor**, role="alert", first in DOM, overrides green.
 5. **Present symptom → amber floor.**
 6. **Uncertainty ≠ risk** → "Oklart" rendering (D5).
-7. Costs = **spann + "Exakt pris kräver offert"**, dated, Stockholm-scoped.
+7. Costs = **spann + "Exakt pris kräver offert"**, dated, **national (Sverige)**; show före-ROT + ROT rule until labour split signed.
 8. **ROT vs grön teknik exact**; grön teknik never on centralbyte; lastbalansering "kan"; **double-discount guard** (two line items, two bases).
 9. **Exactly one solid-teal primary CTA per cell**; green cell has none.
 10. ≤6 questions, ≤90 s; "Vet inte" first-class; F5 never gates.

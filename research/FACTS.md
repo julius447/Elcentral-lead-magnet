@@ -11,14 +11,15 @@
 
 ---
 
-## A. SCOPE DECISION (locked by CPO)
+## A. SCOPE DECISION (locked by CPO — NATIONAL)
 
-**All prices and the nedsäkring-saving are scoped to Stockholm-området / Ellevio.**
-Rationale: Ampy's `service_zones` (in the Elkollen data file) are the entire greater-
-Stockholm region (stockholm, solna, nacka, huddinge, …). Every Ampy source PDF is
-explicitly Stockholm/Ellevio-priced (~10–15 % over riksgenomsnitt). A national claim
-would be indefensible; a Stockholm scope is both honest and accurate to Ampy's market.
-→ Cost copy carries the line: **"Priser avser normalpris i Stockholm-området, juni 2026. Exakt pris kräver offert."**
+**Ampy works across all of Sweden — prices are NATIONAL (riksrepresentative), not Stockholm.**
+(Owner directive, 2026-06-11. This supersedes the earlier Stockholm scope.) The original
+Ampy source PDFs are Stockholm-priced (~10–15 % over riksgenomsnitt), so the shipped numbers
+were **re-researched to national spans** (research-signed, electrician confirms — see §D1).
+→ Cost copy carries: **"Riktpriser för Sverige, {date}. De varierar med region, elnätsområde och anläggningens skick. Exakt pris kräver alltid en offert."**
+→ To stay bulletproof under marknadsföringslagen, the UI shows the **före-ROT span + the ROT rule**,
+NOT a computed efter-ROT kr figure, until the electrician signs the labour-share split (`costs.centralbyte._labour_signed`).
 
 ---
 

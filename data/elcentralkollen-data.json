@@ -1,18 +1,23 @@
 {
   "meta": {
-    "version": "1.0.0-rc1",
+    "version": "2.0.0-rc1",
     "product_name": "Elcentral-kollen",
-    "page_heading": "Är din elcentral säker — och redo?",
-    "page_lead": "Svara på 6 frågor. Få ett besked på två axlar, dina specifika fynd och vad en åtgärd ungefär kostar. Gratis, utan mejlkrav.",
+    "page_heading": "Är din elcentral säker och redo?",
+    "page_lead": "Svara på 6 frågor på under 90 sekunder. Du får veta om centralen är säker, om den är redo för dina planer (elbil, värmepump, solceller) och vad en åtgärd ungefär kostar. Gratis, inget mejl behövs.",
+    "tool_intro": "6 frågor · ca 60 sekunder · gratis besked, inget mejlkrav",
     "last_reviewed": "2026-06-XX",
     "reviewed_by": "TBD: auktoriserad elinstallatör innan lansering",
-    "_pending_signoff": "PENDING: (1) arketyp-sanningstabellen i docs/SPEC.md §6, (2) reconcilad centralbyte-range (research/FACTS.md D1), (3) elbesiktnings- + JFB-pris, (4) brandstatistik 298/78%/66%, (5) Ellevio 2026 nätavgift, (6) annons-copy, (7) GDPR fonter/samtycke. Inget pris eller besked går live osignerat.",
-    "scope_note": "Priser är riktpriser för en villa i Sverige, juni 2026. De varierar med region, elnätsområde och anläggningens skick. Exakt pris kräver offert.",
-    "disclaimer": "Vägledande bedömning baserad på dina svar — den ersätter inte en besiktning på plats.",
+    "_pending_signoff": "PENDING: (1) arketyp-sanningstabellen (docs/SPEC.md §6), (2) nationella centralbyte-spann + labour-andel för efter-ROT (research/FACTS.md D1), (3) elbesiktnings- + JFB-pris (nu nationella riktpriser, bekräfta), (4) brandstatistik (298 bekräftat; exakta procent ej skeppade), (5) Ampys publika telefonnummer, (6) annons-copy, (7) GDPR: självhostade fonter + integritetspolicy-URL + webhook. Inget pris eller besked går live osignerat.",
+    "scope_note": "Riktpriser för Sverige, {date}. De varierar med region, elnätsområde och anläggningens skick. Exakt pris kräver alltid en offert.",
+    "disclaimer": "Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.",
     "primary_source": "Elsäkerhetsverket & Skatteverket",
     "verify_company_url": "https://www.elsakerhetsverket.se/kollaelforetaget/foretagsregister/?foretag=12047521&sok=1",
     "ampy_offert_url": "https://ampy.se/offert/",
     "laddbox_calc_url": "https://ampy.se/laddboxkalkylator/",
+    "privacy_policy_url": null,
+    "pdf_webhook_url": null,
+    "share_card_authority": "Auktoriserat elinstallationsföretag · registrerat hos Elsäkerhetsverket",
+    "share_card_cta": "Gör testet gratis →",
     "service_pages": {
       "elbesiktning": "https://ampy.se/elservice/elbesiktning/",
       "centralbyte": "https://ampy.se/elservice/elcentral/",
@@ -21,7 +26,7 @@
       "uppsakring": "https://ampy.se/elservice/uppsakring/"
     },
     "rot_rate": "30 %",
-    "rot_note": "ROT är 30 % på arbetskostnaden (tak 50 000 kr/person/år). Gäller centralbyte och jordfelsbrytare. ROT återgick till 30 % den 1 januari 2026.",
+    "rot_note": "ROT drar 30 % på arbetskostnaden (tak 50 000 kr per person och år) och gäller centralbyte och jordfelsbrytare. Exakt avdrag räknas på offerten.",
     "embed_pages": ["/elservice/elcentral/", "/elbesiktning/", "/jordfelsbrytare/", "/lastbalansering/"]
   },
 
@@ -30,14 +35,14 @@
       "id": "alder",
       "axis": "safety",
       "type": "single",
-      "title": "Hur gammalt är huset — eller elcentralen om du vet?",
+      "title": "Hur gammalt är huset, eller elcentralen om du vet?",
       "note": "Centralens ålder är den starkaste enskilda indikatorn på både säkerhet och kapacitet.",
       "options": [
         { "id": "fore_1970", "label": "Före 1970" },
         { "id": "1970_1990", "label": "1970–1990" },
         { "id": "1990_2010", "label": "1990–2010" },
         { "id": "efter_2010", "label": "Efter 2010" },
-        { "id": "vet_inte", "label": "Vet inte" }
+        { "id": "vet_inte", "label": "Vet inte", "clarifier": "Vanligt, vi räknar ändå" }
       ]
     },
     {
@@ -47,9 +52,9 @@
       "title": "Vilka säkringar har du i centralen?",
       "note": "Skruvsäkringar tyder ofta på en central som är 30+ år.",
       "options": [
-        { "id": "skruv", "label": "Skruvsäkringar / proppar", "clarifier": "Runda säkringar man skruvar i" },
+        { "id": "skruv", "label": "Skruvsäkringar eller proppar", "clarifier": "Runda säkringar man skruvar i" },
         { "id": "automat", "label": "Automatsäkringar", "clarifier": "Vippknappar man slår av och på" },
-        { "id": "blandat", "label": "Blandat" },
+        { "id": "blandat", "label": "Blandat", "clarifier": "Både runda proppar och vippknappar i samma central" },
         { "id": "vet_inte", "label": "Vet inte" }
       ]
     },
@@ -58,7 +63,7 @@
       "axis": "safety",
       "type": "single",
       "title": "Finns det en jordfelsbrytare i centralen?",
-      "note": "Jordfelsbrytaren är det moderna skyddet mot felströmmar — den bryter mycket snabbt, inom bråkdelar av en sekund.",
+      "note": "Jordfelsbrytaren bryter strömmen blixtsnabbt om något läcker ut där det inte ska, till exempel om du råkar ta i en trasig sladd. Den är det viktigaste personskyddet i en modern central.",
       "options": [
         { "id": "ja", "label": "Ja", "clarifier": "En brytare med testknapp, ofta märkt T" },
         { "id": "nej", "label": "Nej" },
@@ -85,7 +90,7 @@
       "axis": "ready",
       "type": "single",
       "title": "Hur stor är din huvudsäkring?",
-      "note": "Vet du inte? Det är vanligt — välj Vet inte, vi räknar ändå. Siffran står ofta som t.ex. 20 A på elnätsfakturan under Elnät.",
+      "note": "Vet du inte? Det är vanligt, välj Vet inte så räknar vi ändå. Siffran står ofta som till exempel 20 A på elnätsfakturan under Elnät.",
       "options": [
         { "id": "16", "label": "16 A" },
         { "id": "20", "label": "20 A" },
@@ -112,7 +117,7 @@
   ],
 
   "scoring": {
-    "_comment": "Pure: known-risk addition -> level by threshold -> hard floors win -> uncertainty rendering. Weights are sign-off defaults (SPEC §6).",
+    "_comment": "Pure: known-risk addition -> level by threshold -> hard floors win -> uncertainty rendering. Weights are sign-off defaults (SPEC §6). UNCHANGED in v2 — engine oracle must stay 13/13.",
     "weights": {
       "alder": { "fore_1970": 3, "1970_1990": 2, "1990_2010": 1, "efter_2010": 0, "vet_inte": 0 },
       "sakringstyp": { "skruv": 2, "blandat": 1, "automat": 0, "vet_inte": 0 },
@@ -121,27 +126,15 @@
     },
     "thresholds": { "forhojd": 3, "hog": 6 },
     "floors": {
-      "present_symptom": {
-        "trigger_ids": ["loser_ut", "varma_uttag", "flimrar"],
-        "min_level": "forhojd",
-        "_why": "A present symptom (glappkontakt/överbelastning) is qualitatively different from a latent attribute. Floors to amber even if additive score is low."
-      },
-      "escalation": {
-        "trigger_id": "brand_lukt",
-        "min_level": "forhojd",
-        "forces_finding": "akut_kontroll",
-        "overrides_green": true,
-        "floor_only": true,
-        "_why": "Invariant: bränd lukt/missfärgning must always escalate regardless of other answers. Floor-only (not an addend) to avoid double-counting."
-      }
+      "present_symptom": { "trigger_ids": ["loser_ut", "varma_uttag", "flimrar"], "min_level": "forhojd", "_why": "A present symptom (glappkontakt/överbelastning) floors to amber even if additive score is low." },
+      "escalation": { "trigger_id": "brand_lukt", "min_level": "forhojd", "forces_finding": "akut_kontroll", "overrides_green": true, "floor_only": true, "_why": "Bränd lukt/missfärgning always escalates regardless of other answers. Floor-only (not an addend, weight=0)." }
     },
     "uncertainty": {
       "counts_fields": ["alder", "sakringstyp", "jordfelsbrytare", "huvudsakring"],
       "min_count": 2,
-      "_render": "If final level == lag AND uncertaintyCount >= 2 AND no present symptom/escalation -> safety state = 'oklart' (info pill, not amber), routes to besiktning honestly."
+      "_render": "If final level == lag AND uncertaintyCount >= 2 AND no present symptom/escalation -> safety state = 'oklart' (info pill, not amber)."
     },
     "ready": {
-      "_comment": "Ordered enum vs plan + huvudsäkring. ej_bedomd suppresses the Redo claim.",
       "no_plan_state": "ej_bedomd",
       "rules": [
         { "plan": "elbil", "huvudsakring": ["25", "35"], "state": "redo_marginal" },
@@ -161,19 +154,16 @@
       }
     },
     "cross_axis_rules": [
-      {
-        "if": { "alder_in": ["fore_1970", "1970_1990"], "sakringstyp": "skruv", "has_any_plan": true },
-        "then": { "ready_finding": "central_full", "strengthen_cell": "rr" }
-      }
+      { "if": { "alder_in": ["fore_1970", "1970_1990"], "sakringstyp": "skruv", "has_any_plan": true }, "then": { "ready_finding": "central_full", "strengthen_cell": "rr" } }
     ]
   },
 
   "ready_states": {
-    "ej_bedomd":        { "label": "Ingen planerad last — ej bedömd", "axis_label": "Redo" },
+    "ej_bedomd":        { "label": "Ej bedömd", "axis_label": "Redo" },
     "redo_marginal":    { "label": "Redo med marginal", "axis_label": "Redo för elbil" },
-    "redo_med_atgard":  { "label": "Redo med lastbalansering", "axis_label": "Redo för elbil" },
+    "redo_med_atgard":  { "label": "Med lastbalansering", "axis_label": "Redo för elbil" },
     "kraver_bedomning": { "label": "Kräver bedömning", "axis_label": "Redo" },
-    "inte_redo":        { "label": "Inte utan åtgärd", "axis_label": "Redo för elbil" }
+    "inte_redo":        { "label": "Behöver en åtgärd först", "axis_label": "Redo för elbil" }
   },
 
   "safety_states": {
@@ -185,125 +175,144 @@
 
   "verdict_matrix": {
     "sr": {
-      "cell": "Säker & redo",
+      "cell": "Säker och redo",
       "headline": "Din central ser bra ut.",
       "tone": "calm",
       "summary": "Inga säkerhetsbrister i dina svar, och kapaciteten räcker för det du planerar.",
       "cta": { "primary": null, "secondary": null, "link": "laddbox_bridge" }
     },
     "si": {
-      "cell": "Säker — men inte redo",
-      "headline": "Säker — men inte redo utan en åtgärd.",
+      "cell": "Säker, men inte redo än",
+      "headline": "Säker i dag, men inte riktigt redo än.",
+      "headline_by_ready": {
+        "redo_med_atgard": "Säker i dag. Redo för elbil med lastbalansering.",
+        "inte_redo": "Säker i dag. Inte riktigt redo för din plan än.",
+        "kraver_bedomning": "Säker i dag. Redo-läget avgörs av en kort bedömning."
+      },
       "tone": "constructive",
-      "summary": "Centralen ser trygg ut, men för din plan behövs en kapacitetsåtgärd.",
+      "summary": "Centralen ser trygg ut. För din plan behövs en kapacitetsåtgärd.",
       "cta": { "primary": "laddbox_offert", "secondary": "uppsakring_read", "link": "gron_avdrag" }
     },
     "rs": {
-      "cell": "Redo — men med säkerhetsbrist",
-      "headline": "Kapaciteten räcker — men det finns en säkerhetsbrist.",
+      "cell": "Redo, men något bör ses över",
+      "headline": "Något i säkerheten bör ses över innan du går vidare.",
+      "headline_by_ready": { "ej_bedomd": "Det finns något i säkerheten värt att kontrollera." },
+      "headline_by_safety": { "hog": "Centralen har flera kända riskfaktorer som bör ses över." },
       "tone": "serious",
-      "summary": "Centralen klarar din plan, men något bör kontrolleras innan du går vidare.",
+      "summary": "Centralen klarar din plan. Men något bör kontrolleras innan du går vidare.",
       "cta": { "primary": "besiktning", "secondary": "jfb_read", "link": null }
     },
     "rr": {
       "cell": "Varken säker eller redo",
       "headline": "Både säkerhet och kapacitet behöver ses över.",
+      "headline_by_safety": { "hog": "Centralen har flera kända riskfaktorer som bör ses över." },
       "tone": "serious",
-      "summary": "Ett centralbyte kan lösa båda samtidigt — det är ofta det starkaste alternativet.",
+      "summary": "Ett centralbyte kan lösa båda på en gång, och är ofta det mest prisvärda steget.",
       "cta": { "primary": "besiktning", "secondary": "centralbyte_read", "link": null }
     }
   },
 
   "cta_defs": {
     "besiktning":       { "kind": "primary", "label": "Boka elbesiktning", "url_key": "elbesiktning" },
-    "centralbyte_offert": { "kind": "primary", "label": "Få offert: centralbyte", "url": "ampy_offert_url" },
-    "laddbox_offert":   { "kind": "primary", "label": "Få offert: laddbox med lastbalansering", "url": "ampy_offert_url" },
+    "centralbyte_offert": { "kind": "primary", "label": "Begär offert på centralbyte", "url": "ampy_offert_url" },
+    "laddbox_offert":   { "kind": "primary", "label": "Begär offert på laddbox", "url": "ampy_offert_url" },
     "uppsakring_read":  { "kind": "secondary", "label": "Läs om uppsäkring", "url_key": "uppsakring" },
     "jfb_read":         { "kind": "secondary", "label": "Läs om jordfelsbrytare", "url_key": "jordfelsbrytare" },
     "centralbyte_read": { "kind": "secondary", "label": "Läs om centralbyte", "url_key": "centralbyte" },
-    "laddbox_bridge":   { "kind": "link", "label": "Din central klarar en laddbox — räkna din besparing", "url": "laddbox_calc_url" },
+    "laddbox_bridge":   { "kind": "link", "label": "Din central klarar en laddbox. Räkna din besparing.", "url": "laddbox_calc_url" },
     "gron_avdrag":      { "kind": "link", "label": "Räkna det gröna avdraget", "url": "laddbox_calc_url" },
-    "nedsakring_hook":  { "kind": "link", "label": "Du kanske kan säkra ned och sänka nätavgiften — fråga oss", "url": "ampy_offert_url" },
-    "ring":             { "kind": "link", "label": "Ring oss", "url": "tel:+46812345678" }
+    "nedsakring_hook":  { "kind": "link", "label": "Du kanske kan säkra ned och sänka nätavgiften. Fråga oss.", "url": "ampy_offert_url" },
+    "ring":             { "kind": "link", "label": "Ring oss", "url": "tel:+46812345678", "_pending_signoff": "Bekräfta Ampys publika nummer; +46812345678 är platshållare. Telefon-CTA visas inte som klickbar förrän signerad." }
   },
 
   "findings": [
-    { "id": "f_skruv", "when": { "sakringstyp": "skruv" }, "icon": "warn", "text": "Skruvsäkringar — tyder på en central som ofta är 30+ år och kan vara underdimensionerad." },
-    { "id": "f_blandat", "when": { "sakringstyp": "blandat" }, "icon": "warn", "text": "Blandade säkringar — delar av centralen kan vara av äldre generation." },
-    { "id": "f_automat", "when": { "sakringstyp": "automat" }, "icon": "ok", "text": "Automatsäkringar — en modernare och säkrare lösning än skruvsäkringar." },
-    { "id": "f_jfb_nej", "when": { "jordfelsbrytare": "nej" }, "icon": "warn", "text": "Ingen jordfelsbrytare — anläggningen saknar det moderna personskyddet mot felströmmar. (Ett krav vid nyinstallation, inte retroaktivt — men rekommenderas starkt.)" },
-    { "id": "f_jfb_ja", "when": { "jordfelsbrytare": "ja" }, "icon": "ok", "text": "Jordfelsbrytare finns — det moderna personskyddet är på plats." },
-    { "id": "f_jfb_vetinte", "when": { "jordfelsbrytare": "vet_inte" }, "icon": "info", "text": "Du är osäker på om det finns jordfelsbrytare — det är i sig ett skäl att titta efter, eller låta en besiktning svara på det." },
-    { "id": "f_brand_lukt", "when": { "varningstecken_has": "brand_lukt" }, "icon": "warn", "text": "Bränd lukt eller missfärgade uttag — ett tecken som alltid bör kontrolleras." },
-    { "id": "f_varma", "when": { "varningstecken_has": "varma_uttag" }, "icon": "warn", "text": "Varma uttag eller strömbrytare — ett klassiskt tecken på glappkontakt." },
-    { "id": "f_loser_ut", "when": { "varningstecken_has": "loser_ut" }, "icon": "warn", "text": "Säkringar som löser ut ofta — tyder på överbelastning eller fel." },
-    { "id": "f_flimrar", "when": { "varningstecken_has": "flimrar" }, "icon": "warn", "text": "Lampor som flimrar — kan vara ett tecken på dålig kontakt i installationen." },
-    { "id": "f_inga_tecken", "when": { "varningstecken_has": "inget" }, "icon": "ok", "text": "Inga varningstecken i vardagen — bra utgångsläge." },
-    { "id": "f_gammal", "when": { "alder_in": ["fore_1970", "1970_1990"] }, "icon": "info", "text": "Äldre anläggning — branschens tumregel är att ett byte kan övervägas vid 30–50 år (inte en regel från myndighet)." },
-    { "id": "f_central_full", "when": { "cross_axis": "central_full" }, "icon": "warn", "text": "Centralen är sannolikt fullbelagd — ett byte frigör grupper och löser både säkerhet och kapacitet på en gång." },
-    { "id": "f_redo_marginal", "when": { "ready_state": "redo_marginal" }, "icon": "ok", "text": "Huvudsäkringen ger marginal för en laddbox vid sidan av hushållet." },
-    { "id": "f_lastbalansering", "when": { "ready_state": "redo_med_atgard" }, "icon": "info", "text": "Med 20 A bör laddboxen kombineras med lastbalansering (en box som fördelar strömmen så inget överbelastas) — branschens tumregel." },
-    { "id": "f_16a_block", "when": { "ready_state": "inte_redo" }, "icon": "warn", "text": "Med 16 A behövs en åtgärd för laddning: lastbalansering och eventuellt uppsäkring eller byte." },
-    { "id": "f_ready_bedomning", "when": { "ready_state": "kraver_bedomning" }, "icon": "info", "text": "Exakt marginal beror på din nuvarande förbrukning (t.ex. elvärme) — det räknar en besiktning eller lastbalanseringsbedömning ut." },
-    { "id": "f_huvudsakring_vetinte", "when": { "huvudsakring": "vet_inte" }, "icon": "info", "text": "Du vet inte huvudsäkringens storlek — det är vanligt, och det är just en sådan sak en besiktning klargör." },
-    { "id": "f_nedsakring", "when": { "huvudsakring_in": ["25", "35"], "no_plan": true }, "icon": "info", "text": "Du ligger relativt högt säkrad utan stora planer — då kan en nedsäkring sänka den fasta nätavgiften. Hur mycket beror på ditt elnätsbolag. Fråga oss." }
+    { "id": "f_jfb_nej", "rank": 10, "when": { "jordfelsbrytare": "nej" }, "icon": "warn", "text": "Ingen jordfelsbrytare: din anläggning saknar det moderna personskyddet mot felströmmar. Det är ett krav vid nyinstallation, inte i efterhand, men rekommenderas starkt." },
+    { "id": "f_skruv", "rank": 20, "when": { "sakringstyp": "skruv" }, "icon": "warn", "text": "Skruvsäkringar: tyder på en central som ofta är 30+ år och kan vara underdimensionerad." },
+    { "id": "f_central_full", "rank": 22, "when": { "cross_axis": "central_full" }, "icon": "warn", "text": "Centralen är sannolikt fullbelagd: ett byte frigör grupper (kretsar) och löser både säkerhet och kapacitet på en gång." },
+    { "id": "f_blandat", "rank": 25, "when": { "sakringstyp": "blandat" }, "icon": "warn", "text": "Blandade säkringar: delar av centralen kan vara av äldre generation." },
+    { "id": "f_varma", "rank": 30, "when": { "varningstecken_has": "varma_uttag" }, "icon": "warn", "text": "Varma uttag eller strömbrytare: ett klassiskt tecken på glappkontakt." },
+    { "id": "f_loser_ut", "rank": 31, "when": { "varningstecken_has": "loser_ut" }, "icon": "warn", "text": "Säkringar som löser ut ofta: tyder på överbelastning eller fel." },
+    { "id": "f_flimrar", "rank": 32, "when": { "varningstecken_has": "flimrar" }, "icon": "warn", "text": "Lampor som flimrar: kan vara ett tecken på dålig kontakt i installationen." },
+    { "id": "f_16a_block", "rank": 35, "when": { "ready_state": "inte_redo" }, "icon": "warn", "text": "Med 16 A behövs en åtgärd för laddning: lastbalansering och eventuellt uppsäkring (att öka huvudsäkringen) eller byte." },
+    { "id": "f_gammal", "rank": 40, "when": { "alder_in": ["fore_1970", "1970_1990"] }, "icon": "info", "text": "Äldre anläggning: branschens tumregel är att ett byte kan övervägas vid 30–50 år. Det är ingen åldersgräns från myndighet." },
+    { "id": "f_lastbalansering", "rank": 45, "when": { "ready_state": "redo_med_atgard" }, "icon": "info", "text": "Med 20 A bör laddboxen kombineras med lastbalansering, en liten enhet som fördelar strömmen så inget överbelastas. Det är branschens tumregel." },
+    { "id": "f_ready_bedomning", "rank": 48, "when": { "ready_state": "kraver_bedomning" }, "icon": "info", "text": "Exakt marginal beror på din nuvarande förbrukning, till exempel elvärme. Det räknar en besiktning eller lastbalanseringsbedömning ut." },
+    { "id": "f_jfb_vetinte", "rank": 50, "when": { "jordfelsbrytare": "vet_inte" }, "icon": "info", "text": "Du är osäker på om det finns jordfelsbrytare. Det är i sig ett skäl att titta efter, eller låta en besiktning svara på det." },
+    { "id": "f_huvudsakring_vetinte", "rank": 52, "when": { "huvudsakring": "vet_inte" }, "icon": "info", "text": "Du vet inte huvudsäkringens storlek. Det är vanligt, och det är just en sådan sak en besiktning klargör." },
+    { "id": "f_nedsakring", "rank": 55, "when": { "huvudsakring_in": ["25", "35"], "no_plan": true }, "icon": "info", "text": "Du ligger relativt högt säkrad utan stora planer. Då kan en nedsäkring sänka den fasta nätavgiften. Hur mycket beror på ditt elnätsbolag." },
+    { "id": "f_automat", "rank": 60, "when": { "sakringstyp": "automat" }, "icon": "ok", "text": "Du har automatsäkringar: den modernare, säkrare typen. Bra utgångsläge." },
+    { "id": "f_jfb_ja", "rank": 61, "when": { "jordfelsbrytare": "ja" }, "icon": "ok", "text": "Jordfelsbrytare finns: det moderna personskyddet är på plats." },
+    { "id": "f_redo_marginal", "rank": 62, "when": { "ready_state": "redo_marginal" }, "icon": "ok", "text": "Huvudsäkringen ger marginal för en laddbox vid sidan av hushållet." },
+    { "id": "f_inga_tecken", "rank": 65, "when": { "varningstecken_has": "inget" }, "icon": "ok", "text": "Inga varningstecken i vardagen: bra utgångsläge." },
+    { "id": "f_brand_lukt", "rank": 1, "when": { "varningstecken_has": "brand_lukt" }, "icon": "warn", "text": "Bränd lukt eller missfärgade uttag: ett tecken som alltid bör kontrolleras." }
   ],
 
   "akut_notis": {
-    "label": "Viktigt",
-    "text": "Bränd lukt eller missfärgade uttag ska alltid kontrolleras av en elektriker — oavsett övriga svar."
+    "label": "Kontrollera detta först",
+    "text": "Du har angett bränd lukt eller missfärgade uttag. Det bör alltid kontrolleras av en elektriker, oavsett vad resten av kollen visar."
   },
 
   "facts": {
     "brand": {
-      "text": "Elcentralen orsakade 298 registrerade händelser 2018–2022, varav 78 % ledde till brand. Villa och radhus är starkt överrepresenterade.",
-      "source": "Källa: Elsäkerhetsverket, Elrelaterade bostadsbränder 2018–2022.",
-      "_pending_signoff": "Bekräfta 298 / 78 % / 66 %-siffrorna mot rapportens tabell före lansering."
+      "text": "Elsäkerhetsverket registrerade 298 händelser 2018–2022 där elcentralen var orsaken. Villor och radhus är överrepresenterade.",
+      "source": "Elsäkerhetsverket, rapporten Elrelaterade bostadsbränder 2018–2022.",
+      "_pending_signoff": "298 bekräftat via Elinstallatören som citerar rapporten. Exakta procent (källa anger 72 % brandandel; villa/radhus-procent ej bekräftad) skeppas EJ förrän rapportens tabell lästs och signerats."
     },
     "insurance": {
-      "text": "Hemförsäkringen kan sätta ned eller neka ersättning om en skada beror på arbete som inte gjorts fackmannamässigt."
+      "text": "Om en skada beror på arbete som inte gjorts fackmannamässigt kan hemförsäkringen sätta ned eller neka ersättning."
     },
     "age_rule": {
-      "text": "Branschens tumregel är att ett byte kan övervägas vid 30–50 år. Det är ingen åldersgräns från myndighet — överinstallation är inte säkerhet."
+      "text": "Branschens tumregel är att ett byte kan övervägas vid 30–50 år. Det är ingen åldersgräns från myndighet, och att byta i onödan ger inte mer säkerhet."
     }
   },
 
   "costs": {
     "currency": "kr",
     "date": "2026-06",
-    "_pending_signoff": "Reconcila EN daterad range; Ampys tre PDF:er motsäger varandra (se research/FACTS.md D1). Defaults nedan = matrix-figurerna.",
+    "cost_head": "Vad det ungefär kostar",
+    "_scope": "NATIONELL (hela Sverige). Riksrepresentativa riktpriser, research-signerade juni 2026, elektriker bekräftar.",
+    "_pending_signoff": "Bekräfta nationella spann + labour-andel för efter-ROT (research/FACTS.md D1). Källor: sonochfar.se, leadhive.se, hbel.se, hantverkskollen.se (juni 2026).",
     "centralbyte": {
-      "lagenhet": { "fore_rot": "12 000–18 000", "efter_rot": "10 200–15 300" },
-      "radhus":   { "fore_rot": "16 000–26 000", "efter_rot": "13 600–22 400" },
-      "villa":    { "fore_rot": "22 000–35 000", "efter_rot": "18 700–30 200" }
+      "_labour_signed": false,
+      "_labour_note": "Visa före-ROT + ROT-regeln tills elektriker signerat arbetskostnadsandelen. efter_rot-talen är research-härledda (30 % ROT på ~50–55 % labour) men renderas inte som kr-siffra förrän signerade.",
+      "lagenhet": { "fore_rot": "9 000–16 000", "efter_rot": "7 200–13 000" },
+      "radhus":   { "fore_rot": "13 000–22 000", "efter_rot": "10 500–18 000" },
+      "villa":    { "fore_rot": "15 000–28 000", "efter_rot": "12 000–22 800" }
     },
-    "jfb": { "typ_a": "1 500–2 500", "typ_b": "4 500–5 400", "_pending_signoff": "Bekräfta exakt spann installerad." },
-    "besiktning": { "value": "TBD", "_pending": "Ägaren levererar Ampys listpris." },
-    "laddbox": { "note": "Laddbox med installation prissätts i offert; den gröna teknik-delen dras av (50 %)." },
+    "jfb": { "typ_a": "3 000–6 000", "typ_b": "5 000–9 000", "_note": "installerad, inkl. moms, före ROT. Efter ROT lägre.", "_pending_signoff": "Nationella installerade riktpriser; bekräfta." },
+    "besiktning": { "value": "3 000–6 000", "note": "riktpris villa, inkl. moms. Exakt pris kräver offert.", "_pending_signoff": "Nationellt riktpris; ägaren kan ange Ampys listpris." },
+    "laddbox": { "note": "Laddbox med installation prissätts i offert. Den gröna teknik-delen dras av med 50 %." },
     "lastbalansering": { "note": "Lastbalansering prissätts i offert, ofta det billigaste alternativet vid kapacitetsbrist." },
     "gron_teknik_pct": "50 %",
     "gron_teknik_note": "Grön teknik ger 50 % på laddbox-delen (laddningspunkt, kabel till elcentral, laddkabel). Grön teknik gäller inte centralbyte.",
-    "gron_teknik_lastbalansering_note": "Lastbalansering kan omfattas av grön teknik när den ingår som en del av laddboxinstallationen — bedöms av Skatteverket.",
+    "gron_teknik_lastbalansering_note": "Lastbalansering kan omfattas av grön teknik när den ingår som en del av laddboxinstallationen. Det bedöms av Skatteverket.",
     "double_discount_guard": "Visa centralbyte (ROT, arbetskostnad) och laddbox (grön teknik, egen bas) som två separata rader. Applicera aldrig båda avdragen på samma krona.",
-    "note_geo": "NATIONELL SCOPE (hela Sverige). Riktpriser varierar med region/elnätsområde — sprinten ska researcha riksrepresentativa spann (Ampys käll-PDF:er är Stockholmsprisade, ~10–15 % över riksgenomsnittet).",
     "nedsakring": {
-      "note": "Många villor ligger onödigt högt säkrade. En nedsäkring kan sänka den fasta nätavgiften — hur mycket beror på ditt elnätsbolag.",
-      "examples": { "20_till_16": "ofta ca 1 000–2 000 kr/år", "25_till_16": "ofta ca 2 500–4 000 kr/år" },
-      "_pending_signoff": "Bekräfta riksrepresentativa nätavgiftsbesparingar (varierar per elnätsbolag); använd 'kan' och spann, inte ett exakt nationellt tal."
+      "note": "Många villor ligger onödigt högt säkrade. En nedsäkring kan sänka den fasta nätavgiften. Hur mycket beror på ditt elnätsbolag.",
+      "examples": { "20_till_16": "ofta ca 1 500–1 800 kr/år", "25_till_16": "ofta ca 2 000–3 500 kr/år" },
+      "_pending_signoff": "Nationell triangulering (Vattenfall, Bixia, Mälarenergi 2026). Varierar per elnätsbolag; använd alltid 'kan' och spann."
     }
   },
 
   "copy": {
-    "trust": "Ampy är registrerat hos Elsäkerhetsverket — verifiera oss.",
-    "friskrivning": "Vägledande bedömning — ersätter inte en besiktning på plats.",
-    "pdf_capture": "Få hela rapporten som PDF + en checklista att ta med när elektrikern kommer.",
-    "pdf_capture_green": "Vill du ha din rapport sparad? Vi mejlar PDF:en plus en påminnelse inför nästa steg.",
+    "trust_pre": "Ampy är registrerat hos Elsäkerhetsverket.",
+    "trust_link": "Verifiera oss",
+    "friskrivning": "Vägledande bedömning. Den ersätter inte en besiktning på plats.",
+    "findings_head": "Dina fynd",
+    "cost_head": "Vad det ungefär kostar",
+    "pdf_capture": "Maila mig rapporten som PDF, plus en checklista att ta med när elektrikern kommer.",
+    "pdf_capture_green": "Vill du spara ditt gröna besked? Vi mejlar rapporten som PDF.",
+    "pdf_consent": "Jag godkänner att Ampy mejlar mig rapporten som PDF. Vi sparar din adress för det, inget annat, och du kan avregistrera dig när som helst.",
+    "pdf_consent_no_policy": "Integritetspolicy saknas i datafilen. Formuläret visas inte förrän meta.privacy_policy_url är satt.",
+    "share_green_marginal": "Min elcentral är säker och redo för elbil. Ampys Elcentral-kollen.",
+    "share_green": "Min elcentral fick grönt ljus i Ampys Elcentral-kollen. Säker.",
+    "share_nudge_green": "Dela det gröna beskedet",
     "progress": "Fråga {n}/6",
-    "result_summary_template": "Din central: {safety}, {ready}."
+    "multi_hint": "Välj det som stämmer"
   },
 
   "state_schema": {
-    "_comment": "URL answer-vector: ?q=a<i>.s<i>.j<i>.w<digits>.h<i>.p<digits>. Multi-select digits concatenate option indices. Decode table here keeps it signable.",
+    "_comment": "URL answer-vector: ?q=a<i>.s<i>.j<i>.w<digits>.h<i>.p<digits>. Multi-select digits concatenate option indices.",
     "order": ["alder", "sakringstyp", "jordfelsbrytare", "varningstecken", "huvudsakring", "planer"],
     "prefixes": { "alder": "a", "sakringstyp": "s", "jordfelsbrytare": "j", "varningstecken": "w", "huvudsakring": "h", "planer": "p" }
   }
