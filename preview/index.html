@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Elcentral-kollen — är din elcentral säker och redo? | Ampy</title>
+  <meta name="description" content="Svara på 6 frågor och få veta om din elcentral har kända riskfaktorer — och om den klarar elbil, värmepump och solceller. Gratis, utan mejlkrav." />
+  <link rel="stylesheet" href="../assets/elcentralkollen.css" />
+  <style>
+    /* Page-heading lever OVANFÖR verktyget (motsvarar Bricks-rubriken). */
+    .ampy-ec__page-head { max-width: 60rem; margin: 3.2rem auto 1.6rem; padding: 0 1.6rem; }
+    .ampy-ec__page-heading { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: clamp(2.8rem, 2rem + 2.5vw, 4rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; color: rgb(9,11,50); margin: 0 0 0.8rem; }
+    .ampy-ec__page-lead { font-family: 'Outfit', system-ui, sans-serif; font-size: clamp(1.5rem, 1.2rem + 0.5vw, 1.8rem); font-weight: 400; line-height: 1.5; color: #5a5d7a; margin: 0; max-width: 52rem; }
+    @media (max-width: 767px) { .ampy-ec__page-head { padding: 0 1.4rem; margin: 2rem auto 0.8rem; } }
+    html, body { margin: 0; padding: 0; min-height: 100%; background: #f4f5fb; }
+    body { font-family: 'Outfit', system-ui, sans-serif; }
+    /* QA-bar — endast preview, skickas ALDRIG till produktion. */
+    .qa-bar { position: sticky; top: 0; z-index: 30; background: rgba(9,11,50,0.96); color: #fff; padding: 0.5rem 1.25rem; font-size: 0.78rem; backdrop-filter: blur(6px); }
+    .qa-bar details { display: inline-block; }
+    .qa-bar summary { cursor: pointer; list-style: none; color: rgba(255,255,255,0.7); font-weight: 500; }
+    .qa-bar summary::-webkit-details-marker { display: none; }
+    .qa-bar summary::before { content: '⌘ '; opacity: 0.5; }
+    .qa-bar nav { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .qa-bar a { color: rgb(57,194,129); text-decoration: none; padding: 0.2rem 0.55rem; border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; font-size: 0.7rem; }
+    .qa-bar a:hover { background: rgba(255,255,255,0.06); }
+    main { padding-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="qa-bar">
+    <details>
+      <summary>QA-genvägar (preview only)</summary>
+      <nav aria-label="Genvägar för testning">
+        <a href="./">Start (Fråga 1)</a>
+        <a href="./?q=a3.s1.j0.w4.h2.p0">Cell 1 · Säker &amp; redo (elbil)</a>
+        <a href="./?q=a2.s1.j0.w4.h1.p0">Cell 2 · Säker, inte redo (lastbal.)</a>
+        <a href="./?q=a3.s1.j0.w3.h2.p4">Cell 3 · AKUT bränd lukt</a>
+        <a href="./?q=a0.s0.j1.w0.h0.p0">Cell 4 · Varken (byte löser båda)</a>
+        <a href="./?q=a4.s3.j2.w4.h4.p4">Oklart (osäkerhet ≠ risk)</a>
+      </nav>
+    </details>
+  </div>
+
+  <main>
+    <header class="ampy-ec__page-head">
+      <h1 class="ampy-ec__page-heading">Är din elcentral säker — och redo?</h1>
+      <p class="ampy-ec__page-lead">Svara på 6 frågor. Få ett besked på två axlar, dina specifika fynd och vad en åtgärd ungefär kostar. Gratis, utan mejlkrav.</p>
+    </header>
+
+    <div class="ampy-ec" data-data-url="../data/elcentralkollen-data.json">
+      <div class="ampy-ec__noscript">
+        <div class="ampy-ec__block">
+          <p>Elcentral-kollen ställer 6 snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Verktyget kräver JavaScript. Läs mer om våra tjänster:</p>
+          <ul>
+            <li><a href="https://ampy.se/elservice/elbesiktning/">Elbesiktning</a></li>
+            <li><a href="https://ampy.se/elservice/elcentral/">Byta elcentral</a></li>
+            <li><a href="https://ampy.se/elservice/jordfelsbrytare/">Installera jordfelsbrytare</a></li>
+            <li><a href="https://ampy.se/elservice/lastbalansering/">Lastbalansering</a></li>
+          </ul>
+          <p>Vägledande bedömning — ersätter inte en besiktning på plats.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/elcentralkollen.js"></script>
+</body>
+</html>
