@@ -525,7 +525,7 @@
       const wrap = el('div', { class: 'ampy-ec__pdf' });
       const status = el('p', { class: 'ampy-ec__pdf-status', role: 'status', 'aria-live': 'polite' });
       const hp = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
-      const email = el('input', { type: 'email', id: 'ampy-ec-email', class: 'ampy-ec__pdf-input', placeholder: 'din@epost.se', required: true, autocomplete: 'email' });
+      const email = el('input', { type: 'email', id: 'ampy-ec-email', class: 'ampy-ec__pdf-input', placeholder: 'din@epost.se', required: true, autocomplete: 'email', inputmode: 'email', enterkeyhint: 'send', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' });
       const consentBox = el('input', { type: 'checkbox', required: true });
       const toggle = el('button', { class: 'ampy-ec__pdf-toggle', type: 'button', 'aria-expanded': 'false' }, [iconSpan('mail'), label]);
       const form = el('form', { class: 'ampy-ec__pdf-form', hidden: true, onsubmit: async (e) => {

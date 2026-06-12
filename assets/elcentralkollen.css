@@ -55,6 +55,9 @@ html { font-size: 62.5%; }
   --text-success: rgb(15, 110, 86);
 
   --action-primary: rgb(0, 169, 145);
+  /* AA-safe darkened teal for white text on solid fills (white-on ≈ 5.3:1). --action-primary stays for borders/links/focus/progress (non-text). */
+  --action-primary-strong: rgb(0, 122, 105);
+  --action-primary-strong-hover: rgb(0, 108, 93);
 
   --state-success: rgb(57, 194, 129);
   --state-warning: rgb(245, 175, 25);
@@ -277,8 +280,8 @@ html { font-size: 62.5%; }
 .ampy-ec__cta-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0,169,145,0.25); }
 .ampy-ec__cta-primary svg { width: 1.6rem; height: 1.6rem; }
 .ampy-ec__cta-primary[disabled] { opacity: 0.5; cursor: not-allowed; }
-.ampy-ec__cta-primary--solid { background: var(--action-primary); color: var(--text-inverse); border-color: var(--action-primary); }
-.ampy-ec__cta-primary--solid:hover { opacity: 0.92; background: var(--action-primary); border-color: var(--action-primary); }
+.ampy-ec__cta-primary--solid { background: var(--action-primary-strong); color: var(--text-inverse); border-color: var(--action-primary-strong); }
+.ampy-ec__cta-primary--solid:hover { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); }
 .ampy-ec__cta-primary--outline { background: transparent; }
 
 .ampy-ec__cta-secondary {
@@ -332,7 +335,7 @@ html { font-size: 62.5%; }
 .ampy-ec__pdf-form { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); }
 .ampy-ec__pdf-form[hidden] { display: none; }
 .ampy-ec__pdf-flabel { font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); }
-.ampy-ec__pdf-input { width: 100%; font: inherit; font-size: var(--fs-14); padding: var(--space-5); border: 1px solid var(--border-default); border-radius: var(--radius-md); min-height: 4.4rem; }
+.ampy-ec__pdf-input { width: 100%; font: inherit; font-size: var(--fs-16); padding: var(--space-5); border: 1px solid var(--border-default); border-radius: var(--radius-md); min-height: 4.4rem; }
 .ampy-ec__pdf-input:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0,169,145,0.15); }
 .ampy-ec__pdf-consent { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--fs-12); color: var(--text-secondary); line-height: 1.5; }
 .ampy-ec__pdf-consent input { margin-top: 0.3rem; flex-shrink: 0; }
