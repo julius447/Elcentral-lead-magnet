@@ -1,9 +1,9 @@
 /* ============================================================================
-   Elcentral-kollen v3 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.2 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
-     2. ENGINE — pure compute (UNCHANGED v1→v3; oracle 13/13)
-     3. VIEW   — tvåpanels-shell (rail + stage) på desktop, en kolumn på mobil;
-                 besked med dual-status som hjälte (squint-testet), lugn lede.
+     2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
+                 som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
+     3. VIEW   — start -> 7 frågor -> tvåaxlat besked. Tvåpanels-shell på desktop.
    Doktrin: docs/SPEC.md + docs/DESIGN.md. UI-copy är svensk by design.
    ============================================================================ */
 (function () {
@@ -11,7 +11,6 @@
 
   const ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
-    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>',
     ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
@@ -29,6 +28,15 @@
   };
   const icon = (name) => ICONS[name] || ICONS.info;
 
+  const START_ILLU = '<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+    + '<circle cx="60" cy="60" r="56" fill="#f0f9f5"/>'
+    + '<rect x="40" y="30" width="40" height="62" rx="6" fill="#ffffff" stroke="#090b32" stroke-width="2.5"/>'
+    + '<line x1="40" y1="45" x2="80" y2="45" stroke="#090b32" stroke-width="2"/>'
+    + '<rect x="46" y="54" width="12" height="6" rx="2" fill="#00a991"/><rect x="62" y="54" width="12" height="6" rx="2" fill="#e3e5ed"/>'
+    + '<rect x="46" y="66" width="12" height="6" rx="2" fill="#e3e5ed"/><rect x="62" y="66" width="12" height="6" rx="2" fill="#00a991"/>'
+    + '<rect x="46" y="78" width="12" height="6" rx="2" fill="#00a991"/><rect x="62" y="78" width="12" height="6" rx="2" fill="#e3e5ed"/>'
+    + '<circle cx="83" cy="37" r="14" fill="#007a69"/><path d="M77 37l4 4 8-8" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
   const el = (tag, attrs, children) => {
     const node = document.createElement(tag);
     if (attrs) for (const k in attrs) {
@@ -40,20 +48,29 @@
       else if (attrs[k] === true) node.setAttribute(k, '');
       else if (attrs[k] !== false && attrs[k] != null) node.setAttribute(k, attrs[k]);
     }
-    if (children) (Array.isArray(children) ? children : [children]).forEach(c => {
-      if (c == null || c === false) return;
-      node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-    });
+    if (children) (Array.isArray(children) ? children : [children]).forEach(c => { if (c == null || c === false) return; node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
     return node;
   };
   const iconSpan = (name, cls) => el('span', { class: cls || null, html: icon(name), 'aria-hidden': 'true', style: 'display:inline-flex' });
 
-  /* ===================== ENGINE (oförändrad; oracle 13/13) ===================== */
+  /* ===================== ENGINE ===================== */
   const LEVEL_ORDER = { lag: 0, forhojd: 1, hog: 2 };
   const maxLevel = (a, b) => (LEVEL_ORDER[a] >= LEVEL_ORDER[b] ? a : b);
+
+  // Effektiv central-ålder för poäng: central_alder styr, hus_alder är proxy vid 'original'.
+  function effectiveCentralAge(a, data) {
+    const c = a.central_alder, hus = a.hus_alder, map = (data.scoring.central_age_map || {});
+    if (c === 'recent' || c === 'older') return { bracket: map[c], uncertain: false };
+    if (c === 'original') { const known = hus && hus !== 'vet_inte'; return { bracket: known ? hus : null, uncertain: !known }; }
+    // c === 'vet_inte' / undefined: proxa hus men markera osäker
+    const known = hus && hus !== 'vet_inte';
+    return { bracket: known ? hus : null, uncertain: true };
+  }
+
   function computeSafety(answers, data) {
     const w = data.scoring.weights, warn = answers.varningstecken || [];
-    let score = (w.alder[answers.alder] || 0) + (w.sakringstyp[answers.sakringstyp] || 0) + (w.jordfelsbrytare[answers.jordfelsbrytare] || 0);
+    const eca = effectiveCentralAge(answers, data);
+    let score = (w.alder[eca.bracket] || 0) + (w.sakringstyp[answers.sakringstyp] || 0) + (w.jordfelsbrytare[answers.jordfelsbrytare] || 0);
     warn.forEach(id => { score += (w.varningstecken[id] || 0); });
     const t = data.scoring.thresholds;
     let level = score >= t.hog ? 'hog' : (score >= t.forhojd ? 'forhojd' : 'lag');
@@ -63,28 +80,24 @@
     const escalation = warn.includes(floors.escalation.trigger_id);
     if (escalation) level = maxLevel(level, floors.escalation.min_level);
     const unc = data.scoring.uncertainty;
-    const uncertaintyCount = unc.counts_fields.filter(f => answers[f] === 'vet_inte').length;
+    const uncertaintyCount = (eca.uncertain ? 1 : 0) + unc.counts_fields.filter(f => answers[f] === 'vet_inte').length;
     let state = level;
     if (level === 'lag' && uncertaintyCount >= unc.min_count && !presentSymptom && !escalation) state = 'oklart';
-    return { score, level, state, uncertaintyCount, presentSymptom, escalation };
+    return { score, level, state, uncertaintyCount, presentSymptom, escalation, ecaBracket: eca.bracket };
   }
   const pickPrimaryPlan = (planer) => ['elbil', 'varmepump', 'solceller', 'renovering'].find(p => (planer || []).includes(p)) || null;
   function computeReady(answers, data) {
     const planer = answers.planer || [];
     if (!planer.length || planer.includes('inget')) return { state: 'ej_bedomd', plan: null };
     const plan = pickPrimaryPlan(planer);
-    for (const r of data.scoring.ready.rules) {
-      if (r.plan !== plan) continue;
-      if (r.huvudsakring && !r.huvudsakring.includes(answers.huvudsakring)) continue;
-      return { state: r.state, plan };
-    }
+    for (const r of data.scoring.ready.rules) { if (r.plan !== plan) continue; if (r.huvudsakring && !r.huvudsakring.includes(answers.huvudsakring)) continue; return { state: r.state, plan }; }
     return { state: 'kraver_bedomning', plan };
   }
   function computeCrossAxis(answers, data) {
-    const out = {};
+    const out = {}, eca = effectiveCentralAge(answers, data);
     (data.scoring.cross_axis_rules || []).forEach(rule => {
       const c = rule.if; let ok = true;
-      if (c.alder_in && !c.alder_in.includes(answers.alder)) ok = false;
+      if (c.central_age_in && !c.central_age_in.includes(eca.bracket)) ok = false;
       if (c.sakringstyp && answers.sakringstyp !== c.sakringstyp) ok = false;
       if (c.has_any_plan) { const p = answers.planer || []; if (!p.length || (p.length === 1 && p.includes('inget'))) ok = false; }
       if (ok) { out.ready_finding = rule.then.ready_finding; out.strengthen_cell = rule.then.strengthen_cell; }
@@ -102,13 +115,14 @@
     const safety = computeSafety(answers, data), ready = computeReady(answers, data), crossAxis = computeCrossAxis(answers, data);
     return { answers, safety, ready, crossAxis, cell: computeCell(safety, ready) };
   }
-  function findingMatches(when, dx) {
+  function findingMatches(when, dx, data) {
     const a = dx.answers;
     if (when.sakringstyp && a.sakringstyp !== when.sakringstyp) return false;
     if (when.jordfelsbrytare && a.jordfelsbrytare !== when.jordfelsbrytare) return false;
+    if (when.central_alder && a.central_alder !== when.central_alder) return false;
     if (when.huvudsakring && a.huvudsakring !== when.huvudsakring) return false;
     if (when.huvudsakring_in && !when.huvudsakring_in.includes(a.huvudsakring)) return false;
-    if (when.alder_in && !when.alder_in.includes(a.alder)) return false;
+    if (when.central_age_in) { const b = effectiveCentralAge(a, data).bracket; if (!when.central_age_in.includes(b)) return false; }
     if (when.varningstecken_has && !(a.varningstecken || []).includes(when.varningstecken_has)) return false;
     if (when.ready_state && dx.ready.state !== when.ready_state) return false;
     if (when.cross_axis && dx.crossAxis.ready_finding !== when.cross_axis) return false;
@@ -116,23 +130,22 @@
     return true;
   }
   function collectFindings(dx, data) {
-    const matched = (data.findings || []).filter(f => findingMatches(f.when, dx)).filter(f => f.id !== 'f_brand_lukt');
+    const matched = (data.findings || []).filter(f => findingMatches(f.when, dx, data)).filter(f => f.id !== 'f_brand_lukt');
     const hasWarn = matched.some(f => f.icon === 'warn');
     const order = hasWarn ? { warn: 0, info: 1, ok: 2 } : { ok: 0, info: 1, warn: 2 };
     return matched.sort((x, y) => (order[x.icon] - order[y.icon]) || ((x.rank || 50) - (y.rank || 50)));
   }
-  const isNumeric = (v) => /\d/.test(String(v));
 
   /* ===================== APP ===================== */
   class ElcentralApp {
     constructor(mount, data) {
       this.mount = mount; this.data = data; this.questions = data.questions;
-      this.answers = {}; this.step = 1; this.housingType = 'villa'; this.dir = 'fwd'; this._flashT = null;
-      this.stage = null;
+      this.N = this.questions.length;            // antal frågor (7)
+      this.answers = {}; this.step = 0;          // 0 = start, 1..N = frågor, N+1 = besked
+      this.dir = 'fwd'; this._flashT = null; this.stage = null;
       this.hydrateFromUrl(); this.bindHistory();
     }
 
-    /* URL = state */
     encodeVector() {
       const pre = this.data.state_schema.prefixes;
       return this.questions.map(q => {
@@ -157,12 +170,12 @@
     }
     hydrateFromUrl() {
       const vec = new URLSearchParams(window.location.search).get('q');
-      if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => this.answers[q.id] != null); this.step = complete ? 7 : (this.questions.findIndex(q => this.answers[q.id] == null) + 1 || 7); }
+      if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => this.answers[q.id] != null); this.step = complete ? (this.N + 1) : 0; }
     }
     writeResultUrl(push) {
       const p = new URLSearchParams(window.location.search); p.set('q', this.encodeVector());
       const url = window.location.pathname + '?' + p.toString() + window.location.hash;
-      if (push) history.pushState({ step: 7 }, '', url); else history.replaceState({ step: 7 }, '', url);
+      if (push) history.pushState({ step: this.N + 1 }, '', url); else history.replaceState({ step: this.N + 1 }, '', url);
     }
     bindHistory() { window.addEventListener('popstate', () => { this.hydrateFromUrl(); this.render(); }); }
 
@@ -174,31 +187,23 @@
       else { cur = cur.filter(id => { const o = q.options.find(oo => oo.id === id); return !(o && o.exclusive); }); cur = cur.includes(optionId) ? cur.filter(id => id !== optionId) : cur.concat(optionId); }
       this.answers[q.id] = cur;
     }
-    advance() { this.dir = 'fwd'; if (this.step >= 6) { this.step = 7; this.writeResultUrl(true); } else this.step += 1; this.render(); }
-    back() { this.dir = 'back'; if (this.step > 1) this.step -= 1; this.render(); }
-    restart() { this.dir = 'back'; this.answers = {}; this.step = 1; history.pushState({ step: 1 }, '', window.location.pathname + window.location.hash); this.render(); }
+    advance() { this.dir = 'fwd'; if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
+    back() { this.dir = 'back'; if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
+    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
 
-    /* Shell byggs en gång: rail (persistent ram) + stage (frågor/besked swappas) */
     buildShell() {
-      this.mount.replaceChildren();
-      this.mount.dataset.booted = 'true';
+      this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
       const shell = el('div', { class: 'ampy-ec__shell' });
       shell.appendChild(this.renderRail());
       this.stage = el('div', { class: 'ampy-ec__stage' });
-      shell.appendChild(this.stage);
-      this.mount.appendChild(shell);
+      shell.appendChild(this.stage); this.mount.appendChild(shell);
     }
     renderRail() {
       const m = this.data.meta, rail = m.rail || {};
       const aside = el('aside', { class: 'ampy-ec__rail' });
-      aside.appendChild(el('p', { class: 'ampy-ec__rail-eyebrow' }, rail.eyebrow || m.product_name));
       aside.appendChild(el('h1', { class: 'ampy-ec__rail-heading' }, m.page_heading));
       aside.appendChild(el('p', { class: 'ampy-ec__rail-lead' }, m.page_lead));
-      if (rail.thesis) {
-        const ul = el('ul', { class: 'ampy-ec__rail-thesis', role: 'list' });
-        rail.thesis.forEach(t => ul.appendChild(el('li', {}, [el('span', { class: 'ampy-ec__rail-axis' }, t.axis), ' ' + t.desc])));
-        aside.appendChild(ul);
-      }
+      if (rail.thesis) { const ul = el('ul', { class: 'ampy-ec__rail-thesis', role: 'list' }); rail.thesis.forEach(t => ul.appendChild(el('li', {}, [el('span', { class: 'ampy-ec__rail-axis' }, t.axis), ' ' + t.desc]))); aside.appendChild(ul); }
       aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
         iconSpan('shield', 'ampy-ec__rail-cred-icon'),
         el('div', {}, [
@@ -210,29 +215,45 @@
     }
 
     render() {
-      const noscript = this.mount.querySelector('.ampy-ec__noscript');
-      if (noscript) noscript.remove();
+      const noscript = this.mount.querySelector('.ampy-ec__noscript'); if (noscript) noscript.remove();
       if (!this.stage) this.buildShell();
-      const block = (this.step >= 7) ? this.renderResult() : this.renderQuestion(this.questions[this.step - 1]);
+      let block;
+      if (this.step <= 0) block = this.renderStart();
+      else if (this.step > this.N) block = this.renderResult();
+      else block = this.renderQuestion(this.questions[this.step - 1]);
       block.dataset.dir = this.dir;
       this.stage.replaceChildren(block);
       const focusTarget = block.querySelector('[data-focus]');
       if (focusTarget) { try { focusTarget.focus({ preventScroll: false }); } catch (e) { focusTarget.focus(); } }
     }
 
+    renderSteps() {
+      const steps = el('div', { class: 'ampy-ec__steps', 'aria-hidden': 'true' });
+      for (let i = 1; i <= this.N; i++) steps.appendChild(el('span', { class: this.step > i ? 'is-done' : (this.step === i ? 'is-current' : '') }));
+      return steps;
+    }
+
+    /* ---------------- START ---------------- */
+    renderStart() {
+      const s = this.data.meta.start || {};
+      const block = el('div', { class: 'ampy-ec__block ampy-ec__start' });
+      block.appendChild(el('div', { class: 'ampy-ec__crumb ampy-ec__crumb--start' }, [this.renderSteps()]));
+      block.appendChild(el('div', { class: 'ampy-ec__start-illu', html: START_ILLU, 'aria-hidden': 'true' }));
+      block.appendChild(el('h2', { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
+      if (s.body) block.appendChild(el('p', { class: 'ampy-ec__start-body' }, s.body));
+      block.appendChild(el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__start-cta', type: 'button', onclick: () => this.advance() }, [(s.cta || 'Starta test'), iconSpan('arrowRight')]));
+      return block;
+    }
+
     /* ---------------- FRÅGESTEG ---------------- */
     renderQuestion(q) {
       const block = el('div', { class: 'ampy-ec__block', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
-      if (this.step === 1 && this.data.meta.tool_intro) block.appendChild(el('p', { class: 'ampy-ec__intro' }, this.data.meta.tool_intro));
-
       const crumb = el('div', { class: 'ampy-ec__crumb' });
       const left = el('div', { class: 'ampy-ec__crumb-left' });
-      const steps = el('div', { class: 'ampy-ec__steps', 'aria-hidden': 'true' });
-      for (let i = 1; i <= 6; i++) steps.appendChild(el('span', { class: i < this.step ? 'is-done' : (i === this.step ? 'is-current' : '') }));
-      left.appendChild(steps);
-      left.appendChild(el('span', { class: 'ampy-ec__sr' }, this.data.copy.progress.replace('{n}', String(this.step))));
+      left.appendChild(this.renderSteps());
+      left.appendChild(el('span', { class: 'ampy-ec__sr' }, this.data.copy.progress.replace('{n}', String(this.step)).replace('{total}', String(this.N))));
       crumb.appendChild(left);
-      if (this.step > 1) crumb.appendChild(el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till föregående fråga', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']));
+      crumb.appendChild(el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': (this.step === 1 ? 'Tillbaka till start' : 'Tillbaka till föregående fråga'), onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']));
       block.appendChild(crumb);
 
       block.appendChild(el('h2', { class: 'ampy-ec__q-title', id: 'ampy-ec-q', tabindex: '-1', 'data-focus': 'true' }, q.title));
@@ -241,21 +262,15 @@
       block.appendChild(el('div', { class: 'ampy-ec__info', role: 'note' }, [iconSpan('info', 'ampy-ec__info-icon'), el('p', { class: 'ampy-ec__info-text' }, q.note)]));
       return block;
     }
-
     renderSingleOptions(q) {
       const list = el('ul', { class: 'ampy-ec__options', role: 'list' });
       q.options.forEach(opt => {
         const selected = this.answers[q.id] === opt.id;
-        list.appendChild(el('li', {}, el('button', {
-          class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id)
-        }, [el('span', { class: 'ampy-ec__option-body' }, [
-          el('span', { class: 'ampy-ec__option-title' }, opt.label),
-          opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
-        ])])));
+        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id) },
+          [el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])])));
       });
       return list;
     }
-
     renderMultiOptions(q) {
       const group = el('ul', { class: 'ampy-ec__options', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
       const refs = {};
@@ -264,50 +279,39 @@
         const check = el('span', { class: 'ampy-ec__check', 'aria-hidden': 'true' }, checked ? iconSpan('check') : null);
         const btn = el('button', { class: 'ampy-ec__option ampy-ec__option--multi' + (checked ? ' is-selected' : ''), type: 'button', role: 'checkbox', 'aria-checked': String(checked), onclick: () => { this.toggleMulti(q, opt.id); sync(); } },
           [check, el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])]);
-        refs[opt.id] = { btn, check };
-        group.appendChild(el('li', {}, btn));
+        refs[opt.id] = { btn, check }; group.appendChild(el('li', {}, btn));
       });
-      const countSpan = el('span', { class: 'ampy-ec__multi-count', id: 'ampy-ec-multi-hint', role: 'status', 'aria-live': 'polite' });
+      const hint = el('span', { class: 'ampy-ec__sr', id: 'ampy-ec-multi-hint' }, this.data.copy.multi_aria || 'Välj minst ett alternativ.');
       const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) this.advance(); } }, ['Fortsätt', iconSpan('arrowRight')]);
       const sync = () => {
         const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
         q.options.forEach(opt => { const on = cur.includes(opt.id), r = refs[opt.id]; r.btn.classList.toggle('is-selected', on); r.btn.setAttribute('aria-checked', String(on)); r.check.replaceChildren(); if (on) r.check.appendChild(iconSpan('check')); });
-        const n = cur.filter(id => id !== 'inget').length;
-        countSpan.textContent = cur.length ? (cur.includes('inget') ? '' : (n + (n === 1 ? ' vald' : ' valda'))) : this.data.copy.multi_hint;
         fortsatt.setAttribute('aria-disabled', String(cur.length === 0));
       };
       sync();
-      return el('div', { class: 'ampy-ec__multi' }, [group, el('div', { class: 'ampy-ec__multi-foot' }, [countSpan, fortsatt])]);
+      return el('div', { class: 'ampy-ec__multi' }, [group, hint, el('div', { class: 'ampy-ec__multi-foot' }, [fortsatt])]);
     }
 
-    /* ---------------- BESKED (dual-status = hjälte) ---------------- */
+    /* ---------------- BESKED ---------------- */
     renderResult() {
       const dx = diagnose(this.answers, this.data), data = this.data, m = data.verdict_matrix[dx.cell];
       const block = el('div', { class: 'ampy-ec__block ampy-ec__result', role: 'region', 'aria-labelledby': 'ampy-ec-result-h' });
-
       block.appendChild(el('div', { class: 'ampy-ec__crumb ampy-ec__crumb--result' }, [
         el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till frågorna', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']),
         el('button', { class: 'ampy-ec__crumb-restart', type: 'button', onclick: () => this.restart() }, 'Börja om')
       ]));
-
       if (dx.safety.escalation) block.appendChild(el('div', { class: 'ampy-ec__akut', role: 'alert' }, [iconSpan('alert', 'ampy-ec__akut-icon'), el('div', {}, [el('p', { class: 'ampy-ec__akut-label' }, data.akut_notis.label), el('p', { class: 'ampy-ec__akut-text' }, data.akut_notis.text)])]));
-
-      // SR-rubrik (osynlig) = kombinerad tvåaxlad mening; fokusmål
       block.appendChild(el('h2', { class: 'ampy-ec__sr', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.buildSummarySentence(dx)));
-
       block.appendChild(el('p', { class: 'ampy-ec__result-eyebrow' }, 'Ditt besked'));
-      block.appendChild(this.renderDualStatus(dx));            // HJÄLTE
-      if (m.summary) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, m.summary));  // lugn komplement-lede
+      block.appendChild(this.renderDualStatus(dx));
+      if (m.summary) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, m.summary));
       block.appendChild(this.renderFindings(dx));
-
       if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text), el('p', { class: 'ampy-ec__factnote-text ampy-ec__factnote-text--quiet' }, data.facts.insurance.text), el('p', { class: 'ampy-ec__factnote-src' }, data.facts.brand.source)])]));
-
-      const cost = this.renderCost(dx); if (cost) block.appendChild(cost);
       block.appendChild(this.renderCta(dx));
+      block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
       return block;
     }
-
     selectHeadline(dx, m) {
       if (m.headline_by_safety && m.headline_by_safety[dx.safety.state]) return m.headline_by_safety[dx.safety.state];
       if (m.headline_by_ready && m.headline_by_ready[dx.ready.state]) return m.headline_by_ready[dx.ready.state];
@@ -318,7 +322,6 @@
       const r = { redo_marginal: 'redo för elbil', redo_med_atgard: 'redo för elbil med lastbalansering', inte_redo: 'inte redo för elbil utan åtgärd', kraver_bedomning: 'redo-läget behöver bedömas', ej_bedomd: 'ingen planerad last' }[dx.ready.state];
       return 'Din central: ' + s + ', ' + r + '.';
     }
-
     renderDualStatus(dx) {
       const data = this.data, ss = data.safety_states[dx.safety.state], readyMeta = data.ready_states[dx.ready.state];
       const readyPill = data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
@@ -333,70 +336,16 @@
       return wrap;
     }
     statusRow(axisLabel, valueLabel, pillLevel, iconName) {
-      return el('div', { class: 'ampy-ec__statusrow' }, [
-        el('span', { class: 'ampy-ec__statusrow-axis' }, axisLabel),
-        el('span', { class: 'ampy-ec__pill', data: { level: pillLevel } }, [iconSpan(iconName, 'ampy-ec__pill-icon'), el('span', {}, valueLabel)])
-      ]);
+      return el('div', { class: 'ampy-ec__statusrow' }, [el('span', { class: 'ampy-ec__statusrow-axis' }, axisLabel), el('span', { class: 'ampy-ec__pill', data: { level: pillLevel } }, [iconSpan(iconName, 'ampy-ec__pill-icon'), el('span', {}, valueLabel)])]);
     }
-
     renderFindings(dx) {
       const findings = collectFindings(dx, this.data);
       const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
       wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Dina fynd'));
       const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
-      findings.forEach((f, i) => {
-        const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info');
-        list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)]));
-      });
-      wrap.appendChild(list);
-      return wrap;
+      findings.forEach((f, i) => { const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info'); list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)])); });
+      wrap.appendChild(list); return wrap;
     }
-
-    scopeNote() {
-      const parts = (this.data.costs.date || '2026-06').split('-');
-      const months = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
-      return (this.data.meta.scope_note || '').replace('{date}', ((months[(+parts[1]) - 1] || '') + ' ' + parts[0]).trim());
-    }
-    costValue(v) { return el('span', { class: 'ampy-ec__cost-value' + (isNumeric(v) ? ' ampy-ec__cost-value--num' : '') }, v); }
-
-    renderCost(dx) {
-      const c = this.data.costs, cell = dx.cell;
-      if (cell === 'sr') return null;
-      const hasElbil = (this.answers.planer || []).includes('elbil');
-      const labourSigned = c.centralbyte._labour_signed === true;
-      const block = el('div', { class: 'ampy-ec__cost' });
-      block.appendChild(el('p', { class: 'ampy-ec__cost-head' }, c.cost_head || 'Vad det ungefär kostar'));
-      let showedRotRow = false;
-      const addRow = (label, value, note) => { block.appendChild(el('div', { class: 'ampy-ec__cost-row' }, [el('span', { class: 'ampy-ec__cost-label' }, label), this.costValue(value)])); if (note) block.appendChild(el('p', { class: 'ampy-ec__cost-note' }, note)); };
-      if (cell === 'si') {
-        if (dx.ready.state === 'inte_redo') { addRow('Lastbalansering', 'Pris i offert', 'ofta det billigaste alternativet vid kapacitetsbrist.'); addRow('Uppsäkring eller byte', 'Pris i offert', 'om kapaciteten behöver höjas.'); }
-        else { addRow('Laddbox med installation', 'Pris i offert', c.gron_teknik_note); addRow('Lastbalansering', 'Pris i offert', c.gron_teknik_lastbalansering_note); }
-      }
-      if (cell === 'rs' || cell === 'rr') {
-        const type = this.housingType || 'villa', typeLabel = { lagenhet: 'lägenhet', radhus: 'radhus', villa: 'villa' }[type], cb = c.centralbyte[type];
-        addRow('Byte till modern central (' + typeLabel + ')', labourSigned ? ('ca ' + cb.efter_rot + ' kr efter ROT') : (cb.fore_rot + ' kr'), labourSigned ? null : 'före ROT.');
-        showedRotRow = true;
-        block.appendChild(this.renderHousingControl(dx));
-        if (cell === 'rs') addRow('Jordfelsbrytare separat', c.jfb.typ_a + ' kr', 'installerad, typ A. ROT 30 % gäller arbetet.');
-        if (hasElbil) addRow('Laddbox (om du går vidare)', 'Pris i offert', c.gron_teknik_note);
-      }
-      if (showedRotRow && this.data.meta.rot_note) block.appendChild(el('p', { class: 'ampy-ec__cost-foot' }, this.data.meta.rot_note));
-      if (cell === 'si') block.appendChild(el('a', { class: 'ampy-ec__cost-link', href: this.data.meta.laddbox_calc_url }, 'Räkna det gröna avdraget'));
-      block.appendChild(el('p', { class: 'ampy-ec__cost-scope' }, this.scopeNote()));
-      return block;
-    }
-    renderHousingControl(dx) {
-      const row = el('div', { class: 'ampy-ec__cost-segmented', role: 'radiogroup', 'aria-label': 'Bostadstyp' });
-      [['lagenhet', 'Lägenhet'], ['radhus', 'Radhus'], ['villa', 'Villa']].forEach(([id, label]) => {
-        const sel = (this.housingType || 'villa') === id;
-        row.appendChild(el('button', { class: 'ampy-ec__seg' + (sel ? ' is-selected' : ''), type: 'button', role: 'radio', 'aria-checked': String(sel), onclick: () => {
-          this.housingType = id; const old = this.stage.querySelector('.ampy-ec__cost'), fresh = this.renderCost(dx);
-          if (old && fresh) { old.replaceWith(fresh); const nb = fresh.querySelector('.ampy-ec__seg.is-selected'); if (nb) nb.focus(); }
-        } }, label));
-      });
-      return row;
-    }
-
     resolveCtaUrl(def) {
       if (!def) return '#';
       if (def.url_key) return this.data.meta.service_pages[def.url_key] || this.data.meta.ampy_offert_url;
@@ -410,11 +359,9 @@
         const hasPlan = planer.some(p => p !== 'inget') && planer.length, highFuse = ['25', '35'].includes(this.answers.huvudsakring);
         if (hasPlan) linkDef = defs.laddbox_bridge; else if (highFuse) linkDef = defs.nedsakring_hook;
         if (linkDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
-        wrap.appendChild(this.renderTrustRow(dx));
         return wrap;
       }
-      let primaryDef = defs[cta.primary];
-      if (dx.cell === 'rr' && dx.safety.state === 'hog') primaryDef = defs.centralbyte_offert;
+      const primaryDef = defs[cta.primary];
       const ringSigned = defs.ring && !defs.ring._pending_signoff && defs.ring.url && defs.ring.url !== 'tel:+46812345678';
       if (dx.safety.escalation && ringSigned) {
         wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: defs.ring.url }, [iconSpan('phone'), defs.ring.label]));
@@ -424,16 +371,12 @@
         if (cta.secondary) { const sec = defs[cta.secondary]; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(sec) }, [sec.label, iconSpan('arrowRight')])); }
         if (dx.safety.escalation) wrap.appendChild(el('p', { class: 'ampy-ec__akut-phone-note' }, 'Ring oss gärna direkt. Numret bekräftas innan lansering.'));
       }
-      wrap.appendChild(this.renderTrustRow(dx));
       return wrap;
     }
-    renderTrustRow(dx) {
-      const row = el('div', { class: 'ampy-ec__trust-row' });
-      row.appendChild(el('p', { class: 'ampy-ec__trust' }, [this.data.copy.trust_pre + ' ', el('a', { href: this.data.meta.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, this.data.copy.trust_link), '.']));
-      const right = el('div', { class: 'ampy-ec__trust-actions' });
-      if (dx.cell === 'sr') right.appendChild(el('span', { class: 'ampy-ec__share-nudge' }, this.data.copy.share_nudge_green));
-      right.appendChild(this.renderShareButton(dx));
-      row.appendChild(right);
+    renderShareRow(dx) {
+      const row = el('div', { class: 'ampy-ec__share-row' });
+      if (dx.cell === 'sr') row.appendChild(el('span', { class: 'ampy-ec__share-nudge' }, this.data.copy.share_nudge_green));
+      row.appendChild(this.renderShareButton(dx));
       return row;
     }
     renderPdfCapture(dx) {
@@ -446,9 +389,7 @@
       const consentBox = el('input', { type: 'checkbox', required: true });
       const toggle = el('button', { class: 'ampy-ec__pdf-toggle', type: 'button', 'aria-expanded': 'false' }, [iconSpan('mail'), label]);
       const form = el('form', { class: 'ampy-ec__pdf-form', hidden: true, onsubmit: async (e) => {
-        e.preventDefault();
-        if (hp.value) { status.textContent = 'Tack!'; return; }
-        status.textContent = 'Skickar…';
+        e.preventDefault(); if (hp.value) { status.textContent = 'Tack!'; return; } status.textContent = 'Skickar…';
         try { await fetch(this.data.meta.pdf_webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': (window.AmpyEC && window.AmpyEC.restNonce) || '' }, body: JSON.stringify({ epost: email.value, vector: this.encodeVector(), cell: dx.cell, samtycke: consentBox.checked, webbplats: hp.value }) }); status.textContent = 'Tack! Rapporten är på väg till din inkorg.'; form.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
         catch (err) { status.textContent = 'Kunde inte skicka just nu. Försök igen om en stund.'; }
       } }, [
@@ -457,10 +398,8 @@
         el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'submit' }, 'Mejla rapporten')
       ]);
       toggle.addEventListener('click', () => { const open = form.hidden === false; form.hidden = open; toggle.setAttribute('aria-expanded', String(!open)); if (!open) email.focus(); });
-      wrap.appendChild(toggle); wrap.appendChild(form); wrap.appendChild(status);
-      return wrap;
+      wrap.appendChild(toggle); wrap.appendChild(form); wrap.appendChild(status); return wrap;
     }
-
     renderShareButton(dx) {
       const status = el('span', { class: 'ampy-ec__share-status', role: 'status', 'aria-live': 'polite' });
       const shareUrl = window.location.origin + window.location.pathname + '?q=' + encodeURIComponent(this.encodeVector());
@@ -485,8 +424,7 @@
         if (navigator.share && isTouch) { let file = null; try { file = await this.generateShareImage(dx, shareUrl, shareText); } catch (e) {} try { const payload = { title: shareTitle, text: shareText, url: shareUrl }; if (file && navigator.canShare && navigator.canShare({ files: [file] })) payload.files = [file]; await navigator.share(payload); return; } catch (e) {} }
         if (menu.hidden) openMenu(); else closeMenu();
       } }, iconSpan('share'));
-      anchor.appendChild(btn); anchor.appendChild(menu); anchor.appendChild(status);
-      return anchor;
+      anchor.appendChild(btn); anchor.appendChild(menu); anchor.appendChild(status); return anchor;
     }
     async generateShareImage(dx, urlStr, shareText) {
       const W = 1200, H = 630, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
@@ -494,14 +432,12 @@
       const pal = { success: '#1f8f6b', warning: '#8a6d10', error: '#a32330', info: '#2a4a7a', neutral: '#5a5d7a' };
       const ss = this.data.safety_states[dx.safety.state], rPill = this.data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
       const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (rPill === 'warning' ? 'warning' : ss.pill_level);
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = pal[worst] || pal.neutral; ctx.fillRect(0, 0, 16, H);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = pal[worst] || pal.neutral; ctx.fillRect(0, 0, 16, H);
       ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '600 24px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText('AMPY · ELCENTRAL-KOLLEN', 72, 84);
       if (this.data.meta.share_card_authority) { ctx.fillStyle = 'rgba(9,11,50,0.4)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif'; ctx.fillText(this.data.meta.share_card_authority, 72, 120); }
       ctx.fillStyle = '#090b32'; ctx.font = '700 50px "Plus Jakarta Sans", system-ui, sans-serif'; this._wrap(ctx, shareText, 72, 220, W - 144, 60);
       const drawPill = (x, y, label, value, lvl) => { ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '500 24px "Outfit", system-ui, sans-serif'; ctx.fillText(label, x, y); ctx.fillStyle = pal[lvl] || pal.neutral; ctx.font = '700 34px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText(value, x, y + 44); };
-      drawPill(72, 430, 'Säkerhet', ss.label, ss.pill_level);
-      drawPill(620, 430, this.data.ready_states[dx.ready.state].axis_label, this.data.ready_states[dx.ready.state].label, rPill);
+      drawPill(72, 430, 'Säkerhet', ss.label, ss.pill_level); drawPill(620, 430, this.data.ready_states[dx.ready.state].axis_label, this.data.ready_states[dx.ready.state].label, rPill);
       ctx.fillStyle = 'rgba(9,11,50,0.6)'; ctx.font = '600 22px "Outfit", system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(this.data.meta.share_card_cta || 'Gör testet gratis →', 72, H - 52);
       ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(9,11,50,0.45)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif'; ctx.fillText(urlStr.replace(/^https?:\/\//, '').replace(/\?.*$/, ''), W - 72, H - 52); ctx.textAlign = 'left';
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.92)); if (!blob) return null;
@@ -510,11 +446,10 @@
     _wrap(ctx, text, x, y, maxW, lineH) { const words = String(text || '').split(/\s+/); let line = '', yy = y; for (let i = 0; i < words.length; i++) { const test = line ? line + ' ' + words[i] : words[i]; if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = words[i]; yy += lineH; } else line = test; } if (line) ctx.fillText(line, x, yy); }
   }
 
-  /* ---------- Boot ---------- */
   function boot(mount) {
     if (!mount || mount.dataset.booted === 'true') return;
     const injected = (window.AmpyEC && window.AmpyEC.data) || null;
-    const start = (data) => { try { if (data.scoring.weights.varningstecken.brand_lukt !== 0) console.warn('[Elcentral-kollen] VARNING: brand_lukt-vikten är inte 0 — eskaleringen ska vara golv-only.'); } catch (e) {} new ElcentralApp(mount, data).render(); };
+    const start = (data) => { try { if (data.scoring.weights.varningstecken.brand_lukt !== 0) console.warn('[Elcentral-kollen] VARNING: brand_lukt-vikten är inte 0.'); } catch (e) {} new ElcentralApp(mount, data).render(); };
     if (injected) { start(injected); return; }
     const dataUrl = mount.dataset.dataUrl || '../data/elcentralkollen-data.json';
     fetch(dataUrl, { credentials: 'same-origin' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(start)

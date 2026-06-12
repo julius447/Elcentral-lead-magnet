@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
- * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 6 frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd, indikativ kostnad och rätt CTA. Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.1.0
+ * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
+ * Version:           2.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -16,10 +16,10 @@
  *  - All copy, alla regler, alla länkar lever i data/elcentralkollen-data.json.
  *    Ändra ALDRIG text i PHP/JS/CSS — ändra datafilen.
  *  - DIAGNOSMOTORN är JS-only (ingen PHP-tvilling). render.php ger en crawlbar
- *    fallback (värdeprop + 6 frågor + 4 servicelänkar), INTE ett beräknat besked.
- *  - LANSERINGSGRIND: en auktoriserad elinstallatör måste signera arketyp-
- *    sanningstabellen (docs/SPEC.md §6) + de reconcilade kostnaderna
- *    (research/FACTS.md) före publicering. Se meta._pending_signoff i datafilen.
+ *    fallback (värdeprop + frågorna + 4 servicelänkar), INTE ett beräknat besked.
+ *  - LANSERINGSGRIND: en auktoriserad elinstallatör signerar arketyp-
+ *    sanningstabellen (docs/SPEC.md §6) före publicering. Verktyget visar inga
+ *    priser längre (mjuk rådgivnings-CTA). Se meta._pending_signoff i datafilen.
  *  - GDPR: fonterna är REDAN självhostade (woff2 i assets/fonts/) — inga Google-anrop.
  *  - DESIGN: tvåpanels-shell (rail + stage) på desktop, en kolumn på mobil. Rail-panelen
  *    bär verktygets egen H1 + lead. Lägg INTE en dubblerande rubrik i Bricks ovanför.
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.1.0' );
+define( 'AMPY_EC_VERSION', '2.2.0' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );

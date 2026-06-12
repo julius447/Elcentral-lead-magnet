@@ -5,8 +5,8 @@ Nothing here is code — it is sign-off and data. Order = highest-uncertainty fi
 
 ## A. Electrician sign-off (auktoriserad elinstallatör) — the diagnosis
 - [ ] **A1. Archetype truth table** (docs/SPEC.md §6). Review the 10 archetypes + the verdict each produces. Sign the *verdicts*, not the weights. Run `node assets/engine.test.js` after any weight change — it must print `ALL GREEN`.
-- [ ] **A2. Reconcile ONE dated centralbyte range.** Ampy's three own PDFs disagree (research/FACTS.md D1). Pick one villa/radhus/lägenhet range (före + efter ROT), date it, sign it. Update `costs.centralbyte` in the data file and remove `_pending_signoff`.
-- [ ] **A3. JFB-separat price** (typ A / typ B installerad) — confirm `costs.jfb`.
+- [x] **A2. Cost block REMOVED (owner feedback v2.2).** The tool no longer shows any kr-prices or ROT figures — the result ends in a soft "Få kostnadsfri rådgivning" CTA instead. This removes the marknadsföringslagen price-substantiation gate entirely; the `costs` data block is gone. (If prices are ever re-added, the FACTS §D reconciliation gate returns.)
+- [x] **A3. JFB / besiktning prices — N/A** (no prices shown).
 - [ ] **A4. Redo-axis claims** — lastbalansering thresholds, uppsäkring/nätavgift, grön-teknik-on-lastbalansering wording ("kan … bedöms av Skatteverket").
 - [ ] **A5. Brandstatistik** — confirm 298 / 78 % / 66 % against the Elsäkerhetsverket report (`facts.brand`).
 - [ ] **A6. JFB millisekunder wording** and the "30–50 år" tumregel framing (industry rule, not authority).

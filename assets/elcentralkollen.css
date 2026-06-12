@@ -155,26 +155,41 @@ html { font-size: 62.5%; }
   font-size: clamp(1.5rem, 1.3rem + 0.4vw, 1.7rem); font-weight: 400; line-height: 1.5;
   color: var(--text-secondary); margin: 0; max-width: 46ch;
 }
+/* Tesen är desktop-only (skulle trycka ner första frågan på mobil). */
 .ampy-ec__rail-thesis { display: none; }
-.ampy-ec__rail-cred { display: none; }
+/* Credential visas PÅ BÅDA (trust); ersätter den borttagna trust-raden i beskedet. */
+.ampy-ec__rail-cred {
+  display: flex; align-items: flex-start; gap: var(--space-4); margin: var(--space-9) 0 0;
+  padding: var(--space-6) var(--space-7); background: var(--bg-subtle); border-radius: var(--radius-md);
+}
+.ampy-ec__rail-cred-icon { flex-shrink: 0; width: 2.0rem; height: 2.0rem; color: var(--action-primary-strong); margin-top: 0.1rem; }
+.ampy-ec__rail-cred-icon svg { width: 2.0rem; height: 2.0rem; }
+.ampy-ec__rail-cred-text { font-size: var(--fs-13); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-2); }
+.ampy-ec__rail-cred-link { font-size: var(--fs-13); font-weight: 500; color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; }
+.ampy-ec__rail-cred-link:hover { color: var(--text-primary); }
 @media (min-width: 1024px) {
-  .ampy-ec__rail-eyebrow { display: block; }
   .ampy-ec__rail-thesis {
     display: flex; flex-direction: column; gap: var(--space-4); list-style: none; padding: 0;
     margin: var(--space-11) 0 0; border-top: 1px solid var(--border-tertiary); padding-top: var(--space-9);
   }
   .ampy-ec__rail-thesis li { font-size: var(--fs-15); line-height: 1.45; color: var(--text-secondary); }
   .ampy-ec__rail-axis { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 600; color: var(--text-primary); margin-right: 0.3rem; }
-  .ampy-ec__rail-cred {
-    display: flex; align-items: flex-start; gap: var(--space-4); margin: var(--space-11) 0 0;
-    padding: var(--space-7); background: var(--bg-subtle); border-radius: var(--radius-md);
-  }
-  .ampy-ec__rail-cred-icon { flex-shrink: 0; width: 2.0rem; height: 2.0rem; color: var(--action-primary-strong); margin-top: 0.1rem; }
-  .ampy-ec__rail-cred-icon svg { width: 2.0rem; height: 2.0rem; }
-  .ampy-ec__rail-cred-text { font-size: var(--fs-13); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-2); }
-  .ampy-ec__rail-cred-link { font-size: var(--fs-13); font-weight: 500; color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; }
-  .ampy-ec__rail-cred-link:hover { color: var(--text-primary); }
+  .ampy-ec__rail-cred { margin: var(--space-11) 0 0; }
 }
+
+/* ---- Start-skärm (slide 1) ---- */
+.ampy-ec__start { align-items: center; text-align: center; }
+.ampy-ec__crumb--start { justify-content: center; margin-bottom: var(--space-11); }
+.ampy-ec__start-illu { width: 11rem; height: 11rem; margin: var(--space-5) auto var(--space-9); }
+.ampy-ec__start-illu svg { width: 100%; height: 100%; display: block; }
+.ampy-ec__start-heading { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-display); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 var(--space-5); }
+.ampy-ec__start-heading:focus { outline: none; }
+.ampy-ec__start-body { font-size: var(--fs-15); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-11); max-width: 40ch; }
+.ampy-ec__start-cta { max-width: 32rem; margin-left: auto; margin-right: auto; }
+
+/* ---- Share-rad (ersätter trust-raden i beskedet) ---- */
+.ampy-ec__share-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); margin: var(--space-5) 0 0; padding-top: var(--space-3); }
+.ampy-ec__share-row .ampy-ec__share-nudge { margin-right: auto; }
 
 .ampy-ec__stage { min-width: 0; }
 
