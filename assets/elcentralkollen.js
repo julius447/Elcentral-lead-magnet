@@ -1,15 +1,14 @@
 /* ============================================================================
-   Elcentral-kollen v2 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v3 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
-     2. ENGINE — pure compute (UNCHANGED v1→v2; oracle 13/13) : addition -> golv
-                 -> osäkerhet -> 2x2-cell
-     3. VIEW   — 6-stegs wizard -> tvåaxlat besked (authored, säkerhets-/redo-medvetet)
-   Doktrin: docs/SPEC.md. Fakta: research/FACTS.md. UI-copy är svensk by design.
+     2. ENGINE — pure compute (UNCHANGED v1→v3; oracle 13/13)
+     3. VIEW   — tvåpanels-shell (rail + stage) på desktop, en kolumn på mobil;
+                 besked med dual-status som hjälte (squint-testet), lugn lede.
+   Doktrin: docs/SPEC.md + docs/DESIGN.md. UI-copy är svensk by design.
    ============================================================================ */
 (function () {
   'use strict';
 
-  /* ---------- Ikoner (inline SVG) --------------------------------------- */
   const ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
@@ -17,9 +16,9 @@
     ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
     minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="12" x2="18" y2="12"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
     arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
-    external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>',
     share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>',
     facebook: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
     xtwitter: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
@@ -30,7 +29,6 @@
   };
   const icon = (name) => ICONS[name] || ICONS.info;
 
-  /* ---------- Element-helper -------------------------------------------- */
   const el = (tag, attrs, children) => {
     const node = document.createElement(tag);
     if (attrs) for (const k in attrs) {
@@ -38,6 +36,7 @@
       else if (k === 'html') node.innerHTML = attrs[k];
       else if (k.startsWith('on') && typeof attrs[k] === 'function') node.addEventListener(k.slice(2), attrs[k]);
       else if (k === 'data') for (const dk in attrs[k]) node.dataset[dk] = attrs[k][dk];
+      else if (k === 'style' && typeof attrs[k] === 'object') for (const sk in attrs[k]) node.style.setProperty(sk, attrs[k][sk]);
       else if (attrs[k] === true) node.setAttribute(k, '');
       else if (attrs[k] !== false && attrs[k] != null) node.setAttribute(k, attrs[k]);
     }
@@ -49,41 +48,27 @@
   };
   const iconSpan = (name, cls) => el('span', { class: cls || null, html: icon(name), 'aria-hidden': 'true', style: 'display:inline-flex' });
 
-  /* =====================================================================
-     ENGINE — ren beräkning (oförändrad v1→v2; engine.test.js måste vara grön)
-     ===================================================================== */
+  /* ===================== ENGINE (oförändrad; oracle 13/13) ===================== */
   const LEVEL_ORDER = { lag: 0, forhojd: 1, hog: 2 };
   const maxLevel = (a, b) => (LEVEL_ORDER[a] >= LEVEL_ORDER[b] ? a : b);
-
   function computeSafety(answers, data) {
-    const w = data.scoring.weights;
-    const warn = answers.varningstecken || [];
-    let score = 0;
-    score += (w.alder[answers.alder] || 0);
-    score += (w.sakringstyp[answers.sakringstyp] || 0);
-    score += (w.jordfelsbrytare[answers.jordfelsbrytare] || 0);
+    const w = data.scoring.weights, warn = answers.varningstecken || [];
+    let score = (w.alder[answers.alder] || 0) + (w.sakringstyp[answers.sakringstyp] || 0) + (w.jordfelsbrytare[answers.jordfelsbrytare] || 0);
     warn.forEach(id => { score += (w.varningstecken[id] || 0); });
-
     const t = data.scoring.thresholds;
     let level = score >= t.hog ? 'hog' : (score >= t.forhojd ? 'forhojd' : 'lag');
-
     const floors = data.scoring.floors;
     const presentSymptom = floors.present_symptom.trigger_ids.some(id => warn.includes(id));
     if (presentSymptom) level = maxLevel(level, floors.present_symptom.min_level);
     const escalation = warn.includes(floors.escalation.trigger_id);
     if (escalation) level = maxLevel(level, floors.escalation.min_level);
-
     const unc = data.scoring.uncertainty;
     const uncertaintyCount = unc.counts_fields.filter(f => answers[f] === 'vet_inte').length;
-
     let state = level;
     if (level === 'lag' && uncertaintyCount >= unc.min_count && !presentSymptom && !escalation) state = 'oklart';
     return { score, level, state, uncertaintyCount, presentSymptom, escalation };
   }
-
-  function pickPrimaryPlan(planer) {
-    return ['elbil', 'varmepump', 'solceller', 'renovering'].find(p => (planer || []).includes(p)) || null;
-  }
+  const pickPrimaryPlan = (planer) => ['elbil', 'varmepump', 'solceller', 'renovering'].find(p => (planer || []).includes(p)) || null;
   function computeReady(answers, data) {
     const planer = answers.planer || [];
     if (!planer.length || planer.includes('inget')) return { state: 'ej_bedomd', plan: null };
@@ -114,12 +99,9 @@
     return redo ? 'rs' : 'rr';
   }
   function diagnose(answers, data) {
-    const safety = computeSafety(answers, data);
-    const ready = computeReady(answers, data);
-    const crossAxis = computeCrossAxis(answers, data);
+    const safety = computeSafety(answers, data), ready = computeReady(answers, data), crossAxis = computeCrossAxis(answers, data);
     return { answers, safety, ready, crossAxis, cell: computeCell(safety, ready) };
   }
-
   function findingMatches(when, dx) {
     const a = dx.answers;
     if (when.sakringstyp && a.sakringstyp !== when.sakringstyp) return false;
@@ -133,35 +115,28 @@
     if (when.no_plan) { const p = a.planer || []; if (p.length && !(p.length === 1 && p.includes('inget'))) return false; }
     return true;
   }
-  // Rank-aware + grön-cellen leder med lugn (ok först när inga varningar finns).
   function collectFindings(dx, data) {
     const matched = (data.findings || []).filter(f => findingMatches(f.when, dx)).filter(f => f.id !== 'f_brand_lukt');
     const hasWarn = matched.some(f => f.icon === 'warn');
     const order = hasWarn ? { warn: 0, info: 1, ok: 2 } : { ok: 0, info: 1, warn: 2 };
     return matched.sort((x, y) => (order[x.icon] - order[y.icon]) || ((x.rank || 50) - (y.rank || 50)));
   }
+  const isNumeric = (v) => /\d/.test(String(v));
 
-  /* =====================================================================
-     APP
-     ===================================================================== */
+  /* ===================== APP ===================== */
   class ElcentralApp {
     constructor(mount, data) {
-      this.mount = mount;
-      this.data = data;
-      this.questions = data.questions;
-      this.answers = {};
-      this.step = 1;
-      this.housingType = 'villa';
-      this._flashT = null;
-      this.hydrateFromUrl();
-      this.bindHistory();
+      this.mount = mount; this.data = data; this.questions = data.questions;
+      this.answers = {}; this.step = 1; this.housingType = 'villa'; this.dir = 'fwd'; this._flashT = null;
+      this.stage = null;
+      this.hydrateFromUrl(); this.bindHistory();
     }
 
+    /* URL = state */
     encodeVector() {
       const pre = this.data.state_schema.prefixes;
       return this.questions.map(q => {
-        const ans = this.answers[q.id];
-        if (ans == null) return null;
+        const ans = this.answers[q.id]; if (ans == null) return null;
         const idxOf = (id) => q.options.findIndex(o => o.id === id);
         if (q.type === 'multi') { const ids = Array.isArray(ans) ? ans : [ans]; return pre[q.id] + ids.map(idxOf).filter(i => i >= 0).sort((a, b) => a - b).join(''); }
         return pre[q.id] + idxOf(ans);
@@ -169,8 +144,7 @@
     }
     decodeVector(str) {
       if (!str) return {};
-      const byPrefix = {};
-      Object.entries(this.data.state_schema.prefixes).forEach(([qid, p]) => { byPrefix[p] = qid; });
+      const byPrefix = {}; Object.entries(this.data.state_schema.prefixes).forEach(([qid, p]) => { byPrefix[p] = qid; });
       const out = {};
       str.split('.').forEach(seg => {
         const qid = byPrefix[seg[0]]; if (!qid) return;
@@ -183,15 +157,10 @@
     }
     hydrateFromUrl() {
       const vec = new URLSearchParams(window.location.search).get('q');
-      if (vec) {
-        this.answers = this.decodeVector(vec);
-        const complete = this.questions.every(q => this.answers[q.id] != null);
-        this.step = complete ? 7 : (this.questions.findIndex(q => this.answers[q.id] == null) + 1 || 7);
-      }
+      if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => this.answers[q.id] != null); this.step = complete ? 7 : (this.questions.findIndex(q => this.answers[q.id] == null) + 1 || 7); }
     }
     writeResultUrl(push) {
-      const p = new URLSearchParams(window.location.search);
-      p.set('q', this.encodeVector());
+      const p = new URLSearchParams(window.location.search); p.set('q', this.encodeVector());
       const url = window.location.pathname + '?' + p.toString() + window.location.hash;
       if (push) history.pushState({ step: 7 }, '', url); else history.replaceState({ step: 7 }, '', url);
     }
@@ -201,47 +170,73 @@
     toggleMulti(q, optionId) {
       const opt = q.options.find(o => o.id === optionId);
       let cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
-      if (opt.exclusive) { cur = cur.includes(optionId) ? [] : [optionId]; }
-      else {
-        cur = cur.filter(id => { const o = q.options.find(oo => oo.id === id); return !(o && o.exclusive); });
-        cur = cur.includes(optionId) ? cur.filter(id => id !== optionId) : cur.concat(optionId);
-      }
+      if (opt.exclusive) cur = cur.includes(optionId) ? [] : [optionId];
+      else { cur = cur.filter(id => { const o = q.options.find(oo => oo.id === id); return !(o && o.exclusive); }); cur = cur.includes(optionId) ? cur.filter(id => id !== optionId) : cur.concat(optionId); }
       this.answers[q.id] = cur;
     }
-    advance() { if (this.step >= 6) { this.step = 7; this.writeResultUrl(true); } else { this.step += 1; } this.render(); }
-    back() { if (this.step > 1) this.step -= 1; this.render(); }
-    restart() { this.answers = {}; this.step = 1; history.pushState({ step: 1 }, '', window.location.pathname + window.location.hash); this.render(); }
+    advance() { this.dir = 'fwd'; if (this.step >= 6) { this.step = 7; this.writeResultUrl(true); } else this.step += 1; this.render(); }
+    back() { this.dir = 'back'; if (this.step > 1) this.step -= 1; this.render(); }
+    restart() { this.dir = 'back'; this.answers = {}; this.step = 1; history.pushState({ step: 1 }, '', window.location.pathname + window.location.hash); this.render(); }
+
+    /* Shell byggs en gång: rail (persistent ram) + stage (frågor/besked swappas) */
+    buildShell() {
+      this.mount.replaceChildren();
+      this.mount.dataset.booted = 'true';
+      const shell = el('div', { class: 'ampy-ec__shell' });
+      shell.appendChild(this.renderRail());
+      this.stage = el('div', { class: 'ampy-ec__stage' });
+      shell.appendChild(this.stage);
+      this.mount.appendChild(shell);
+    }
+    renderRail() {
+      const m = this.data.meta, rail = m.rail || {};
+      const aside = el('aside', { class: 'ampy-ec__rail' });
+      aside.appendChild(el('p', { class: 'ampy-ec__rail-eyebrow' }, rail.eyebrow || m.product_name));
+      aside.appendChild(el('h1', { class: 'ampy-ec__rail-heading' }, m.page_heading));
+      aside.appendChild(el('p', { class: 'ampy-ec__rail-lead' }, m.page_lead));
+      if (rail.thesis) {
+        const ul = el('ul', { class: 'ampy-ec__rail-thesis', role: 'list' });
+        rail.thesis.forEach(t => ul.appendChild(el('li', {}, [el('span', { class: 'ampy-ec__rail-axis' }, t.axis), ' ' + t.desc])));
+        aside.appendChild(ul);
+      }
+      aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
+        iconSpan('shield', 'ampy-ec__rail-cred-icon'),
+        el('div', {}, [
+          el('p', { class: 'ampy-ec__rail-cred-text' }, rail.credential || 'Registrerat hos Elsäkerhetsverket.'),
+          el('a', { class: 'ampy-ec__rail-cred-link', href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (this.data.copy.trust_link || 'Verifiera oss'))
+        ])
+      ]));
+      return aside;
+    }
 
     render() {
       const noscript = this.mount.querySelector('.ampy-ec__noscript');
       if (noscript) noscript.remove();
-      this.mount.dataset.booted = 'true';
+      if (!this.stage) this.buildShell();
       const block = (this.step >= 7) ? this.renderResult() : this.renderQuestion(this.questions[this.step - 1]);
-      this.mount.replaceChildren(block);
-      const focusTarget = this.mount.querySelector('[data-focus]');
+      block.dataset.dir = this.dir;
+      this.stage.replaceChildren(block);
+      const focusTarget = block.querySelector('[data-focus]');
       if (focusTarget) { try { focusTarget.focus({ preventScroll: false }); } catch (e) { focusTarget.focus(); } }
     }
 
     /* ---------------- FRÅGESTEG ---------------- */
     renderQuestion(q) {
       const block = el('div', { class: 'ampy-ec__block', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
-
       if (this.step === 1 && this.data.meta.tool_intro) block.appendChild(el('p', { class: 'ampy-ec__intro' }, this.data.meta.tool_intro));
 
       const crumb = el('div', { class: 'ampy-ec__crumb' });
-      if (this.step > 1) {
-        crumb.appendChild(el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till föregående fråga', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']));
-        crumb.appendChild(el('span', { class: 'ampy-ec__crumb-sep', 'aria-hidden': 'true' }, '·'));
-      }
+      const left = el('div', { class: 'ampy-ec__crumb-left' });
       const steps = el('div', { class: 'ampy-ec__steps', 'aria-hidden': 'true' });
       for (let i = 1; i <= 6; i++) steps.appendChild(el('span', { class: i < this.step ? 'is-done' : (i === this.step ? 'is-current' : '') }));
-      crumb.appendChild(steps);
-      crumb.appendChild(el('p', { class: 'ampy-ec__progress' }, this.data.copy.progress.replace('{n}', String(this.step))));
+      left.appendChild(steps);
+      left.appendChild(el('span', { class: 'ampy-ec__sr' }, this.data.copy.progress.replace('{n}', String(this.step))));
+      crumb.appendChild(left);
+      if (this.step > 1) crumb.appendChild(el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till föregående fråga', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']));
       block.appendChild(crumb);
 
       block.appendChild(el('h2', { class: 'ampy-ec__q-title', id: 'ampy-ec-q', tabindex: '-1', 'data-focus': 'true' }, q.title));
       if (q.subtitle) block.appendChild(el('p', { class: 'ampy-ec__q-subtitle' }, q.subtitle));
-
       block.appendChild(q.type === 'multi' ? this.renderMultiOptions(q) : this.renderSingleOptions(q));
       block.appendChild(el('div', { class: 'ampy-ec__info', role: 'note' }, [iconSpan('info', 'ampy-ec__info-icon'), el('p', { class: 'ampy-ec__info-text' }, q.note)]));
       return block;
@@ -253,50 +248,30 @@
         const selected = this.answers[q.id] === opt.id;
         list.appendChild(el('li', {}, el('button', {
           class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id)
-        }, [
-          el('span', { class: 'ampy-ec__option-body' }, [
-            el('span', { class: 'ampy-ec__option-title' }, opt.label),
-            opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
-          ]),
-          iconSpan('arrowRight', 'ampy-ec__option-arrow')
-        ])));
+        }, [el('span', { class: 'ampy-ec__option-body' }, [
+          el('span', { class: 'ampy-ec__option-title' }, opt.label),
+          opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
+        ])])));
       });
       return list;
     }
 
-    // In-place mutation (behåller fokus + tillförlitlig live-räkning). Aldrig replaceWith.
     renderMultiOptions(q) {
       const group = el('ul', { class: 'ampy-ec__options', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
       const refs = {};
       q.options.forEach(opt => {
         const checked = (Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []).includes(opt.id);
         const check = el('span', { class: 'ampy-ec__check', 'aria-hidden': 'true' }, checked ? iconSpan('check') : null);
-        const btn = el('button', {
-          class: 'ampy-ec__option ampy-ec__option--multi' + (checked ? ' is-selected' : ''),
-          type: 'button', role: 'checkbox', 'aria-checked': String(checked),
-          onclick: () => { this.toggleMulti(q, opt.id); sync(); }
-        }, [check, el('span', { class: 'ampy-ec__option-body' }, [
-          el('span', { class: 'ampy-ec__option-title' }, opt.label),
-          opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null
-        ])]);
+        const btn = el('button', { class: 'ampy-ec__option ampy-ec__option--multi' + (checked ? ' is-selected' : ''), type: 'button', role: 'checkbox', 'aria-checked': String(checked), onclick: () => { this.toggleMulti(q, opt.id); sync(); } },
+          [check, el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])]);
         refs[opt.id] = { btn, check };
         group.appendChild(el('li', {}, btn));
       });
-
       const countSpan = el('span', { class: 'ampy-ec__multi-count', id: 'ampy-ec-multi-hint', role: 'status', 'aria-live': 'polite' });
-      const fortsatt = el('button', {
-        class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint',
-        onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) this.advance(); }
-      }, ['Fortsätt', iconSpan('arrowRight')]);
-
+      const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) this.advance(); } }, ['Fortsätt', iconSpan('arrowRight')]);
       const sync = () => {
         const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
-        q.options.forEach(opt => {
-          const on = cur.includes(opt.id); const r = refs[opt.id];
-          r.btn.classList.toggle('is-selected', on);
-          r.btn.setAttribute('aria-checked', String(on));
-          r.check.replaceChildren(); if (on) r.check.appendChild(iconSpan('check'));
-        });
+        q.options.forEach(opt => { const on = cur.includes(opt.id), r = refs[opt.id]; r.btn.classList.toggle('is-selected', on); r.btn.setAttribute('aria-checked', String(on)); r.check.replaceChildren(); if (on) r.check.appendChild(iconSpan('check')); });
         const n = cur.filter(id => id !== 'inget').length;
         countSpan.textContent = cur.length ? (cur.includes('inget') ? '' : (n + (n === 1 ? ' vald' : ' valda'))) : this.data.copy.multi_hint;
         fortsatt.setAttribute('aria-disabled', String(cur.length === 0));
@@ -305,69 +280,49 @@
       return el('div', { class: 'ampy-ec__multi' }, [group, el('div', { class: 'ampy-ec__multi-foot' }, [countSpan, fortsatt])]);
     }
 
-    /* ---------------- BESKED ---------------- */
+    /* ---------------- BESKED (dual-status = hjälte) ---------------- */
     renderResult() {
-      const dx = diagnose(this.answers, this.data);
-      const data = this.data;
-      const m = data.verdict_matrix[dx.cell];
+      const dx = diagnose(this.answers, this.data), data = this.data, m = data.verdict_matrix[dx.cell];
       const block = el('div', { class: 'ampy-ec__block ampy-ec__result', role: 'region', 'aria-labelledby': 'ampy-ec-result-h' });
 
-      block.appendChild(el('div', { class: 'ampy-ec__crumb' }, [
+      block.appendChild(el('div', { class: 'ampy-ec__crumb ampy-ec__crumb--result' }, [
         el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': 'Tillbaka till frågorna', onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']),
-        el('span', { class: 'ampy-ec__crumb-sep', 'aria-hidden': 'true' }, '·'),
         el('button', { class: 'ampy-ec__crumb-restart', type: 'button', onclick: () => this.restart() }, 'Börja om')
       ]));
 
-      if (dx.safety.escalation) {
-        block.appendChild(el('div', { class: 'ampy-ec__akut', role: 'alert' }, [
-          iconSpan('alert', 'ampy-ec__akut-icon'),
-          el('div', {}, [el('p', { class: 'ampy-ec__akut-label' }, data.akut_notis.label), el('p', { class: 'ampy-ec__akut-text' }, data.akut_notis.text)])
-        ]));
-      }
+      if (dx.safety.escalation) block.appendChild(el('div', { class: 'ampy-ec__akut', role: 'alert' }, [iconSpan('alert', 'ampy-ec__akut-icon'), el('div', {}, [el('p', { class: 'ampy-ec__akut-label' }, data.akut_notis.label), el('p', { class: 'ampy-ec__akut-text' }, data.akut_notis.text)])]));
 
-      block.appendChild(el('h2', { class: 'ampy-ec__result-h', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.selectHeadline(dx, m)));
-      block.appendChild(this.renderDualStatus(dx));
-      if (dx.cell !== 'sr' && m.summary) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, m.summary));
+      // SR-rubrik (osynlig) = kombinerad tvåaxlad mening; fokusmål
+      block.appendChild(el('h2', { class: 'ampy-ec__sr', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.buildSummarySentence(dx)));
+
+      block.appendChild(el('p', { class: 'ampy-ec__result-eyebrow' }, 'Ditt besked'));
+      block.appendChild(this.renderDualStatus(dx));            // HJÄLTE
+      if (m.summary) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, m.summary));  // lugn komplement-lede
       block.appendChild(this.renderFindings(dx));
 
-      if (dx.cell === 'rs' || dx.cell === 'rr') {
-        block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [
-          iconSpan('info', 'ampy-ec__factnote-icon'),
-          el('div', {}, [
-            el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text),
-            el('p', { class: 'ampy-ec__factnote-text ampy-ec__factnote-text--quiet' }, data.facts.insurance.text),
-            el('p', { class: 'ampy-ec__factnote-src' }, data.facts.brand.source)
-          ])
-        ]));
-      }
+      if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text), el('p', { class: 'ampy-ec__factnote-text ampy-ec__factnote-text--quiet' }, data.facts.insurance.text), el('p', { class: 'ampy-ec__factnote-src' }, data.facts.brand.source)])]));
 
-      const cost = this.renderCost(dx);
-      if (cost) block.appendChild(cost);
+      const cost = this.renderCost(dx); if (cost) block.appendChild(cost);
       block.appendChild(this.renderCta(dx));
       block.appendChild(this.renderPdfCapture(dx));
       return block;
     }
 
-    // Säkerhets-nivå vinner (kritiker-fix): 'hog' får alltid en bestämd rubrik.
     selectHeadline(dx, m) {
       if (m.headline_by_safety && m.headline_by_safety[dx.safety.state]) return m.headline_by_safety[dx.safety.state];
       if (m.headline_by_ready && m.headline_by_ready[dx.ready.state]) return m.headline_by_ready[dx.ready.state];
       return m.headline || this.buildSummarySentence(dx);
     }
-
     buildSummarySentence(dx) {
-      const safetyPhrase = { lag: 'säker', forhojd: 'förhöjd risk', hog: 'hög risk', oklart: 'oklart läge' }[dx.safety.state];
-      const readyPhrase = { redo_marginal: 'redo för elbil', redo_med_atgard: 'redo för elbil med lastbalansering', inte_redo: 'inte redo för elbil utan åtgärd', kraver_bedomning: 'redo-läget behöver bedömas', ej_bedomd: 'ingen planerad last' }[dx.ready.state];
-      return 'Din central: ' + safetyPhrase + ', ' + readyPhrase + '.';
+      const s = { lag: 'säker', forhojd: 'förhöjd risk', hog: 'hög risk', oklart: 'oklart läge' }[dx.safety.state];
+      const r = { redo_marginal: 'redo för elbil', redo_med_atgard: 'redo för elbil med lastbalansering', inte_redo: 'inte redo för elbil utan åtgärd', kraver_bedomning: 'redo-läget behöver bedömas', ej_bedomd: 'ingen planerad last' }[dx.ready.state];
+      return 'Din central: ' + s + ', ' + r + '.';
     }
 
     renderDualStatus(dx) {
-      const data = this.data;
-      const ss = data.safety_states[dx.safety.state];
-      const readyMeta = data.ready_states[dx.ready.state];
+      const data = this.data, ss = data.safety_states[dx.safety.state], readyMeta = data.ready_states[dx.ready.state];
       const readyPill = data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
       const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (readyPill === 'warning' ? 'warning' : ss.pill_level);
-
       const wrap = el('div', { class: 'ampy-ec__dualstatus', data: { worst } });
       wrap.appendChild(el('div', { class: 'ampy-ec__dualstatus-accent', 'aria-hidden': 'true' }));
       const rows = el('div', { class: 'ampy-ec__dualstatus-rows' });
@@ -389,9 +344,9 @@
       const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
       wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Dina fynd'));
       const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
-      findings.forEach(f => {
+      findings.forEach((f, i) => {
         const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info');
-        list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)]));
+        list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)]));
       });
       wrap.appendChild(list);
       return wrap;
@@ -400,66 +355,44 @@
     scopeNote() {
       const parts = (this.data.costs.date || '2026-06').split('-');
       const months = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
-      const dlabel = ((months[(+parts[1]) - 1] || '') + ' ' + parts[0]).trim();
-      return (this.data.meta.scope_note || '').replace('{date}', dlabel);
+      return (this.data.meta.scope_note || '').replace('{date}', ((months[(+parts[1]) - 1] || '') + ' ' + parts[0]).trim());
     }
+    costValue(v) { return el('span', { class: 'ampy-ec__cost-value' + (isNumeric(v) ? ' ampy-ec__cost-value--num' : '') }, v); }
 
     renderCost(dx) {
-      const c = this.data.costs;
-      const cell = dx.cell;
+      const c = this.data.costs, cell = dx.cell;
       if (cell === 'sr') return null;
       const hasElbil = (this.answers.planer || []).includes('elbil');
       const labourSigned = c.centralbyte._labour_signed === true;
-
       const block = el('div', { class: 'ampy-ec__cost' });
       block.appendChild(el('p', { class: 'ampy-ec__cost-head' }, c.cost_head || 'Vad det ungefär kostar'));
       let showedRotRow = false;
-      const addRow = (label, value, note) => {
-        block.appendChild(el('div', { class: 'ampy-ec__cost-row' }, [el('span', { class: 'ampy-ec__cost-label' }, label), el('span', { class: 'ampy-ec__cost-value' }, value)]));
-        if (note) block.appendChild(el('p', { class: 'ampy-ec__cost-note' }, note));
-      };
-
+      const addRow = (label, value, note) => { block.appendChild(el('div', { class: 'ampy-ec__cost-row' }, [el('span', { class: 'ampy-ec__cost-label' }, label), this.costValue(value)])); if (note) block.appendChild(el('p', { class: 'ampy-ec__cost-note' }, note)); };
       if (cell === 'si') {
-        if (dx.ready.state === 'inte_redo') {
-          addRow('Lastbalansering', 'Pris i offert', 'ofta det billigaste alternativet vid kapacitetsbrist.');
-          addRow('Uppsäkring eller byte', 'Pris i offert', 'om kapaciteten behöver höjas.');
-        } else {
-          addRow('Laddbox med installation', 'Pris i offert', c.gron_teknik_note);
-          addRow('Lastbalansering', 'Pris i offert', c.gron_teknik_lastbalansering_note);
-        }
+        if (dx.ready.state === 'inte_redo') { addRow('Lastbalansering', 'Pris i offert', 'ofta det billigaste alternativet vid kapacitetsbrist.'); addRow('Uppsäkring eller byte', 'Pris i offert', 'om kapaciteten behöver höjas.'); }
+        else { addRow('Laddbox med installation', 'Pris i offert', c.gron_teknik_note); addRow('Lastbalansering', 'Pris i offert', c.gron_teknik_lastbalansering_note); }
       }
       if (cell === 'rs' || cell === 'rr') {
-        const type = this.housingType || 'villa';
-        const typeLabel = { lagenhet: 'lägenhet', radhus: 'radhus', villa: 'villa' }[type];
-        const cb = c.centralbyte[type];
-        const value = labourSigned ? ('ca ' + cb.efter_rot + ' kr efter ROT') : (cb.fore_rot + ' kr');
-        addRow('Byte till modern central (' + typeLabel + ')', value, labourSigned ? null : 'före ROT.');
+        const type = this.housingType || 'villa', typeLabel = { lagenhet: 'lägenhet', radhus: 'radhus', villa: 'villa' }[type], cb = c.centralbyte[type];
+        addRow('Byte till modern central (' + typeLabel + ')', labourSigned ? ('ca ' + cb.efter_rot + ' kr efter ROT') : (cb.fore_rot + ' kr'), labourSigned ? null : 'före ROT.');
         showedRotRow = true;
         block.appendChild(this.renderHousingControl(dx));
-        if (cell === 'rs') { addRow('Jordfelsbrytare separat', c.jfb.typ_a + ' kr', 'installerad, typ A. ROT 30 % gäller arbetet.'); }
+        if (cell === 'rs') addRow('Jordfelsbrytare separat', c.jfb.typ_a + ' kr', 'installerad, typ A. ROT 30 % gäller arbetet.');
         if (hasElbil) addRow('Laddbox (om du går vidare)', 'Pris i offert', c.gron_teknik_note);
       }
-
       if (showedRotRow && this.data.meta.rot_note) block.appendChild(el('p', { class: 'ampy-ec__cost-foot' }, this.data.meta.rot_note));
       if (cell === 'si') block.appendChild(el('a', { class: 'ampy-ec__cost-link', href: this.data.meta.laddbox_calc_url }, 'Räkna det gröna avdraget'));
       block.appendChild(el('p', { class: 'ampy-ec__cost-scope' }, this.scopeNote()));
       return block;
     }
-
     renderHousingControl(dx) {
-      const types = [['lagenhet', 'Lägenhet'], ['radhus', 'Radhus'], ['villa', 'Villa']];
       const row = el('div', { class: 'ampy-ec__cost-segmented', role: 'radiogroup', 'aria-label': 'Bostadstyp' });
-      types.forEach(([id, label]) => {
+      [['lagenhet', 'Lägenhet'], ['radhus', 'Radhus'], ['villa', 'Villa']].forEach(([id, label]) => {
         const sel = (this.housingType || 'villa') === id;
-        row.appendChild(el('button', {
-          class: 'ampy-ec__seg' + (sel ? ' is-selected' : ''), type: 'button', role: 'radio', 'aria-checked': String(sel),
-          onclick: () => {
-            this.housingType = id;
-            const old = this.mount.querySelector('.ampy-ec__cost');
-            const fresh = this.renderCost(dx);
-            if (old && fresh) { old.replaceWith(fresh); const nb = fresh.querySelector('.ampy-ec__seg.is-selected'); if (nb) nb.focus(); }
-          }
-        }, label));
+        row.appendChild(el('button', { class: 'ampy-ec__seg' + (sel ? ' is-selected' : ''), type: 'button', role: 'radio', 'aria-checked': String(sel), onclick: () => {
+          this.housingType = id; const old = this.stage.querySelector('.ampy-ec__cost'), fresh = this.renderCost(dx);
+          if (old && fresh) { old.replaceWith(fresh); const nb = fresh.querySelector('.ampy-ec__seg.is-selected'); if (nb) nb.focus(); }
+        } }, label));
       });
       return row;
     }
@@ -470,28 +403,19 @@
       if (def.url && this.data.meta[def.url]) return this.data.meta[def.url];
       return def.url || this.data.meta.ampy_offert_url;
     }
-
     renderCta(dx) {
-      const wrap = document.createDocumentFragment();
-      const matrix = this.data.verdict_matrix[dx.cell];
-      const defs = this.data.cta_defs;
-      const cta = matrix.cta;
-
+      const wrap = document.createDocumentFragment(), matrix = this.data.verdict_matrix[dx.cell], defs = this.data.cta_defs, cta = matrix.cta;
       if (dx.cell === 'sr') {
-        let linkDef = null;
-        const planer = this.answers.planer || [];
-        const hasPlan = planer.some(p => p !== 'inget') && planer.length;
-        const highFuse = ['25', '35'].includes(this.answers.huvudsakring);
+        let linkDef = null; const planer = this.answers.planer || [];
+        const hasPlan = planer.some(p => p !== 'inget') && planer.length, highFuse = ['25', '35'].includes(this.answers.huvudsakring);
         if (hasPlan) linkDef = defs.laddbox_bridge; else if (highFuse) linkDef = defs.nedsakring_hook;
         if (linkDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
         wrap.appendChild(this.renderTrustRow(dx));
         return wrap;
       }
-
       let primaryDef = defs[cta.primary];
       if (dx.cell === 'rr' && dx.safety.state === 'hog') primaryDef = defs.centralbyte_offert;
       const ringSigned = defs.ring && !defs.ring._pending_signoff && defs.ring.url && defs.ring.url !== 'tel:+46812345678';
-
       if (dx.safety.escalation && ringSigned) {
         wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: defs.ring.url }, [iconSpan('phone'), defs.ring.label]));
         if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
@@ -503,22 +427,15 @@
       wrap.appendChild(this.renderTrustRow(dx));
       return wrap;
     }
-
     renderTrustRow(dx) {
       const row = el('div', { class: 'ampy-ec__trust-row' });
-      row.appendChild(el('p', { class: 'ampy-ec__trust' }, [
-        this.data.copy.trust_pre + ' ',
-        el('a', { href: this.data.meta.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, this.data.copy.trust_link),
-        '.'
-      ]));
+      row.appendChild(el('p', { class: 'ampy-ec__trust' }, [this.data.copy.trust_pre + ' ', el('a', { href: this.data.meta.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, this.data.copy.trust_link), '.']));
       const right = el('div', { class: 'ampy-ec__trust-actions' });
       if (dx.cell === 'sr') right.appendChild(el('span', { class: 'ampy-ec__share-nudge' }, this.data.copy.share_nudge_green));
       right.appendChild(this.renderShareButton(dx));
       row.appendChild(right);
       return row;
     }
-
-    // Feature-flag: dölj hela capture-blocket tills webhook OCH integritetspolicy finns.
     renderPdfCapture(dx) {
       if (!this.data.meta.pdf_webhook_url || !this.data.meta.privacy_policy_url) return document.createComment('pdf-capture dold: webhook/integritetspolicy saknas');
       const label = (dx.cell === 'sr') ? this.data.copy.pdf_capture_green : this.data.copy.pdf_capture;
@@ -532,10 +449,8 @@
         e.preventDefault();
         if (hp.value) { status.textContent = 'Tack!'; return; }
         status.textContent = 'Skickar…';
-        try {
-          await fetch(this.data.meta.pdf_webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': (window.AmpyEC && window.AmpyEC.restNonce) || '' }, body: JSON.stringify({ epost: email.value, vector: this.encodeVector(), cell: dx.cell, samtycke: consentBox.checked, webbplats: hp.value }) });
-          status.textContent = 'Tack! Rapporten är på väg till din inkorg.'; form.hidden = true; toggle.setAttribute('aria-expanded', 'false');
-        } catch (err) { status.textContent = 'Kunde inte skicka just nu. Försök igen om en stund.'; }
+        try { await fetch(this.data.meta.pdf_webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': (window.AmpyEC && window.AmpyEC.restNonce) || '' }, body: JSON.stringify({ epost: email.value, vector: this.encodeVector(), cell: dx.cell, samtycke: consentBox.checked, webbplats: hp.value }) }); status.textContent = 'Tack! Rapporten är på väg till din inkorg.'; form.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
+        catch (err) { status.textContent = 'Kunde inte skicka just nu. Försök igen om en stund.'; }
       } }, [
         el('label', { class: 'ampy-ec__pdf-flabel', for: 'ampy-ec-email' }, 'E-post'), email, hp,
         el('label', { class: 'ampy-ec__pdf-consent' }, [consentBox, el('span', {}, [this.data.copy.pdf_consent + ' ', el('a', { href: this.data.meta.privacy_policy_url, target: '_blank', rel: 'noopener noreferrer' }, 'Integritetspolicy'), '.'])]),
@@ -546,7 +461,6 @@
       return wrap;
     }
 
-    /* ---------------- Dela ---------------- */
     renderShareButton(dx) {
       const status = el('span', { class: 'ampy-ec__share-status', role: 'status', 'aria-live': 'polite' });
       const shareUrl = window.location.origin + window.location.pathname + '?q=' + encodeURIComponent(this.encodeVector());
@@ -555,96 +469,58 @@
       const anchor = el('span', { class: 'ampy-ec__share-anchor' });
       const menu = el('div', { class: 'ampy-ec__share-menu', role: 'menu', 'aria-label': 'Dela resultatet', hidden: true });
       const enc = encodeURIComponent;
-      [
-        { label: 'Facebook', icon: 'facebook', href: 'https://www.facebook.com/sharer/sharer.php?u=' + enc(shareUrl) },
-        { label: 'X', icon: 'xtwitter', href: 'https://twitter.com/intent/tweet?url=' + enc(shareUrl) + '&text=' + enc(shareText) },
-        { label: 'Reddit', icon: 'reddit', href: 'https://www.reddit.com/submit?url=' + enc(shareUrl) + '&title=' + enc(shareText) },
-        { label: 'E-post', icon: 'mail', href: 'mailto:?subject=' + enc(shareTitle) + '&body=' + enc(shareText + ' ' + shareUrl) }
+      [{ label: 'Facebook', icon: 'facebook', href: 'https://www.facebook.com/sharer/sharer.php?u=' + enc(shareUrl) },
+       { label: 'X', icon: 'xtwitter', href: 'https://twitter.com/intent/tweet?url=' + enc(shareUrl) + '&text=' + enc(shareText) },
+       { label: 'Reddit', icon: 'reddit', href: 'https://www.reddit.com/submit?url=' + enc(shareUrl) + '&title=' + enc(shareText) },
+       { label: 'E-post', icon: 'mail', href: 'mailto:?subject=' + enc(shareTitle) + '&body=' + enc(shareText + ' ' + shareUrl) }
       ].forEach(t => menu.appendChild(el('a', { class: 'ampy-ec__share-item', role: 'menuitem', href: t.href, target: '_blank', rel: 'noopener noreferrer', onclick: () => closeMenu() }, [iconSpan(t.icon, 'ampy-ec__share-item-icon'), el('span', {}, t.label)])));
       menu.appendChild(el('button', { class: 'ampy-ec__share-item', type: 'button', role: 'menuitem', onclick: async () => { try { await navigator.clipboard.writeText(shareUrl); flash('Länk kopierad.'); } catch (e) { flash('Kopiera URL:en manuellt.'); } closeMenu(); } }, [iconSpan('link', 'ampy-ec__share-item-icon'), el('span', {}, 'Kopiera länk')]));
-
       const flash = (msg) => { status.textContent = msg; status.dataset.visible = 'true'; clearTimeout(this._flashT); this._flashT = setTimeout(() => { status.dataset.visible = 'false'; }, 2400); };
       const closeMenu = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', onDoc, true); document.removeEventListener('keydown', onKey, true); };
       const openMenu = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); document.addEventListener('click', onDoc, true); document.addEventListener('keydown', onKey, true); };
       const onDoc = (e) => { if (!anchor.contains(e.target)) closeMenu(); };
       const onKey = (e) => { if (e.key === 'Escape') { closeMenu(); btn.focus(); } };
-
       const btn = el('button', { class: 'ampy-ec__share', type: 'button', 'aria-label': 'Dela resultatet', 'aria-haspopup': 'menu', 'aria-expanded': 'false', title: 'Dela resultatet', onclick: async () => {
         const isTouch = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-        if (navigator.share && isTouch) {
-          let file = null;
-          try { file = await this.generateShareImage(dx, shareUrl, shareText); } catch (e) {}
-          try { const payload = { title: shareTitle, text: shareText, url: shareUrl }; if (file && navigator.canShare && navigator.canShare({ files: [file] })) payload.files = [file]; await navigator.share(payload); return; } catch (e) {}
-        }
+        if (navigator.share && isTouch) { let file = null; try { file = await this.generateShareImage(dx, shareUrl, shareText); } catch (e) {} try { const payload = { title: shareTitle, text: shareText, url: shareUrl }; if (file && navigator.canShare && navigator.canShare({ files: [file] })) payload.files = [file]; await navigator.share(payload); return; } catch (e) {} }
         if (menu.hidden) openMenu(); else closeMenu();
       } }, iconSpan('share'));
       anchor.appendChild(btn); anchor.appendChild(menu); anchor.appendChild(status);
       return anchor;
     }
-
     async generateShareImage(dx, urlStr, shareText) {
-      const W = 1200, H = 630;
-      const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+      const W = 1200, H = 630, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext('2d');
       const pal = { success: '#1f8f6b', warning: '#8a6d10', error: '#a32330', info: '#2a4a7a', neutral: '#5a5d7a' };
-      const ss = this.data.safety_states[dx.safety.state];
-      const rPill = this.data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
+      const ss = this.data.safety_states[dx.safety.state], rPill = this.data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
       const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (rPill === 'warning' ? 'warning' : ss.pill_level);
-
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = pal[worst] || pal.neutral; ctx.fillRect(0, 0, 16, H);
       ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '600 24px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText('AMPY · ELCENTRAL-KOLLEN', 72, 84);
       if (this.data.meta.share_card_authority) { ctx.fillStyle = 'rgba(9,11,50,0.4)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif'; ctx.fillText(this.data.meta.share_card_authority, 72, 120); }
-
-      ctx.fillStyle = '#090b32'; ctx.font = '700 50px "Plus Jakarta Sans", system-ui, sans-serif';
-      this._wrap(ctx, shareText, 72, 220, W - 144, 60);
-
-      const drawPill = (x, y, label, value, lvl) => {
-        ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '500 24px "Outfit", system-ui, sans-serif'; ctx.fillText(label, x, y);
-        ctx.fillStyle = pal[lvl] || pal.neutral; ctx.font = '700 34px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText(value, x, y + 44);
-      };
+      ctx.fillStyle = '#090b32'; ctx.font = '700 50px "Plus Jakarta Sans", system-ui, sans-serif'; this._wrap(ctx, shareText, 72, 220, W - 144, 60);
+      const drawPill = (x, y, label, value, lvl) => { ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '500 24px "Outfit", system-ui, sans-serif'; ctx.fillText(label, x, y); ctx.fillStyle = pal[lvl] || pal.neutral; ctx.font = '700 34px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText(value, x, y + 44); };
       drawPill(72, 430, 'Säkerhet', ss.label, ss.pill_level);
       drawPill(620, 430, this.data.ready_states[dx.ready.state].axis_label, this.data.ready_states[dx.ready.state].label, rPill);
-
-      ctx.fillStyle = 'rgba(9,11,50,0.6)'; ctx.font = '600 22px "Outfit", system-ui, sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(this.data.meta.share_card_cta || 'Gör testet gratis →', 72, H - 52);
-      ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(9,11,50,0.45)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif';
-      ctx.fillText(urlStr.replace(/^https?:\/\//, '').replace(/\?.*$/, ''), W - 72, H - 52); ctx.textAlign = 'left';
-
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.92));
-      if (!blob) return null;
+      ctx.fillStyle = 'rgba(9,11,50,0.6)'; ctx.font = '600 22px "Outfit", system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(this.data.meta.share_card_cta || 'Gör testet gratis →', 72, H - 52);
+      ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(9,11,50,0.45)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif'; ctx.fillText(urlStr.replace(/^https?:\/\//, '').replace(/\?.*$/, ''), W - 72, H - 52); ctx.textAlign = 'left';
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.92)); if (!blob) return null;
       return new File([blob], 'elcentral-kollen.png', { type: 'image/png' });
     }
-    _wrap(ctx, text, x, y, maxW, lineH) {
-      const words = String(text || '').split(/\s+/); let line = '', yy = y;
-      for (let i = 0; i < words.length; i++) { const test = line ? line + ' ' + words[i] : words[i]; if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = words[i]; yy += lineH; } else line = test; }
-      if (line) ctx.fillText(line, x, yy);
-    }
+    _wrap(ctx, text, x, y, maxW, lineH) { const words = String(text || '').split(/\s+/); let line = '', yy = y; for (let i = 0; i < words.length; i++) { const test = line ? line + ' ' + words[i] : words[i]; if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = words[i]; yy += lineH; } else line = test; } if (line) ctx.fillText(line, x, yy); }
   }
 
-  /* ---------- Boot ------------------------------------------------------ */
+  /* ---------- Boot ---------- */
   function boot(mount) {
     if (!mount || mount.dataset.booted === 'true') return;
     const injected = (window.AmpyEC && window.AmpyEC.data) || null;
-    const start = (data) => {
-      // Dev-assertion: bränd lukt MÅSTE vara golv-only (vikt 0) — skyddar invariant #4/#8.
-      try { if (data.scoring.weights.varningstecken.brand_lukt !== 0) console.warn('[Elcentral-kollen] VARNING: brand_lukt-vikten är inte 0 — eskaleringen ska vara golv-only, inte en addend.'); } catch (e) {}
-      new ElcentralApp(mount, data).render();
-    };
+    const start = (data) => { try { if (data.scoring.weights.varningstecken.brand_lukt !== 0) console.warn('[Elcentral-kollen] VARNING: brand_lukt-vikten är inte 0 — eskaleringen ska vara golv-only.'); } catch (e) {} new ElcentralApp(mount, data).render(); };
     if (injected) { start(injected); return; }
     const dataUrl = mount.dataset.dataUrl || '../data/elcentralkollen-data.json';
-    fetch(dataUrl, { credentials: 'same-origin' })
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(start)
+    fetch(dataUrl, { credentials: 'same-origin' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(start)
       .catch(err => { console.error('[Elcentral-kollen] kunde inte ladda data:', err); mount.innerHTML = '<div class="ampy-ec__block"><p>Kunde inte ladda verktyget just nu.</p></div>'; });
   }
-
   window.AmpyEC = window.AmpyEC || {};
-  window.AmpyEC.diagnose = diagnose;
-  window.AmpyEC.computeSafety = computeSafety;
-  window.AmpyEC.computeReady = computeReady;
-  window.AmpyEC.computeCell = computeCell;
-  window.AmpyEC.boot = boot;
-
+  window.AmpyEC.diagnose = diagnose; window.AmpyEC.computeSafety = computeSafety; window.AmpyEC.computeReady = computeReady; window.AmpyEC.computeCell = computeCell; window.AmpyEC.boot = boot;
   document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('.ampy-ec').forEach(boot); });
 })();

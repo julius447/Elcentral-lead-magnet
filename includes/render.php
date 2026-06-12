@@ -13,6 +13,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 function ampy_ec_render_mount( $data ) {
+	$heading  = isset( $data['meta']['page_heading'] ) ? $data['meta']['page_heading'] : 'Är din elcentral säker och redo?';
 	$lead     = isset( $data['meta']['page_lead'] ) ? $data['meta']['page_lead'] : '';
 	$disc     = isset( $data['meta']['disclaimer'] ) ? $data['meta']['disclaimer'] : '';
 	$services = isset( $data['meta']['service_pages'] ) ? $data['meta']['service_pages'] : array();
@@ -30,6 +31,7 @@ function ampy_ec_render_mount( $data ) {
 	<div class="ampy-ec" data-data-url="<?php echo esc_url( AMPY_EC_URL . 'data/elcentralkollen-data.json' ); ?>">
 		<div class="ampy-ec__noscript">
 			<div class="ampy-ec__block">
+				<h1><?php echo esc_html( $heading ); ?></h1>
 				<p><strong><?php echo esc_html( $lead ); ?></strong></p>
 				<p>Elcentral-kollen ställer sex snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
 				<ol>
