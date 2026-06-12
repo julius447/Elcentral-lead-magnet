@@ -20,9 +20,10 @@
  *  - LANSERINGSGRIND: en auktoriserad elinstallatör måste signera arketyp-
  *    sanningstabellen (docs/SPEC.md §6) + de reconcilade kostnaderna
  *    (research/FACTS.md) före publicering. Se meta._pending_signoff i datafilen.
- *  - GDPR: självhosta fonterna (ersätt @import i CSS:en med @font-face) före
- *    lansering på en EU-sajt.
- *  - Full dokumentation: docs/HANDOVER.md (utvecklare) + docs/CHECKLIST.md (människa).
+ *  - GDPR: fonterna är REDAN självhostade (woff2 i assets/fonts/) — inga Google-anrop.
+ *  - DESIGN: tvåpanels-shell (rail + stage) på desktop, en kolumn på mobil. Rail-panelen
+ *    bär verktygets egen H1 + lead. Lägg INTE en dubblerande rubrik i Bricks ovanför.
+ *  - Full dokumentation: docs/HANDOVER.md + docs/DESIGN.md (utvecklare) + docs/CHECKLIST.md (människa).
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
@@ -69,8 +70,9 @@ add_action( 'wp_enqueue_scripts', 'ampy_ec_register_assets' );
  *  - Embed-preset per servicesida via attributet embed="elbesiktning" (valfritt,
  *    påverkar bara ev. framtida förvald kontext — verktyget startar alltid på F1).
  *
- * Heading (H2 + lead) läggs som separata Bricks-element OVANFÖR shortcoden — för
- * SEO bär verktyget aldrig sin egen sid-H2 (samma regel som Elkollen).
+ * Verktyget bär nu sin egen H1 + lead i rail-panelen (v3-design). render.php skriver
+ * dessutom H1 + lead server-side i den crawlbara fallbacken (SEO). Lägg därför INTE en
+ * dubblerande rubrik i Bricks ovanför shortcoden.
  */
 function ampy_ec_shortcode( $atts = array() ) {
 	$atts = shortcode_atts( array( 'embed' => '' ), $atts, 'elcentralkollen' );
