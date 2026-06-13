@@ -15,7 +15,10 @@ from a Swedish authority you can trust. Authority comes from **the precision of 
 - **The void became a frame.** The rail carries what the card cannot hold persistently: the brand mark,
   the page H1 + lead, the **Säker?/Redo? thesis** (which previously evaporated after step 1), and the
   **verifiable Elsäkerhetsverket credential** (shield + "Verifiera oss" → the company register). On mobile
-  the rail collapses to H1 + lead (thesis + credential are desktop-only; the card's trust row covers it).
+  the rail collapses to H1 + lead; the thesis is desktop-only. The credential shows in the desktop rail always,
+  and on mobile as a slim line (`.ampy-ec__compact-cred`) inside the START card and the RESULT block only —
+  never on the question steps (frees mobile chrome). The old card trust row was removed (replaced by the share
+  row); the credential is the persistent trust mark on both viewports.
 - **Material canvas:** a soft top radial vignette (page-level; set the Bricks section background in prod);
   the card lifts off it with `--shadow-md`.
 

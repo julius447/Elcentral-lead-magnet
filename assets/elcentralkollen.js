@@ -242,6 +242,7 @@
       block.appendChild(el('h2', { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
       if (s.body) block.appendChild(el('p', { class: 'ampy-ec__start-body' }, s.body));
       block.appendChild(el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__start-cta', type: 'button', onclick: () => this.advance() }, [(s.cta || 'Starta test'), iconSpan('arrowRight')]));
+      block.appendChild(this.renderCompactCred());
       return block;
     }
 
@@ -281,8 +282,8 @@
           [check, el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])]);
         refs[opt.id] = { btn, check }; group.appendChild(el('li', {}, btn));
       });
-      const hint = el('span', { class: 'ampy-ec__sr', id: 'ampy-ec-multi-hint' }, this.data.copy.multi_aria || 'Välj minst ett alternativ.');
-      const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) this.advance(); } }, ['Fortsätt', iconSpan('arrowRight')]);
+      const hint = el('p', { class: 'ampy-ec__multi-hint', id: 'ampy-ec-multi-hint' }, this.data.copy.multi_aria || 'Välj minst ett alternativ.');
+      const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) { this.advance(); } else { hint.classList.add('is-shown'); const first = group.querySelector('.ampy-ec__option'); if (first) first.focus(); } } }, ['Fortsätt', iconSpan('arrowRight')]);
       const sync = () => {
         const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
         q.options.forEach(opt => { const on = cur.includes(opt.id), r = refs[opt.id]; r.btn.classList.toggle('is-selected', on); r.btn.setAttribute('aria-checked', String(on)); r.check.replaceChildren(); if (on) r.check.appendChild(iconSpan('check')); });
@@ -304,13 +305,26 @@
       block.appendChild(el('h2', { class: 'ampy-ec__sr', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.buildSummarySentence(dx)));
       block.appendChild(el('p', { class: 'ampy-ec__result-eyebrow' }, 'Ditt besked'));
       block.appendChild(this.renderDualStatus(dx));
-      if (m.summary) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, m.summary));
+      const lede = (m.summary_by_ready && m.summary_by_ready[dx.ready.state]) || m.summary;
+      if (lede) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, lede));
       block.appendChild(this.renderFindings(dx));
       if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text), el('p', { class: 'ampy-ec__factnote-text ampy-ec__factnote-text--quiet' }, data.facts.insurance.text), el('p', { class: 'ampy-ec__factnote-src' }, data.facts.brand.source)])]));
       block.appendChild(this.renderCta(dx));
       block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
+      block.appendChild(this.renderCompactCred());
       return block;
+    }
+    // Slim trust-rad — visas bara på mobil (start + besked), där rail-credentialen är dold.
+    renderCompactCred() {
+      const m = this.data.meta, rail = m.rail || {};
+      return el('div', { class: 'ampy-ec__compact-cred' }, [
+        iconSpan('shield', 'ampy-ec__compact-cred-icon'),
+        el('p', { class: 'ampy-ec__compact-cred-text' }, [
+          (rail.credential || 'Registrerat hos Elsäkerhetsverket.') + ' ',
+          el('a', { href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (this.data.copy.trust_link || 'Verifiera oss'))
+        ])
+      ]);
     }
     selectHeadline(dx, m) {
       if (m.headline_by_safety && m.headline_by_safety[dx.safety.state]) return m.headline_by_safety[dx.safety.state];

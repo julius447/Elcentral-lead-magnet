@@ -5,7 +5,7 @@
  * VIKTIGT: fallbacken är INTE ett beräknat besked. Diagnosmotorn är JS-only
  * (ingen PHP-tvilling — se docs/SPEC.md §5). Sökmotorer och no-JS-besökare ser:
  *   - värdepropositionen,
- *   - de 6 frågorna som läsbar text,
+ *   - frågorna som läsbar text,
  *   - ett starkt internlänk-block till de fyra servicesidorna (SEO-målet).
  * När JS bootar tas .ampy-ec__noscript bort.
  */
@@ -24,6 +24,7 @@ function ampy_ec_render_mount( $data ) {
 		'centralbyte'     => 'Byta elcentral',
 		'jordfelsbrytare' => 'Installera jordfelsbrytare',
 		'lastbalansering' => 'Lastbalansering',
+		'uppsakring'      => 'Uppsäkring (öka huvudsäkringen)',
 	);
 
 	ob_start();
@@ -33,7 +34,7 @@ function ampy_ec_render_mount( $data ) {
 			<div class="ampy-ec__block">
 				<h1><?php echo esc_html( $heading ); ?></h1>
 				<p><strong><?php echo esc_html( $lead ); ?></strong></p>
-				<p>Elcentral-kollen ställer sex snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
+				<p>Elcentral-kollen ställer några snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
 				<ol>
 					<?php foreach ( $qs as $q ) : ?>
 						<li><?php echo esc_html( isset( $q['title'] ) ? $q['title'] : '' ); ?></li>
