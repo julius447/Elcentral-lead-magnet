@@ -46,7 +46,13 @@ html { font-size: 62.5%; }
   --text-success: rgb(15, 110, 86);
   --action-primary: rgb(0, 169, 145);
   --action-primary-strong: rgb(0, 122, 105);        /* white-on ≈ 5.3:1 (AA) */
-  --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%); /* 1:1 från ampy.se "Kontakta oss" */
+  /* 1:1 från ampy.se (Core Framework, samma 1rem=10px-rot): exakta gradient/skugga + fluida tokens */
+  --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
+  --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);
+  --ampy-cta-fs: clamp(1.4rem, 0.21vw + 1.33rem, 1.6rem);        /* ampy --aptext-sm */
+  --ampy-cta-pad-y: clamp(1.02rem, 0.39vw + 0.9rem, 1.4rem);     /* ampy --apspace-xs */
+  --ampy-cta-pad-x: clamp(1.6rem, 1.25vw + 1.2rem, 2.8rem);      /* ampy --space-m (apspace-m) */
+  --ampy-cta-radius: clamp(1rem, 0.21vw + 0.93rem, 1.2rem);      /* ampy --radius-m (apradius-m) */
   --action-primary-strong-hover: rgb(0, 108, 93);
   --action-tint: rgb(240, 250, 248);                 /* selected fill, distinct from grey hover */
   --state-success: rgb(57, 194, 129);
@@ -187,27 +193,29 @@ html { font-size: 62.5%; }
 }
 
 /* Kontakt-CTA i rail (1:1-replika av ampy.se: telefon-länk + gradient-knapp "Kontakta oss").
-   Desktop-only (mobilen är oförändrad). */
-.ampy-ec__rail-actions { display: none; }
+   ampy.se:s EXAKTA tokens (färg/storlek/spacing). Visas på desktop alltid; på mobil bara på
+   start + besked (railen ligger överst på varje mobilslide → vill inte tränga ut frågorna). */
+.ampy-ec__rail-actions { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; margin: var(--space-8) 0 var(--space-2); }
 .ampy-ec__rail-phone, .ampy-ec__rail-contact {
   display: inline-flex; align-items: center; gap: var(--space-3); text-decoration: none; white-space: nowrap;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-15); font-weight: 600; line-height: 1.2;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 600; line-height: 1.2;
   transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.ampy-ec__rail-phone { color: var(--text-primary); padding: var(--space-3) var(--space-2); }
+.ampy-ec__rail-phone { color: var(--text-primary); padding: var(--ampy-cta-pad-y) var(--space-2); }
 .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: var(--text-primary); }
-.ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 1.9rem; }
-.ampy-ec__rail-contact { color: var(--text-primary); padding: var(--space-4) var(--space-7); border-radius: var(--radius-md); background-image: var(--ampy-cta-gradient); box-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23); }
+.ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 2.0rem; }
+.ampy-ec__rail-contact { color: var(--text-primary); padding: var(--ampy-cta-pad-y) var(--ampy-cta-pad-x); border-radius: var(--ampy-cta-radius); background-image: var(--ampy-cta-gradient); box-shadow: var(--ampy-cta-shadow); }
 .ampy-ec__rail-contact-icon { display: inline-flex; flex-shrink: 0; }
-.ampy-ec__rail-contact-icon svg { width: 1.7rem; height: 1.7rem; }
-.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--radius-md); }
+.ampy-ec__rail-contact-icon svg { width: 1.8rem; height: 1.8rem; }
+.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--ampy-cta-radius); }
 @media (hover: hover) {
-  .ampy-ec__rail-phone:hover { color: var(--action-primary-strong); }
-  .ampy-ec__rail-phone:hover .ampy-ec__rail-phone-icon { color: var(--action-primary-strong); }
+  .ampy-ec__rail-phone:hover, .ampy-ec__rail-phone:hover .ampy-ec__rail-phone-icon { color: var(--action-primary-strong); }
   .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 18px 0 rgba(94, 177, 191, 0.38); }
 }
-@media (min-width: 1024px) {
-  .ampy-ec__rail-actions { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; margin: var(--space-9) 0 0; }
+@media (max-width: 1023px) {
+  .ampy-ec__rail-actions { display: none; }
+  .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-actions,
+  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-actions { display: flex; }
 }
 
 /* Slim mobil-credential (start + besked); dold på desktop där rail-credentialen visas */
