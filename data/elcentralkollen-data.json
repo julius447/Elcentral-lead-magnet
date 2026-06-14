@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "2.6.0",
+    "version": "2.7.0",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker och redo?",
     "page_lead": "Gör vårt test på 90 sekunder och få reda på om din central är säker och anpassad för framtida investeringar (Laddbox, Batterilagring, Värmepump).",
@@ -15,7 +15,13 @@
     "share_card_cta": "Gör testet gratis →",
     "rail": {
       "credential_link": "Auktoriserat elinstallationsföretag",
-      "credential_rest": ", registrerat hos Elsäkerhetsverket."
+      "credential_rest": ", registrerat hos Elsäkerhetsverket.",
+      "contact": {
+        "phone_label": "010-265 79 79",
+        "phone_url": "tel:+46102657979",
+        "contact_label": "Kontakta oss",
+        "contact_url": "https://ampy.se/offert/"
+      }
     },
     "start": {
       "heading": "Då sätter vi igång",

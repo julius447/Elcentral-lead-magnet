@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.6 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.7 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -18,6 +18,7 @@
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
     arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+    arrowUpRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>',
     share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>',
     facebook: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
     xtwitter: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
@@ -206,6 +207,12 @@
       const aside = el('aside', { class: 'ampy-ec__rail' });
       aside.appendChild(el('h1', { class: 'ampy-ec__rail-heading' }, m.page_heading));
       aside.appendChild(el('p', { class: 'ampy-ec__rail-lead' }, m.page_lead));
+      // Två kontakt-CTA (1:1-replika av ampy.se: telefon + gradient-knapp). Desktop-only via CSS.
+      const contact = rail.contact || {};
+      aside.appendChild(el('div', { class: 'ampy-ec__rail-actions' }, [
+        el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [iconSpan('phone', 'ampy-ec__rail-phone-icon'), el('span', {}, (contact.phone_label || '010-265 79 79'))]),
+        el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')])
+      ]));
       aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
         iconSpan('shield', 'ampy-ec__rail-cred-icon'),
         el('p', { class: 'ampy-ec__rail-cred-text' }, [

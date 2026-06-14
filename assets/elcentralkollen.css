@@ -46,6 +46,7 @@ html { font-size: 62.5%; }
   --text-success: rgb(15, 110, 86);
   --action-primary: rgb(0, 169, 145);
   --action-primary-strong: rgb(0, 122, 105);        /* white-on ≈ 5.3:1 (AA) */
+  --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%); /* 1:1 från ampy.se "Kontakta oss" */
   --action-primary-strong-hover: rgb(0, 108, 93);
   --action-tint: rgb(240, 250, 248);                 /* selected fill, distinct from grey hover */
   --state-success: rgb(57, 194, 129);
@@ -171,10 +172,10 @@ html { font-size: 62.5%; }
 }
 /* Tesen är desktop-only (skulle trycka ner första frågan på mobil). */
 /* Credential i rail = ENDAST desktop. På mobil bärs den av .ampy-ec__compact-cred (start + besked).
-   Borderlös: en tunn avskiljare + luft, inget tungt kort — ren, världsledande rail-typografi. */
+   Designad RUTA (ägaren ville ha tillbaka den): subtil bakgrund, padding, rundade hörn. */
 .ampy-ec__rail-cred {
-  display: none; align-items: flex-start; gap: var(--space-4); margin: var(--space-10) 0 0;
-  padding: var(--space-8) 0 0; border-top: 1px solid var(--border-tertiary);
+  display: none; align-items: flex-start; gap: var(--space-4); margin: var(--space-9) 0 0;
+  padding: var(--space-6) var(--space-7); background: var(--bg-subtle); border-radius: var(--radius-md);
 }
 .ampy-ec__rail-cred-icon { --ec-row-icon-size: 2.0rem; --ec-row-icon-nudge: 0.1rem; color: var(--action-primary-strong); }
 .ampy-ec__rail-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
@@ -183,6 +184,30 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-cred-link:hover { color: var(--text-primary); }
 @media (min-width: 1024px) {
   .ampy-ec__rail-cred { display: flex; }
+}
+
+/* Kontakt-CTA i rail (1:1-replika av ampy.se: telefon-länk + gradient-knapp "Kontakta oss").
+   Desktop-only (mobilen är oförändrad). */
+.ampy-ec__rail-actions { display: none; }
+.ampy-ec__rail-phone, .ampy-ec__rail-contact {
+  display: inline-flex; align-items: center; gap: var(--space-3); text-decoration: none; white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-15); font-weight: 600; line-height: 1.2;
+  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.ampy-ec__rail-phone { color: var(--text-primary); padding: var(--space-3) var(--space-2); }
+.ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: var(--text-primary); }
+.ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 1.9rem; }
+.ampy-ec__rail-contact { color: var(--text-primary); padding: var(--space-4) var(--space-7); border-radius: var(--radius-md); background-image: var(--ampy-cta-gradient); box-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23); }
+.ampy-ec__rail-contact-icon { display: inline-flex; flex-shrink: 0; }
+.ampy-ec__rail-contact-icon svg { width: 1.7rem; height: 1.7rem; }
+.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--radius-md); }
+@media (hover: hover) {
+  .ampy-ec__rail-phone:hover { color: var(--action-primary-strong); }
+  .ampy-ec__rail-phone:hover .ampy-ec__rail-phone-icon { color: var(--action-primary-strong); }
+  .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 18px 0 rgba(94, 177, 191, 0.38); }
+}
+@media (min-width: 1024px) {
+  .ampy-ec__rail-actions { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; margin: var(--space-9) 0 0; }
 }
 
 /* Slim mobil-credential (start + besked); dold på desktop där rail-credentialen visas */
@@ -223,7 +248,7 @@ html { font-size: 62.5%; }
   /* Rail: mindre kompakt vertikalt + större lead */
   .ampy-ec__rail-heading { margin-bottom: var(--space-8); }
   .ampy-ec__rail-lead { font-size: var(--fs-18); max-width: 38ch; }
-  .ampy-ec__rail-cred { margin-top: var(--space-12); padding-top: var(--space-10); }
+  .ampy-ec__rail-cred { margin-top: var(--space-9); padding: var(--space-7) var(--space-8); }
   .ampy-ec__rail-cred-text, .ampy-ec__rail-cred-link { font-size: var(--fs-15); }
 
   /* Frågor */
@@ -235,9 +260,12 @@ html { font-size: 62.5%; }
   .ampy-ec__option-clarifier { font-size: var(--fs-15); }
   .ampy-ec__info-text { font-size: var(--fs-15); }
 
-  /* Start (slide 1) */
-  .ampy-ec__start-heading { font-size: clamp(2.8rem, 1.4rem + 2vw, 3.6rem); }
-  .ampy-ec__start-body { font-size: var(--fs-18); }
+  /* Start (slide 1) — mer vertikal luft (ägaren: "lite för kompakt vertikalt") */
+  .ampy-ec__start { padding-top: var(--space-13); padding-bottom: var(--space-13); }
+  .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
+  .ampy-ec__start-illu { width: 12rem; height: 12rem; margin-top: var(--space-9); margin-bottom: var(--space-12); }
+  .ampy-ec__start-heading { font-size: clamp(2.8rem, 1.4rem + 2vw, 3.6rem); margin-bottom: var(--space-8); }
+  .ampy-ec__start-body { font-size: var(--fs-18); margin-bottom: var(--space-13); }
 
   /* Besked */
   .ampy-ec__result-lede { font-size: var(--fs-18); }
