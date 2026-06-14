@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.9 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.10 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -212,8 +212,8 @@
       // Två kontakt-CTA (1:1-replika av ampy.se: telefon + gradient-knapp). Desktop-only via CSS.
       const contact = rail.contact || {};
       aside.appendChild(el('div', { class: 'ampy-ec__rail-actions' }, [
-        el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [iconSpan('phoneAmpy', 'ampy-ec__rail-phone-icon'), el('span', {}, (contact.phone_label || '010-265 79 79'))]),
-        el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')])
+        el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')]),
+        el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [el('span', {}, (contact.phone_label || '010-265 79 79')), iconSpan('phoneAmpy', 'ampy-ec__rail-phone-icon')])
       ]));
       aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
         iconSpan('shield', 'ampy-ec__rail-cred-icon'),

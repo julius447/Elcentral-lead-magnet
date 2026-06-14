@@ -48,6 +48,7 @@ html { font-size: 62.5%; }
   --action-primary-strong: rgb(0, 122, 105);        /* white-on ≈ 5.3:1 (AA) */
   /* 1:1 från ampy.se (Core Framework, samma 1rem=10px-rot): exakta gradient/skugga + fluida tokens */
   --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
+  --ampy-cta-gradient-blue: linear-gradient(120deg, #a8e3f0 0%, #5eb1bf 100%); /* ampy "blue-cta" telefon-knapp */
   --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);
   --ampy-cta-fs: clamp(1.4rem, 0.21vw + 1.33rem, 1.6rem);        /* ampy --aptext-sm */
   --ampy-cta-pad-y: clamp(1.02rem, 0.39vw + 0.9rem, 1.4rem);     /* ampy --apspace-xs */
@@ -172,7 +173,7 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-heading {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: clamp(2.8rem, 2.0rem + 2.2vw, 4.2rem); font-weight: 700; line-height: 1.1;
-  letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 var(--space-5); max-width: 18ch;
+  letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 var(--space-7); max-width: 18ch;
 }
 .ampy-ec__rail-lead {
   font-size: clamp(1.5rem, 1.3rem + 0.4vw, 1.7rem); font-weight: 400; line-height: 1.5;
@@ -198,28 +199,31 @@ html { font-size: 62.5%; }
 /* Kontakt-CTA i rail (1:1-replika av ampy.se: telefon-länk + gradient-knapp "Kontakta oss").
    ampy.se:s EXAKTA tokens (färg/storlek/spacing). Visas på desktop alltid; på mobil bara på
    start + besked (railen ligger överst på varje mobilslide → vill inte tränga ut frågorna). */
-.ampy-ec__rail-actions { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; margin: var(--space-8) 0 var(--space-2); }
+.ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: var(--space-10) 0 var(--space-4); }
+/* BÅDA CTA = gradient-piller (1:1 ampy.se): Kontakta=grön, telefon=blå. Text vänster, ikon höger. */
 .ampy-ec__rail-phone, .ampy-ec__rail-contact {
-  display: inline-flex; align-items: center; gap: var(--space-3); text-decoration: none; white-space: nowrap;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 600; line-height: 1.2;
-  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  flex: 1 1 16rem; min-width: 0;
+  display: inline-flex; align-items: center; justify-content: space-between; gap: var(--space-5); text-decoration: none; white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 600; line-height: 1.2; color: var(--text-primary);
+  padding: var(--ampy-cta-pad-y) var(--ampy-cta-pad-x); border-radius: var(--ampy-cta-radius); box-shadow: var(--ampy-cta-shadow);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.ampy-ec__rail-phone { color: var(--text-primary); padding: var(--ampy-cta-pad-y) var(--space-2); }
-.ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: var(--text-primary); }
-.ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 2.0rem; }
-.ampy-ec__rail-contact { color: var(--text-primary); padding: var(--ampy-cta-pad-y) var(--ampy-cta-pad-x); border-radius: var(--ampy-cta-radius); background-image: var(--ampy-cta-gradient); box-shadow: var(--ampy-cta-shadow); }
-.ampy-ec__rail-contact-icon { display: inline-flex; flex-shrink: 0; }
+.ampy-ec__rail-contact { background-image: var(--ampy-cta-gradient); }
+.ampy-ec__rail-phone { background-image: var(--ampy-cta-gradient-blue); }
+.ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: var(--text-primary); }
 .ampy-ec__rail-contact-icon svg { width: 1.8rem; height: 1.8rem; }
+.ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 2.0rem; }
 .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--ampy-cta-radius); }
 @media (hover: hover) {
-  .ampy-ec__rail-phone:hover, .ampy-ec__rail-phone:hover .ampy-ec__rail-phone-icon { color: var(--action-primary-strong); }
-  .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 18px 0 rgba(94, 177, 191, 0.38); }
+  .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 18px 0 rgba(94, 177, 191, 0.38); }
 }
 @media (max-width: 1023px) {
   .ampy-ec__rail-actions { display: none; }
-  /* På mobil: jämn spacing från vänster, höger och mellan (telefon vänster, Kontakta höger som ampy.se-headern). */
+  /* Mobil: stapla CTA:erna i full bredd, centrerat innehåll, med luft (best practice). Bara start + besked. */
   .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-actions,
-  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-actions { display: flex; justify-content: space-between; gap: var(--space-5) var(--space-7); }
+  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); }
+  .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-phone, .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-contact,
+  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-phone, .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-contact { flex: 0 0 auto; width: 100%; justify-content: center; gap: var(--space-4); padding-top: calc(var(--ampy-cta-pad-y) + 0.3rem); padding-bottom: calc(var(--ampy-cta-pad-y) + 0.3rem); }
 }
 
 /* Slim mobil-credential (start + besked); dold på desktop där rail-credentialen visas */
@@ -258,9 +262,9 @@ html { font-size: 62.5%; }
   .ampy-ec__block { padding: var(--space-13) var(--space-13); }
 
   /* Rail: mindre kompakt vertikalt + större lead */
-  .ampy-ec__rail-heading { margin-bottom: var(--space-8); }
+  .ampy-ec__rail-heading { margin-bottom: var(--space-9); }
   .ampy-ec__rail-lead { font-size: var(--fs-18); max-width: 38ch; }
-  .ampy-ec__rail-cred { margin-top: var(--space-9); padding: var(--space-7) var(--space-8); }
+  .ampy-ec__rail-cred { margin-top: var(--space-10); padding: var(--space-7) var(--space-8); }
   .ampy-ec__rail-cred-text, .ampy-ec__rail-cred-link { font-size: var(--fs-15); }
 
   /* Frågor */
