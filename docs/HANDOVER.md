@@ -70,7 +70,19 @@ See SPEC §4. Key invariants the engine relies on:
 - **Embed presets:** /elservice/elcentral/, /elbesiktning/, /jordfelsbrytare/, /lastbalansering/.
 
 ## 7. The lead flow
-All CTAs are plain links to the service pages / `https://ampy.se/offert/`. The optional **PDF-rapport capture** (`includes/lead-endpoint.php`, disabled by default) is a finished REST endpoint (nonce + honeypot + GDPR consent). It POSTs `epost + cell + vector`. The full verdict is ALWAYS shown free — the PDF capture is a calm, expand-on-click text link, never a wall (invariant #1).
+All CTAs are plain links to the service pages / `https://ampy.se/offert/` + the rail contact CTAs (phone `tel:+46102657979`, "Kontakta oss" → offert). The full verdict is ALWAYS shown free — the email capture is a calm, expand-on-click text link, never a wall (invariant #1).
+
+### ⚠️ DEV TODO — activate the e-post/PDF lead-capture (#5, owner-requested, NOT live yet)
+`renderPdfCapture()` (assets/elcentralkollen.js) is fully built and GDPR-correct: email field + consent checkbox + honeypot + WP nonce. On submit it POSTs JSON `{ epost, vector, cell, samtycke, webbplats }` to `meta.pdf_webhook_url` with header `X-WP-Nonce`. It is **gated**: it renders ONLY when BOTH `meta.pdf_webhook_url` AND `meta.privacy_policy_url` are non-null (else it emits an HTML comment and nothing shows).
+- `meta.privacy_policy_url` is ALREADY set → `https://ampy.se/integritetspolicy/`.
+- **What's left:** set `meta.pdf_webhook_url` to a real endpoint. Two options:
+  1. **n8n/Make webhook** (matches the other Ampy calculators): paste the webhook URL into `meta.pdf_webhook_url`. Add a UTM/source field to the payload if you want campaign attribution.
+  2. **Built-in WP REST endpoint:** uncomment `require_once AMPY_EC_DIR . 'includes/lead-endpoint.php';` in `elcentral-kollen.php` (it's a finished nonce + honeypot + consent endpoint) and set `meta.pdf_webhook_url` to the printed `rest_url('ampy-ec/v1/lead')` (already injected to JS as `restUrl`).
+- Once a webhook is set, the capture link appears automatically on the besked. Differentiated copy already exists (`copy.pdf_capture` vs `copy.pdf_capture_green`). This is the tool's ONLY owned lead-capture — until wired, every CTA is an anonymous outbound link and the tool builds no email list.
+- Related quick win: `cta_defs.ring.url` is still `null`, so the akut ("bränd lukt") "Ring oss" button stays hidden. The real number now exists — set it to `tel:+46102657979` to give the highest-intent user a one-tap call.
+
+### Analytics (live since v2.9)
+The wizard pushes `window.dataLayer` events: `ampy_ec_quiz_start`, `ampy_ec_step_view` `{step, question_id}`, `ampy_ec_quiz_complete` `{cell}`. Wire GTM/GA4 (and a Meta/Ads pixel) to consume them for funnel drop-off + retargeting. No IDs are hard-coded in the tool.
 
 ## 8. Accessibility (WCAG 2.2 AA) — built in, not inherited
 Elkollen's renderer dropped focus on every view change — fixed here: `render()` moves focus to `[data-focus]` (the step heading / the result summary `<h2>`) on every transition. One announcement channel per screen (focus, not aria-live on pills). The bränd-lukt akut-notis is `role="alert"`, first in result DOM. Multi-select F4/F6 are `role="checkbox"` groups with exclusive "Inget", explicit "Fortsätt", and a live count. Pills are dark-on-light (never `--state-warning` as text). Targets ≥44px. Reduced-motion respected. Full spec: SPEC §7.
@@ -81,6 +93,9 @@ Elkollen's renderer dropped focus on every view change — fixed here: `render()
 3. **PHP lint** could not run in the build env (php unavailable). Run `php -l` on the 3 PHP files on staging.
 4. **Launch gate:** do not publish until the electrician signs the archetype table + reconciled costs (FACTS §E), and the owner supplies the elbesiktning + JFB prices.
 5. **QA bar** in `preview/index.html` must never reach production (preview-only).
+6. **Lead-capture (#5) — owner-requested, action required:** set `meta.pdf_webhook_url` to turn on the (already-built, GDPR-correct) e-post/PDF capture. Full steps in §7 "DEV TODO". Until then the tool captures no leads.
+7. **Akut "Ring oss":** set `cta_defs.ring.url = "tel:+46102657979"` to surface the one-tap call for the bränd-lukt result (currently `null` → hidden). See §7.
+8. **Analytics:** connect GTM/GA4 + ad pixel to the `ampy_ec_*` dataLayer events (§7) for funnel + retargeting.
 
 ## 10. Verify after install (essentials)
 - Wizard: all 6 steps; F4/F6 multi-select with exclusive "Inget" + "Fortsätt"; "Vet inte" completes and never gates.
