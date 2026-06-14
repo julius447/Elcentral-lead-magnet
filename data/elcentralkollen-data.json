@@ -1,15 +1,15 @@
 {
   "meta": {
-    "version": "2.8.0",
+    "version": "2.9.0",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker och redo?",
-    "page_lead": "Gör vårt test på 90 sekunder och få reda på om din central är säker och anpassad för framtida investeringar (Laddbox, Batterilagring, Värmepump).",
+    "page_lead": "Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida investeringar (laddbox, värmepump och solceller).",
     "disclaimer": "Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.",
     "primary_source": "Elsäkerhetsverket & Skatteverket",
     "verify_company_url": "https://www.elsakerhetsverket.se/kollaelforetaget/foretagsregister/?foretag=12047521&sok=1",
     "ampy_offert_url": "https://ampy.se/offert/",
     "laddbox_calc_url": "https://ampy.se/laddboxkalkylator/",
-    "privacy_policy_url": null,
+    "privacy_policy_url": "https://ampy.se/integritetspolicy/",
     "pdf_webhook_url": null,
     "share_card_authority": "Auktoriserat elinstallationsföretag · registrerat hos Elsäkerhetsverket",
     "share_card_cta": "Gör testet gratis →",
@@ -25,7 +25,7 @@
     },
     "start": {
       "heading": "Då sätter vi igång",
-      "body": "Se om din elcentral är säker och vilka insikter du kan behöva åtgärda.",
+      "body": "Se om din elcentral är säker och vilka åtgärder du kan behöva göra.",
       "cta": "Starta testet"
     },
     "service_pages": {
@@ -77,7 +77,7 @@
       "axis": "safety",
       "type": "single",
       "title": "Är elcentralen utbytt eller original?",
-      "subtitle": "Elcentralen byts sällan ut, så många har kvar originalet i decennier. Dess ålder påverkar både säkerheten och vad anläggningen klarar.",
+      "subtitle": "Elcentralen byts sällan ut, så många har kvar originalet i decennier.",
       "note": "Tänk på själva elcentralen (elskåpet), inte huset. Är du inte säker? Välj det alternativ som stämmer bäst.",
       "options": [
         {
@@ -445,7 +445,7 @@
       },
       "cta": {
         "primary": "radgivning",
-        "secondary": "elcentral_read",
+        "secondary": "redo_how",
         "link": null
       }
     },
@@ -462,7 +462,7 @@
       "summary": "Centralen klarar din plan. Men något i säkerheten bör kontrolleras först.",
       "cta": {
         "primary": "radgivning",
-        "secondary": "elcentral_read",
+        "secondary": "centralbyte_how",
         "link": null
       },
       "summary_by_ready": {
@@ -482,7 +482,7 @@
       "summary": "Ett nytt elskåp kan lösa både säkerheten och kapaciteten på en gång, och är ofta det mest prisvärda steget.",
       "cta": {
         "primary": "radgivning",
-        "secondary": "elcentral_read",
+        "secondary": "centralbyte_how",
         "link": null
       }
     }
@@ -493,15 +493,11 @@
       "label": "Få kostnadsfri rådgivning",
       "url": "ampy_offert_url"
     },
-    "elcentral_read": {
-      "kind": "secondary",
-      "label": "Läs mer om elcentral",
-      "url_key": "centralbyte"
-    },
     "laddbox_bridge": {
       "kind": "link",
-      "label": "Din central klarar en laddbox. Räkna ut din besparing.",
-      "url": "laddbox_calc_url"
+      "label": "Räkna ut din besparing",
+      "url": "laddbox_calc_url",
+      "lead": "Din central klarar en laddbox."
     },
     "nedsakring_hook": {
       "kind": "link",
@@ -512,6 +508,16 @@
       "kind": "link",
       "label": "Ring oss",
       "url": null
+    },
+    "centralbyte_how": {
+      "kind": "secondary",
+      "label": "Se hur ett centralbyte går till",
+      "url_key": "centralbyte"
+    },
+    "redo_how": {
+      "kind": "secondary",
+      "label": "Så gör vi centralen redo",
+      "url_key": "centralbyte"
     }
   },
   "findings": [

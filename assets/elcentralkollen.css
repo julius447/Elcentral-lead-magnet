@@ -67,7 +67,7 @@ html { font-size: 62.5%; }
   --pill-warning-bg: rgb(250, 233, 197);  --pill-warning-fg: rgb(92, 64, 5);
   --pill-error-bg:   rgb(250, 224, 222);  --pill-error-fg:   rgb(124, 32, 32);
   --pill-info-bg:    rgb(224, 236, 248);  --pill-info-fg:    rgb(17, 82, 135);
-  --pill-neutral-bg: var(--bg-secondary); --pill-neutral-fg: var(--text-secondary);
+  --pill-neutral-bg: var(--bg-secondary); --pill-neutral-fg: var(--text-primary);
 
   /* Accent (non-text) */
   --accent-success: rgb(15, 110, 86);
@@ -162,6 +162,8 @@ html { font-size: 62.5%; }
   }
   /* Beskedet är högt → toppställ railen så topp-vänster inte blir tom när man landar. */
   .ampy-ec__shell:has(.ampy-ec__result) { align-items: start; }
+  /* Sticky rail på beskedet → telefon/Kontakta/credential följer med i beslutsögonblicket. */
+  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail { position: sticky; top: var(--space-9); align-self: start; }
 }
 
 /* RAIL — varumärke + tes + verifierbart trust */
@@ -186,7 +188,8 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-cred-icon { --ec-row-icon-size: 2.0rem; --ec-row-icon-nudge: 0.1rem; color: var(--action-primary-strong); }
 .ampy-ec__rail-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__rail-cred-text { font-size: var(--fs-13); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-2); }
-.ampy-ec__rail-cred-link { font-size: var(--fs-13); font-weight: 500; color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; }
+/* Länken bär SAMMA färg som resten av credential-texten, bara understruken (= läses som länk). */
+.ampy-ec__rail-cred-link { font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-cred-link:hover { color: var(--text-primary); }
 @media (min-width: 1024px) {
   .ampy-ec__rail-cred { display: flex; }
@@ -214,8 +217,9 @@ html { font-size: 62.5%; }
 }
 @media (max-width: 1023px) {
   .ampy-ec__rail-actions { display: none; }
+  /* På mobil: jämn spacing från vänster, höger och mellan (telefon vänster, Kontakta höger som ampy.se-headern). */
   .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-actions,
-  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-actions { display: flex; }
+  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-actions { display: flex; justify-content: space-between; gap: var(--space-5) var(--space-7); }
 }
 
 /* Slim mobil-credential (start + besked); dold på desktop där rail-credentialen visas */
@@ -223,7 +227,7 @@ html { font-size: 62.5%; }
 .ampy-ec__compact-cred-icon { --ec-row-icon-size: 1.6rem; --ec-row-icon-nudge: 0.2rem; color: var(--action-primary-strong); }
 .ampy-ec__compact-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__compact-cred-text { font-size: var(--fs-12); line-height: 1.5; color: var(--text-secondary); margin: 0; }
-.ampy-ec__compact-cred-text a { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; }
+.ampy-ec__compact-cred-text a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__compact-cred-text a:hover { color: var(--text-primary); }
 .ampy-ec__start .ampy-ec__compact-cred { text-align: left; }
 @media (min-width: 1024px) { .ampy-ec__compact-cred { display: none; } }
@@ -278,6 +282,7 @@ html { font-size: 62.5%; }
   /* Besked */
   .ampy-ec__result-lede { font-size: var(--fs-18); }
   .ampy-ec__finding-text { font-size: var(--fs-18); }
+  .ampy-ec__finding-icon { font-size: var(--fs-18); } /* radhöjd-ikon följer textstorleken på desktop */
   .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
   .ampy-ec__pill { font-size: var(--fs-18); }
 }
@@ -320,6 +325,8 @@ html { font-size: 62.5%; }
 .ampy-ec__crumb-back:hover, .ampy-ec__crumb-restart:hover { color: var(--action-primary-strong); }
 .ampy-ec__crumb-back:focus-visible, .ampy-ec__crumb-restart:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 .ampy-ec__crumb-back svg { width: 1.6rem; height: 1.6rem; }
+/* "Börja om" nedtonad (mindre + dovare) — nollställer alla svar, ska inte vara en feltrycks-magnet bredvid "Tillbaka". */
+.ampy-ec__crumb-restart { color: var(--text-tertiary); font-size: var(--fs-12); }
 
 /* ============================================================================
    FRÅGESTEG
@@ -345,6 +352,9 @@ html { font-size: 62.5%; }
 .ampy-ec__option-body { display: block; min-width: 0; flex: 1; }
 .ampy-ec__option-title { display: block; font-size: var(--fs-15); font-weight: 500; line-height: 1.4; color: var(--text-primary); }
 .ampy-ec__option-clarifier { display: block; margin-top: 0.2rem; font-size: var(--fs-13); font-weight: 400; line-height: 1.45; color: var(--text-secondary); }
+/* "Osäker"-alternativet nedtonat (dämpad titel + lite extra luft) → lägre tröskel för ett ärligt svar. */
+.ampy-ec__option--soft { margin-top: var(--space-2); }
+.ampy-ec__option--soft:not(.is-selected) .ampy-ec__option-title { color: var(--text-secondary); font-weight: 400; }
 
 /* Multi-select: checkbox-affordans */
 .ampy-ec__option--multi { gap: var(--space-6); }
@@ -393,6 +403,7 @@ html { font-size: 62.5%; }
 .ampy-ec__pill[data-level="warning"] { background: var(--pill-warning-bg); color: var(--pill-warning-fg); }
 .ampy-ec__pill[data-level="error"]   { background: var(--pill-error-bg);   color: var(--pill-error-fg); }
 .ampy-ec__pill[data-level="info"]    { background: var(--pill-info-bg);    color: var(--pill-info-fg); }
+.ampy-ec__pill[data-level="neutral"] { border: 1px solid var(--border-default); } /* "lugn men avsiktlig", inte disabled */
 .ampy-ec__pill-icon { display: inline-flex; }
 .ampy-ec__pill svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; }
 
@@ -405,7 +416,10 @@ html { font-size: 62.5%; }
 .ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; color: var(--text-primary); margin: 0 0 var(--rhythm-label); }
 .ampy-ec__findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--rhythm-group); }
 .ampy-ec__finding { display: flex; align-items: flex-start; gap: var(--space-4); animation: ec-rise var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
-.ampy-ec__finding-icon { --ec-row-icon-nudge: 0.1rem; }
+/* Ikonen centreras optiskt på FÖRSTA textraden via radhöjd (1.5em = textens line-height),
+   så den linjerar perfekt med texten på både mobil och desktop — ingen manuell pixel-nudge. */
+.ampy-ec__finding-icon { margin-top: 0; height: 1.5em; font-size: var(--fs-15); display: inline-flex; align-items: center; justify-content: center; }
+.ampy-ec__finding-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__finding--ok .ampy-ec__finding-icon { color: var(--text-success); }
 .ampy-ec__finding--warn .ampy-ec__finding-icon { color: var(--accent-warning); }
 .ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--text-info); }
@@ -415,7 +429,7 @@ html { font-size: 62.5%; }
 .ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); border-left: 3px solid var(--accent-warning); border-radius: 0; padding: 0.2rem 0 0.2rem var(--space-5); margin: 0 0 var(--rhythm-section); }
 .ampy-ec__factnote-icon { --ec-row-icon-size: 1.6rem; color: var(--accent-warning); }
 .ampy-ec__factnote-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
-.ampy-ec__factnote-src { font-size: var(--fs-12); font-weight: 400; line-height: 1.5; color: var(--text-secondary); margin: var(--space-3) 0 0; }
+.ampy-ec__factnote-src { font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); margin: var(--space-3) 0 0; }
 .ampy-ec__factnote-src-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
 .ampy-ec__factnote-src-link:hover { color: var(--text-primary); }
 
@@ -451,6 +465,8 @@ html { font-size: 62.5%; }
 .ampy-ec__cta-secondary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
 .ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 169, 145, 0.25); }
 .ampy-ec__cta-secondary svg { width: 1.6rem; height: 1.6rem; }
+/* Ledtext ovanför en cta-link (t.ex. "Din central klarar en laddbox." + klickbart "Räkna ut din besparing"). */
+.ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-1); max-width: 62ch; }
 .ampy-ec__cta-link {
   background: none; border: 0; padding: var(--space-3) 0; margin: 0 0 var(--space-3); font: inherit; font-family: 'Outfit', system-ui, sans-serif;
   font-size: var(--fs-14); font-weight: 500; color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;

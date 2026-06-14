@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.8 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.9 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -18,7 +18,8 @@
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
     arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
-    arrowUpRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>',
+    arrowUpRight: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.13916 12.75L12.4808 5.25M12.4808 5.25H5.13916M12.4808 5.25V12.75"/></svg>',
+    phoneAmpy: '<svg viewBox="0 0 19 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.9146 4.16668C12.6878 4.32548 13.3984 4.72356 13.9555 5.30996C14.5126 5.89635 14.8908 6.6444 15.0416 7.45834M11.9146 0.833344C13.5211 1.02121 15.0191 1.77849 16.1628 2.98085C17.3065 4.18321 18.0278 5.75918 18.2083 7.45001M17.4166 14.1V16.6C17.4175 16.8321 17.3724 17.0618 17.284 17.2745C17.1957 17.4871 17.0662 17.678 16.9037 17.8349C16.7412 17.9918 16.5494 18.1112 16.3406 18.1856C16.1317 18.26 15.9104 18.2876 15.6908 18.2667C13.2547 17.988 10.9147 17.1118 8.85872 15.7083C6.94591 14.4289 5.32419 12.7218 4.10872 10.7083C2.77078 8.53435 1.93816 6.05917 1.6783 3.48334C1.65852 3.2529 1.68454 3.02064 1.7547 2.80136C1.82486 2.58208 1.93763 2.38058 2.08582 2.20969C2.23402 2.0388 2.4144 1.90227 2.61547 1.80878C2.81654 1.71529 3.0339 1.66689 3.25372 1.66668H5.62872C6.01292 1.6627 6.38539 1.80591 6.6767 2.06962C6.968 2.33333 7.15828 2.69955 7.21205 3.10001C7.31229 3.90007 7.4982 4.68562 7.76622 5.44168C7.87273 5.73995 7.89578 6.06411 7.83264 6.37574C7.7695 6.68738 7.62282 6.97344 7.40997 7.20001L6.40455 8.25834C7.53153 10.3446 9.17258 12.072 11.1546 13.2583L12.16 12.2C12.3752 11.976 12.647 11.8216 12.943 11.7551C13.2391 11.6886 13.547 11.7129 13.8304 11.825C14.5486 12.1071 15.2949 12.3028 16.055 12.4083C16.4395 12.4655 16.7907 12.6693 17.0418 12.9813C17.2929 13.2932 17.4263 13.6913 17.4166 14.1Z"/></svg>',
     share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>',
     facebook: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
     xtwitter: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
@@ -146,7 +147,7 @@
       this.mount = mount; this.data = data; this.questions = data.questions;
       this.N = this.questions.length;            // antal frågor (7)
       this.answers = {}; this.step = 0;          // 0 = start, 1..N = frågor, N+1 = besked
-      this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false;
+      this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false; this._tracked = {};
       this.hydrateFromUrl(); this.bindHistory();
     }
 
@@ -191,9 +192,10 @@
       else { cur = cur.filter(id => { const o = q.options.find(oo => oo.id === id); return !(o && o.exclusive); }); cur = cur.includes(optionId) ? cur.filter(id => id !== optionId) : cur.concat(optionId); }
       this.answers[q.id] = cur;
     }
-    advance() { this.dir = 'fwd'; if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
+    track(event, params) { try { const dl = (window.dataLayer = window.dataLayer || []); const key = event + ':' + (params && params.step != null ? params.step : ''); if (this._tracked[key]) return; this._tracked[key] = true; dl.push(Object.assign({ event: 'ampy_ec_' + event }, params || {})); } catch (e) {} }
+    advance() { this.dir = 'fwd'; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
     back() { this.dir = 'back'; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
-    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
+    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
 
     buildShell() {
       this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
@@ -210,7 +212,7 @@
       // Två kontakt-CTA (1:1-replika av ampy.se: telefon + gradient-knapp). Desktop-only via CSS.
       const contact = rail.contact || {};
       aside.appendChild(el('div', { class: 'ampy-ec__rail-actions' }, [
-        el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [iconSpan('phone', 'ampy-ec__rail-phone-icon'), el('span', {}, (contact.phone_label || '010-265 79 79'))]),
+        el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [iconSpan('phoneAmpy', 'ampy-ec__rail-phone-icon'), el('span', {}, (contact.phone_label || '010-265 79 79'))]),
         el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')])
       ]));
       aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
@@ -228,8 +230,8 @@
       if (!this.stage) this.buildShell();
       let block;
       if (this.step <= 0) block = this.renderStart();
-      else if (this.step > this.N) block = this.renderResult();
-      else block = this.renderQuestion(this.questions[this.step - 1]);
+      else if (this.step > this.N) { block = this.renderResult(); try { this.track('quiz_complete', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} }
+      else { const q = this.questions[this.step - 1]; block = this.renderQuestion(q); this.track('step_view', { step: this.step, question_id: q.id }); }
       block.dataset.dir = this.dir;
       this.stage.replaceChildren(block);
       const focusTarget = block.querySelector('[data-focus]');
@@ -248,7 +250,6 @@
     renderStart() {
       const s = this.data.meta.start || {};
       const block = el('div', { class: 'ampy-ec__block ampy-ec__start' });
-      block.appendChild(el('div', { class: 'ampy-ec__crumb ampy-ec__crumb--start' }, [this.renderSteps()]));
       block.appendChild(el('div', { class: 'ampy-ec__start-illu', html: START_ILLU, 'aria-hidden': 'true' }));
       block.appendChild(el('h2', { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
       if (s.body) block.appendChild(el('p', { class: 'ampy-ec__start-body' }, s.body));
@@ -278,7 +279,7 @@
       const list = el('ul', { class: 'ampy-ec__options', role: 'list' });
       q.options.forEach(opt => {
         const selected = this.answers[q.id] === opt.id;
-        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id) },
+        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : '') + (opt.id === 'vet_inte' ? ' ampy-ec__option--soft' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id) },
           [el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])])));
       });
       return list;
@@ -352,15 +353,33 @@
       return m.headline || this.buildSummarySentence(dx);
     }
     buildSummarySentence(dx) {
-      const s = { lag: 'säker', forhojd: 'förhöjd risk', hog: 'hög risk', oklart: 'oklart läge' }[dx.safety.state];
-      const planNoun = { elbil: 'elbil', varmepump: 'värmepump', solceller: 'solceller eller batteri', renovering: 'din renovering' }[dx.ready.plan] || 'din plan';
-      const r = { redo_marginal: 'redo för ' + planNoun, redo_med_atgard: 'redo för ' + planNoun + ' med lastbalansering', inte_redo: 'inte redo för ' + planNoun + ' utan åtgärd', kraver_bedomning: 'redo avgörs av en bedömning', ej_bedomd: 'inga planer angivna' }[dx.ready.state];
-      return 'Din central: ' + s + ', ' + r + '.';
+      const planNoun = { elbil: 'elbil', varmepump: 'värmepump', solceller: 'solceller eller batteri', renovering: 'din renovering' }[dx.ready.plan] || 'dina planer';
+      const parts = [];
+      parts.push({
+        lag: 'Din central ser säker ut.',
+        forhojd: 'Din central har en förhöjd risk som bör ses över.',
+        hog: 'Din central har en hög risk som bör åtgärdas.',
+        oklart: 'Vi ser inga tydliga risker, men några svar var osäkra.'
+      }[dx.safety.state]);
+      const r = {
+        redo_marginal: 'Den är redo för ' + planNoun + '.',
+        redo_med_atgard: 'Den är redo för ' + planNoun + ' med en lastbalansering.',
+        inte_redo: 'Den behöver en åtgärd innan den klarar ' + planNoun + '.',
+        kraver_bedomning: 'Vad ' + planNoun + ' kräver avgörs av en kort bedömning.',
+        ej_bedomd: ''
+      }[dx.ready.state];
+      if (r) parts.push(r);
+      return parts.join(' ');
     }
     renderDualStatus(dx) {
       const data = this.data, ss = data.safety_states[dx.safety.state], readyMeta = data.ready_states[dx.ready.state];
       const readyPill = data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
-      const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (readyPill === 'warning' ? 'warning' : ss.pill_level);
+      // Amber-wash ENDAST vid verklig säkerhetsrisk. Grön/oklart säkerhet + ren kapacitetsåtgärd
+      // (readyPill warning) lutar mot info, larmar inte "säkerhetsfel". (Pillret förblir amber.)
+      let worst;
+      if (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') worst = ss.pill_level;
+      else if (readyPill === 'warning') worst = 'info';
+      else worst = ss.pill_level;
       const wrap = el('div', { class: 'ampy-ec__dualstatus', data: { worst } });
       wrap.appendChild(el('div', { class: 'ampy-ec__dualstatus-accent', 'aria-hidden': 'true' }));
       const rows = el('div', { class: 'ampy-ec__dualstatus-rows' });
@@ -396,7 +415,10 @@
         // Grön-bara-länkar (klarar-en-laddbox / nedsäkring) får ENDAST visas vid säkert läge (lag).
         // Vid 'oklart' (sr-cell men osäkra svar) hade de hävdat mer än svaren ger → faller igenom till rådgivning.
         if (hasPlan && dx.safety.state === 'lag') linkDef = defs.laddbox_bridge; else if (highFuse && dx.safety.state === 'lag') linkDef = defs.nedsakring_hook;
-        if (linkDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
+        if (linkDef) {
+          if (linkDef.lead) wrap.appendChild(el('p', { class: 'ampy-ec__cta-lead' }, linkDef.lead));
+          wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
+        }
         else if (dx.safety.state === 'oklart') { const d = defs.radgivning; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(d) }, [d.label, iconSpan('arrowRight')])); }
         return wrap;
       }
