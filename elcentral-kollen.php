@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.4.0
+ * Version:           2.5.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.4.0' );
+define( 'AMPY_EC_VERSION', '2.5.0' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
@@ -54,6 +54,25 @@ function ampy_ec_get_data() {
 	if ( json_last_error() !== JSON_ERROR_NONE ) { return null; }
 	$cached = $data;
 	return $cached;
+}
+
+/**
+ * Strippa interna nycklar (prefix "_", t.ex. _pending_signoff, _note, _reviewed_by)
+ * rekursivt innan datan skickas till klienten. Defensivt: håller intern dokumentation
+ * och lanseringsgrindar utanför den publika JS-payloaden även om de råkar ligga kvar
+ * i datafilen.
+ *
+ * @param mixed $node
+ * @return mixed
+ */
+function ampy_ec_strip_internal( $node ) {
+	if ( ! is_array( $node ) ) { return $node; }
+	$out = array();
+	foreach ( $node as $k => $v ) {
+		if ( is_string( $k ) && isset( $k[0] ) && '_' === $k[0] ) { continue; }
+		$out[ $k ] = ampy_ec_strip_internal( $v );
+	}
+	return $out;
 }
 
 /**
@@ -86,7 +105,7 @@ function ampy_ec_shortcode( $atts = array() ) {
 
 	// Injicera HELA datafilen till JS — undviker en andra HTTP-rundtur.
 	wp_localize_script( 'ampy-ec', 'AmpyEC', array(
-		'data'      => $data,
+		'data'      => ampy_ec_strip_internal( $data ),
 		'restUrl'   => esc_url_raw( rest_url( 'ampy-ec/v1/lead' ) ),
 		'restNonce' => wp_create_nonce( 'wp_rest' ),
 		'embed'     => sanitize_key( $atts['embed'] ),

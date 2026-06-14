@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.2 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.5 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -100,7 +100,7 @@
       if (c.central_age_in && !c.central_age_in.includes(eca.bracket)) ok = false;
       if (c.sakringstyp && answers.sakringstyp !== c.sakringstyp) ok = false;
       if (c.has_any_plan) { const p = answers.planer || []; if (!p.length || (p.length === 1 && p.includes('inget'))) ok = false; }
-      if (ok) { out.ready_finding = rule.then.ready_finding; out.strengthen_cell = rule.then.strengthen_cell; }
+      if (ok) { out.ready_finding = rule.then.ready_finding; }
     });
     return out;
   }
@@ -130,7 +130,10 @@
     return true;
   }
   function collectFindings(dx, data) {
-    const matched = (data.findings || []).filter(f => findingMatches(f.when, dx, data)).filter(f => f.id !== 'f_brand_lukt');
+    let matched = (data.findings || []).filter(f => findingMatches(f.when, dx, data)).filter(f => f.id !== 'f_brand_lukt');
+    // Under akut (bränd lukt): inga muntra OK-rader och aldrig nedsäkrings-tipset bredvid en röd varning.
+    if (dx.safety.escalation) matched = matched.filter(f => f.icon !== 'ok' && f.id !== 'f_nedsakring');
+    if (matched.some(f => f.icon === 'warn')) matched = matched.filter(f => f.id !== 'f_nedsakring');
     const hasWarn = matched.some(f => f.icon === 'warn');
     const order = hasWarn ? { warn: 0, info: 1, ok: 2 } : { ok: 0, info: 1, warn: 2 };
     return matched.sort((x, y) => (order[x.icon] - order[y.icon]) || ((x.rank || 50) - (y.rank || 50)));
@@ -142,7 +145,7 @@
       this.mount = mount; this.data = data; this.questions = data.questions;
       this.N = this.questions.length;            // antal frågor (7)
       this.answers = {}; this.step = 0;          // 0 = start, 1..N = frågor, N+1 = besked
-      this.dir = 'fwd'; this._flashT = null; this.stage = null;
+      this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false;
       this.hydrateFromUrl(); this.bindHistory();
     }
 
@@ -163,7 +166,7 @@
         const qid = byPrefix[seg[0]]; if (!qid) return;
         const q = this.questions.find(qq => qq.id === qid); if (!q) return;
         const digits = seg.slice(1);
-        if (q.type === 'multi') out[qid] = digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id);
+        if (q.type === 'multi') { out[qid] = digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id); const exq = q.options.find(o => o.exclusive); if (exq && out[qid].includes(exq.id)) out[qid] = [exq.id]; }
         else { const o = q.options[parseInt(digits, 10)]; if (o) out[qid] = o.id; }
       });
       return out;
@@ -188,7 +191,7 @@
       this.answers[q.id] = cur;
     }
     advance() { this.dir = 'fwd'; if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
-    back() { this.dir = 'back'; if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
+    back() { this.dir = 'back'; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
     restart() { this.dir = 'back'; this.answers = {}; this.step = 0; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
 
     buildShell() {
@@ -203,7 +206,6 @@
       const aside = el('aside', { class: 'ampy-ec__rail' });
       aside.appendChild(el('h1', { class: 'ampy-ec__rail-heading' }, m.page_heading));
       aside.appendChild(el('p', { class: 'ampy-ec__rail-lead' }, m.page_lead));
-      if (rail.thesis) { const ul = el('ul', { class: 'ampy-ec__rail-thesis', role: 'list' }); rail.thesis.forEach(t => ul.appendChild(el('li', {}, [el('span', { class: 'ampy-ec__rail-axis' }, t.axis), ' ' + t.desc]))); aside.appendChild(ul); }
       aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
         iconSpan('shield', 'ampy-ec__rail-cred-icon'),
         el('p', { class: 'ampy-ec__rail-cred-text' }, [
@@ -224,7 +226,9 @@
       block.dataset.dir = this.dir;
       this.stage.replaceChildren(block);
       const focusTarget = block.querySelector('[data-focus]');
-      if (focusTarget) { try { focusTarget.focus({ preventScroll: false }); } catch (e) { focusTarget.focus(); } }
+      // Flytta inte fokus vid första paint (annars auto-scrollar en embed under viewporten till widgeten).
+      if (focusTarget && this._booted) { try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); } }
+      this._booted = true;
     }
 
     renderSteps() {
@@ -282,7 +286,7 @@
           [check, el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])]);
         refs[opt.id] = { btn, check }; group.appendChild(el('li', {}, btn));
       });
-      const hint = el('p', { class: 'ampy-ec__multi-hint', id: 'ampy-ec-multi-hint' }, this.data.copy.multi_aria || 'Välj minst ett alternativ.');
+      const hint = el('p', { class: 'ampy-ec__multi-hint', id: 'ampy-ec-multi-hint', role: 'status', 'aria-live': 'polite' }, this.data.copy.multi_aria || 'Välj minst ett alternativ.');
       const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) { this.advance(); } else { hint.classList.add('is-shown'); const first = group.querySelector('.ampy-ec__option'); if (first) first.focus(); } } }, ['Fortsätt', iconSpan('arrowRight')]);
       const sync = () => {
         const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
@@ -305,9 +309,9 @@
       block.appendChild(el('h2', { class: 'ampy-ec__sr', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.buildSummarySentence(dx)));
       block.appendChild(el('p', { class: 'ampy-ec__result-eyebrow' }, 'Ditt besked'));
       block.appendChild(this.renderDualStatus(dx));
-      const lede = (m.summary_by_ready && m.summary_by_ready[dx.ready.state]) || m.summary;
+      const lede = (m.summary_by_safety && m.summary_by_safety[dx.safety.state]) || (m.summary_by_ready && m.summary_by_ready[dx.ready.state]) || m.summary;
       if (lede) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, lede));
-      block.appendChild(this.renderFindings(dx));
+      const findingsEl = this.renderFindings(dx); if (findingsEl) block.appendChild(findingsEl);
       if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [
         el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text),
         el('p', { class: 'ampy-ec__factnote-src' }, [
@@ -319,6 +323,9 @@
       block.appendChild(this.renderCta(dx));
       block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
+      // Friskrivning på JS-besked: noscript-fallbacken (render.php) tas bort vid första paint,
+      // så besked-skärmen måste själv bära samma vägledande-bedömning-caveat.
+      block.appendChild(el('p', { class: 'ampy-ec__friskrivning' }, this.data.meta.disclaimer));
       block.appendChild(this.renderCompactCred());
       return block;
     }
@@ -340,7 +347,8 @@
     }
     buildSummarySentence(dx) {
       const s = { lag: 'säker', forhojd: 'förhöjd risk', hog: 'hög risk', oklart: 'oklart läge' }[dx.safety.state];
-      const r = { redo_marginal: 'redo för elbil', redo_med_atgard: 'redo för elbil med lastbalansering', inte_redo: 'inte redo för elbil utan åtgärd', kraver_bedomning: 'redo-läget behöver bedömas', ej_bedomd: 'ingen planerad last' }[dx.ready.state];
+      const planNoun = { elbil: 'elbil', varmepump: 'värmepump', solceller: 'solceller eller batteri', renovering: 'din renovering' }[dx.ready.plan] || 'din plan';
+      const r = { redo_marginal: 'redo för ' + planNoun, redo_med_atgard: 'redo för ' + planNoun + ' med lastbalansering', inte_redo: 'inte redo för ' + planNoun + ' utan åtgärd', kraver_bedomning: 'redo avgörs av en bedömning', ej_bedomd: 'inga planer angivna' }[dx.ready.state];
       return 'Din central: ' + s + ', ' + r + '.';
     }
     renderDualStatus(dx) {
@@ -361,8 +369,9 @@
     }
     renderFindings(dx) {
       const findings = collectFindings(dx, this.data);
+      if (!findings.length) return null; // ingen tom "Våra fynd"-rubrik (t.ex. akut-eskalering där OK-fynd undertrycks)
       const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
-      wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Dina fynd'));
+      wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Våra fynd'));
       const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
       findings.forEach((f, i) => { const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info'); list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)])); });
       wrap.appendChild(list); return wrap;
@@ -378,12 +387,15 @@
       if (dx.cell === 'sr') {
         let linkDef = null; const planer = this.answers.planer || [];
         const hasPlan = planer.some(p => p !== 'inget') && planer.length, highFuse = ['25', '35'].includes(this.answers.huvudsakring);
-        if (hasPlan) linkDef = defs.laddbox_bridge; else if (highFuse) linkDef = defs.nedsakring_hook;
+        // Grön-bara-länkar (klarar-en-laddbox / nedsäkring) får ENDAST visas vid säkert läge (lag).
+        // Vid 'oklart' (sr-cell men osäkra svar) hade de hävdat mer än svaren ger → faller igenom till rådgivning.
+        if (hasPlan && dx.safety.state === 'lag') linkDef = defs.laddbox_bridge; else if (highFuse && dx.safety.state === 'lag') linkDef = defs.nedsakring_hook;
         if (linkDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
+        else if (dx.safety.state === 'oklart') { const d = defs.radgivning; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(d) }, [d.label, iconSpan('arrowRight')])); }
         return wrap;
       }
       const primaryDef = defs[cta.primary];
-      const ringSigned = defs.ring && !defs.ring._pending_signoff && defs.ring.url && defs.ring.url !== 'tel:+46812345678';
+      const ringSigned = defs.ring && typeof defs.ring.url === 'string' && /^tel:\+?\d{6,}$/.test(defs.ring.url);
       if (dx.safety.escalation && ringSigned) {
         wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: defs.ring.url }, [iconSpan('phone'), defs.ring.label]));
         if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
@@ -395,7 +407,7 @@
     }
     renderShareRow(dx) {
       const row = el('div', { class: 'ampy-ec__share-row' });
-      if (dx.cell === 'sr') row.appendChild(el('span', { class: 'ampy-ec__share-nudge' }, this.data.copy.share_nudge_green));
+      if (dx.cell === 'sr' && dx.safety.state === 'lag') row.appendChild(el('span', { class: 'ampy-ec__share-nudge' }, this.data.copy.share_nudge_green));
       row.appendChild(this.renderShareButton(dx));
       return row;
     }
@@ -424,7 +436,9 @@
       const status = el('span', { class: 'ampy-ec__share-status', role: 'status', 'aria-live': 'polite' });
       const shareUrl = window.location.origin + window.location.pathname + '?q=' + encodeURIComponent(this.encodeVector());
       const shareTitle = 'Elcentral-kollen';
-      const shareText = (dx.cell === 'sr') ? ((dx.ready.state === 'redo_marginal') ? this.data.copy.share_green_marginal : this.data.copy.share_green) : this.buildSummarySentence(dx);
+      // share_green_marginal ("...redo för elbil") gäller bara så länge redo_marginal är elbil-exklusivt (scoring.ready).
+      // Icke-grönt besked delar en neutral mening (aldrig den telegrafiska buildSummarySentence i offentlig delning).
+      const shareText = (dx.cell === 'sr' && dx.safety.state === 'lag') ? ((dx.ready.state === 'redo_marginal') ? this.data.copy.share_green_marginal : this.data.copy.share_green) : (this.data.copy.share_neutral || this.buildSummarySentence(dx));
       const anchor = el('span', { class: 'ampy-ec__share-anchor' });
       const menu = el('div', { class: 'ampy-ec__share-menu', role: 'menu', 'aria-label': 'Dela resultatet', hidden: true });
       const enc = encodeURIComponent;
