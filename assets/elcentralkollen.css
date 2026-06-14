@@ -141,23 +141,25 @@ html { font-size: 62.5%; }
    SHELL — en kolumn (mobil), tvåpanels (≥1024px)
    ============================================================================ */
 .ampy-ec__shell {
-  max-width: 108rem;
+  max-width: 128rem; /* Ampy-container (1280px) — minskar kant-whitespace på desktop */
   margin: 0 auto;
-  padding: clamp(2.4rem, 4vw, 4.8rem) clamp(1.6rem, 4vw, 3.2rem);
+  padding: clamp(2.4rem, 4vw, 5.6rem) clamp(1.6rem, 4vw, 4rem);
   display: grid;
   gap: var(--space-9);
 }
 @media (min-width: 1024px) {
   .ampy-ec__shell {
-    grid-template-columns: minmax(28rem, 36rem) minmax(0, 58rem);
-    gap: 5.6rem;
-    align-items: start;
+    grid-template-columns: minmax(34rem, 42rem) minmax(0, 78rem);
+    gap: 6.4rem;
+    align-items: center; /* start + frågor: balanserar rail mot kortet (ingen 2/5-svans i botten) */
   }
+  /* Beskedet är högt → toppställ railen så topp-vänster inte blir tom när man landar. */
+  .ampy-ec__shell:has(.ampy-ec__result) { align-items: start; }
 }
 
 /* RAIL — varumärke + tes + verifierbart trust */
 .ampy-ec__rail { min-width: 0; }
-@media (min-width: 1024px) { .ampy-ec__rail { position: sticky; top: 3.2rem; padding-top: var(--space-3); } }
+@media (min-width: 1024px) { .ampy-ec__rail { padding-top: var(--space-3); } }
 .ampy-ec__rail-heading {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: clamp(2.8rem, 2.0rem + 2.2vw, 4.2rem); font-weight: 700; line-height: 1.1;
@@ -208,6 +210,41 @@ html { font-size: 62.5%; }
 .ampy-ec__share-row .ampy-ec__share-nudge { margin-right: auto; }
 
 .ampy-ec__stage { min-width: 0; }
+
+/* ============================================================================
+   DESKTOP-SKALA (≥1024px) — större typografi (Ampy body-skala 17–18px), generösare
+   kort + mindre kompakt rail. MOBIL (<1024px) är PERFEKT och rörs INTE: varje bump
+   lever bara i denna media query.
+   ============================================================================ */
+@media (min-width: 1024px) {
+  /* Generösare kort (Ampy 2xl-spacing) */
+  .ampy-ec__block { padding: var(--space-13) var(--space-13); }
+
+  /* Rail: mindre kompakt vertikalt + större lead */
+  .ampy-ec__rail-heading { margin-bottom: var(--space-8); }
+  .ampy-ec__rail-lead { font-size: var(--fs-18); max-width: 38ch; }
+  .ampy-ec__rail-cred { margin-top: var(--space-12); padding-top: var(--space-10); }
+  .ampy-ec__rail-cred-text, .ampy-ec__rail-cred-link { font-size: var(--fs-15); }
+
+  /* Frågor */
+  .ampy-ec__q-title { font-size: clamp(2.6rem, 1.2rem + 1.8vw, 3.2rem); margin-bottom: var(--space-11); }
+  .ampy-ec__q-subtitle { font-size: var(--fs-15); }
+  .ampy-ec__options { gap: var(--space-6); }
+  .ampy-ec__option { min-height: 6.4rem; padding: var(--space-7) var(--space-9); }
+  .ampy-ec__option-title { font-size: var(--fs-18); }
+  .ampy-ec__option-clarifier { font-size: var(--fs-15); }
+  .ampy-ec__info-text { font-size: var(--fs-15); }
+
+  /* Start (slide 1) */
+  .ampy-ec__start-heading { font-size: clamp(2.8rem, 1.4rem + 2vw, 3.6rem); }
+  .ampy-ec__start-body { font-size: var(--fs-18); }
+
+  /* Besked */
+  .ampy-ec__result-lede { font-size: var(--fs-18); }
+  .ampy-ec__finding-text { font-size: var(--fs-18); }
+  .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
+  .ampy-ec__pill { font-size: var(--fs-18); }
+}
 
 /* ============================================================================
    BLOCK (kortet)
@@ -324,7 +361,6 @@ html { font-size: 62.5%; }
 .ampy-ec__pill svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; }
 
 .ampy-ec__result-lede { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--rhythm-section); max-width: 62ch; }
-.ampy-ec__friskrivning { font-size: var(--fs-12); line-height: 1.5; color: var(--text-secondary); margin: var(--space-8) 0 0; max-width: 62ch; }
 
 @keyframes ec-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 

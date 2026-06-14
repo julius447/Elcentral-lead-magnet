@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.5 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.6 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -321,12 +321,11 @@
         ])
       ])]));
       block.appendChild(this.renderCta(dx));
-      block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
-      // Friskrivning på JS-besked: noscript-fallbacken (render.php) tas bort vid första paint,
-      // så besked-skärmen måste själv bära samma vägledande-bedömning-caveat.
-      block.appendChild(el('p', { class: 'ampy-ec__friskrivning' }, this.data.meta.disclaimer));
-      block.appendChild(this.renderCompactCred());
+      // Footern avslutas medvetet på "Läs mer om elcentral" (sekundär CTA). Delningsraden,
+      // friskrivnings-paragrafen och den slimmade mobil-credentialen är borttagna (ägarbeslut)
+      // för ett kompakt avslut. Friskrivningens innebörd bärs av besked-copyn (t.ex. "en kort
+      // besiktning ger dig säkerheten") + den crawlbara render.php-fallbacken.
       return block;
     }
     // Slim trust-rad — visas bara på mobil (start + besked), där rail-credentialen är dold.
