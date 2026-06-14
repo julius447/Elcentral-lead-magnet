@@ -206,9 +206,9 @@
       if (rail.thesis) { const ul = el('ul', { class: 'ampy-ec__rail-thesis', role: 'list' }); rail.thesis.forEach(t => ul.appendChild(el('li', {}, [el('span', { class: 'ampy-ec__rail-axis' }, t.axis), ' ' + t.desc]))); aside.appendChild(ul); }
       aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
         iconSpan('shield', 'ampy-ec__rail-cred-icon'),
-        el('div', {}, [
-          el('p', { class: 'ampy-ec__rail-cred-text' }, rail.credential || 'Registrerat hos Elsäkerhetsverket.'),
-          el('a', { class: 'ampy-ec__rail-cred-link', href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (this.data.copy.trust_link || 'Verifiera oss'))
+        el('p', { class: 'ampy-ec__rail-cred-text' }, [
+          el('a', { class: 'ampy-ec__rail-cred-link', href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (rail.credential_link || 'Auktoriserat elinstallationsföretag')),
+          (rail.credential_rest || ', registrerat hos Elsäkerhetsverket.')
         ])
       ]));
       return aside;
@@ -308,7 +308,14 @@
       const lede = (m.summary_by_ready && m.summary_by_ready[dx.ready.state]) || m.summary;
       if (lede) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, lede));
       block.appendChild(this.renderFindings(dx));
-      if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text), el('p', { class: 'ampy-ec__factnote-text ampy-ec__factnote-text--quiet' }, data.facts.insurance.text), el('p', { class: 'ampy-ec__factnote-src' }, data.facts.brand.source)])]));
+      if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [
+        el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text),
+        el('p', { class: 'ampy-ec__factnote-src' }, [
+          (data.facts.brand.source_pre || ''),
+          el('a', { class: 'ampy-ec__factnote-src-link', href: data.facts.brand.source_url, target: '_blank', rel: 'noopener noreferrer' }, (data.facts.brand.source_link || '')),
+          (data.facts.brand.source_post || '')
+        ])
+      ])]));
       block.appendChild(this.renderCta(dx));
       block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
@@ -321,8 +328,8 @@
       return el('div', { class: 'ampy-ec__compact-cred' }, [
         iconSpan('shield', 'ampy-ec__compact-cred-icon'),
         el('p', { class: 'ampy-ec__compact-cred-text' }, [
-          (rail.credential || 'Registrerat hos Elsäkerhetsverket.') + ' ',
-          el('a', { href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (this.data.copy.trust_link || 'Verifiera oss'))
+          el('a', { href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (rail.credential_link || 'Auktoriserat elinstallationsföretag')),
+          (rail.credential_rest || ', registrerat hos Elsäkerhetsverket.')
         ])
       ]);
     }
@@ -383,7 +390,6 @@
       } else {
         if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
         if (cta.secondary) { const sec = defs[cta.secondary]; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(sec) }, [sec.label, iconSpan('arrowRight')])); }
-        if (dx.safety.escalation) wrap.appendChild(el('p', { class: 'ampy-ec__akut-phone-note' }, 'Ring oss gärna direkt. Numret bekräftas innan lansering.'));
       }
       return wrap;
     }

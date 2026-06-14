@@ -177,11 +177,10 @@ html { font-size: 62.5%; }
 .ampy-ec__compact-cred-icon { flex-shrink: 0; width: 1.6rem; height: 1.6rem; color: var(--action-primary-strong); margin-top: 0.2rem; }
 .ampy-ec__compact-cred-icon svg { width: 1.6rem; height: 1.6rem; }
 .ampy-ec__compact-cred-text { font-size: var(--fs-12); line-height: 1.5; color: var(--text-tertiary); margin: 0; }
-.ampy-ec__compact-cred-text a { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; display: inline-block; min-height: 4.4rem; line-height: 4.4rem; }
-.ampy-ec__start .ampy-ec__compact-cred { justify-content: center; text-align: left; }
+.ampy-ec__compact-cred-text a { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; }
+.ampy-ec__compact-cred-text a:hover { color: var(--text-primary); }
+.ampy-ec__start .ampy-ec__compact-cred { text-align: left; }
 @media (min-width: 1024px) { .ampy-ec__compact-cred { display: none; } }
-/* link 44px tap target without inflating the line on multi-line wrap */
-@media (pointer: fine) { .ampy-ec__compact-cred-text a { min-height: 0; line-height: inherit; } }
 
 /* ---- Start-skärm (slide 1) ---- */
 .ampy-ec__start { align-items: center; text-align: center; }
@@ -330,6 +329,8 @@ html { font-size: 62.5%; }
 .ampy-ec__factnote-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 .ampy-ec__factnote-text--quiet { color: var(--text-tertiary); margin-top: var(--space-2); }
 .ampy-ec__factnote-src { font-size: var(--fs-12); font-weight: 400; line-height: 1.5; color: var(--text-tertiary); margin: var(--space-3) 0 0; }
+.ampy-ec__factnote-src-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__factnote-src-link:hover { color: var(--text-primary); }
 
 /* AKUT (röd, tyngst på skärmen, först i DOM) */
 .ampy-ec__akut { display: flex; align-items: flex-start; gap: var(--space-4); border-left: 4px solid var(--accent-error); background: rgb(252, 237, 238); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: var(--space-6) var(--space-7); margin: 0 0 var(--rhythm-section); }
