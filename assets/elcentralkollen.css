@@ -165,19 +165,19 @@ html { font-size: 62.5%; }
        SAMMA bredd som referensen (~49rem på desktop) så copy-blocket bryter likadant. */
     grid-template-columns: minmax(36rem, 44fr) minmax(46rem, 56fr);
     gap: 6.4rem;
-    align-items: center; /* vänsterspalten vertikalt centrerad mot kort-blocket → lika luft upp/ner (ägarbeslut) */
+    align-items: start; /* rail toppställd → stabilt topp-läge, oberoende av kortets höjd */
   }
-  /* Rail vertikalt centrerad mot stage-kortet på start + frågor (delar samma höjd via --ec-q-minh →
-     ligger stilla genom hela quizet med lika luft upp/ner, ägarbeslut). På det HÖGA besked-/formulär-
-     kortet toppställs + sticky:as den istället (centrering skulle annars flyta ner till mitten med tom topp). */
-  .ampy-ec__rail { align-self: center; }
+  /* Start + frågor: rail-innehållet vertikalt CENTRERAT inom en FAST höjd (= normalslidens korthöjd
+     --ec-q-minh). Centrerat precis som på slide 1 OCH "fast" — flyttas INTE när ett multisval-kort
+     (Q5/Q7) blir högre, för rail-boxen behåller sin höjd istället för att följa det högre kortet. */
+  .ampy-ec__rail { align-self: start; min-height: var(--ec-q-minh); display: flex; flex-direction: column; justify-content: center; padding-top: 0; }
+  /* Besked/formulär: kortet är mycket högre → toppställ + sticky, ingen fast-höjd-centrering. */
   .ampy-ec__shell[data-view="result"] .ampy-ec__rail,
-  .ampy-ec__shell[data-view="lead"] .ampy-ec__rail { align-self: start; position: sticky; top: var(--space-9); }
+  .ampy-ec__shell[data-view="lead"] .ampy-ec__rail { min-height: 0; justify-content: flex-start; position: sticky; top: var(--space-9); padding-top: var(--space-3); }
 }
 
 /* RAIL — varumärke + tes + verifierbart trust */
 .ampy-ec__rail { min-width: 0; }
-@media (min-width: 1024px) { .ampy-ec__rail { padding-top: var(--space-3); } }
 /* Rail-typografi = 1:1 med Elkollen-herons hero__copy (font/storlek/färg/radavstånd). */
 .ampy-ec__rail-heading {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
