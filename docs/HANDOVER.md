@@ -5,6 +5,12 @@
 > explains the architecture, the engine, the data contract, the WP/Bricks integration,
 > and the launch gates. Product/strategy rationale: [SPEC.md](SPEC.md). Facts: [../research/FACTS.md](../research/FACTS.md).
 > Dev docs are English; the UI strings in the data file are Swedish by design — do not translate them.
+>
+> **⚠️ Current handover lives in [`../README.md`](../README.md) (for the developer) and
+> [`../CLAUDE.md`](../CLAUDE.md) (for the AI agent), at version 2.16.5.** This file is the deeper
+> architecture/engine/a11y reference. Where they differ, README/CLAUDE win — a few items below
+> (the lead flow, fonts, the akut "Ring oss" CTA, the cost block) have since changed and are
+> corrected inline.
 
 ## 0. TL;DR
 - Standalone plugin exposing the shortcode `[elcentralkollen]`. Drop it in Bricks, done.
@@ -70,7 +76,14 @@ See SPEC §4. Key invariants the engine relies on:
 - **Embed presets:** /elservice/elcentral/, /elbesiktning/, /jordfelsbrytare/, /lastbalansering/.
 
 ## 7. The lead flow
-All CTAs are plain links to the service pages / `https://ampy.se/offert/` + the rail contact CTAs (phone `tel:+46102657979`, "Kontakta oss" → offert). The full verdict is ALWAYS shown free — the email capture is a calm, expand-on-click text link, never a wall (invariant #1).
+**Primary capture = the in-tool form** (added since this doc's first draft). The result/rail CTA
+"Få kostnadsfri rådgivning" (`cta_defs.radgivning`, `opens_form:true`) opens an in-tool form
+(`renderLead()` in the JS); on submit `submitLead()` POSTs `{cell, vector, namn, epost, telefon,
+postnummer, samtycke, webbplats}` to **`meta.lead_webhook_url`** (`webbplats` = honeypot). That URL
+is `null` today, so the form **simulates a success and drops the lead — set it to an n8n/Make
+webhook to go live** (README §6.1). The full verdict is ALWAYS shown free — the form is an optional
+next step, never a wall (invariant #1). The rail also has two always-on contact CTAs (phone
+`tel:+46102657979`, "Kontakta oss" → offert).
 
 ### ⚠️ DEV TODO — activate the e-post/PDF lead-capture (#5, owner-requested, NOT live yet)
 `renderPdfCapture()` (assets/elcentralkollen.js) is fully built and GDPR-correct: email field + consent checkbox + honeypot + WP nonce. On submit it POSTs JSON `{ epost, vector, cell, samtycke, webbplats }` to `meta.pdf_webhook_url` with header `X-WP-Nonce`. It is **gated**: it renders ONLY when BOTH `meta.pdf_webhook_url` AND `meta.privacy_policy_url` are non-null (else it emits an HTML comment and nothing shows).
@@ -88,13 +101,13 @@ The wizard pushes `window.dataLayer` events: `ampy_ec_quiz_start`, `ampy_ec_step
 Elkollen's renderer dropped focus on every view change — fixed here: `render()` moves focus to `[data-focus]` (the step heading / the result summary `<h2>`) on every transition. One announcement channel per screen (focus, not aria-live on pills). The bränd-lukt akut-notis is `role="alert"`, first in result DOM. Multi-select F4/F6 are `role="checkbox"` groups with exclusive "Inget", explicit "Fortsätt", and a live count. Pills are dark-on-light (never `--state-warning` as text). Targets ≥44px. Reduced-motion respected. Full spec: SPEC §7.
 
 ## 9. Known pre-launch notes
-1. **GDPR fonts:** the CSS `@import`s Google Fonts. Self-host before an EU launch (download to `assets/fonts/`, replace the `@import` with `@font-face`). System-ui fallback exists so it never breaks.
+1. **GDPR fonts — DONE.** Fonts are self-hosted (variable woff2 in `assets/fonts/`, `@font-face` in the CSS, latin + latin-ext). Verified zero googleapis/gstatic requests. Keep them self-hosted if you touch the font stack.
 2. **`AMPY_EC_VERSION`** must be bumped on every asset change.
 3. **PHP lint** could not run in the build env (php unavailable). Run `php -l` on the 3 PHP files on staging.
 4. **Launch gate:** do not publish until the electrician signs the archetype table + reconciled costs (FACTS §E), and the owner supplies the elbesiktning + JFB prices.
 5. **QA bar** in `preview/index.html` must never reach production (preview-only).
-6. **Lead-capture (#5) — owner-requested, action required:** set `meta.pdf_webhook_url` to turn on the (already-built, GDPR-correct) e-post/PDF capture. Full steps in §7 "DEV TODO". Until then the tool captures no leads.
-7. **Akut "Ring oss":** set `cta_defs.ring.url = "tel:+46102657979"` to surface the one-tap call for the bränd-lukt result (currently `null` → hidden). See §7.
+6. **Lead-capture — action required (the launch gate):** the primary capture is the in-tool form (§7). Set `meta.lead_webhook_url` to an n8n/Make webhook to actually receive leads — until then the form simulates success and drops every lead. The secondary "email the report" capture (`renderPdfCapture` → `meta.pdf_webhook_url`) is optional and off.
+7. **Akut "Ring oss" — DONE.** `cta_defs.ring.url = "tel:+46102657979"` is set; the one-tap call now shows on the bränd-lukt result.
 8. **Analytics:** connect GTM/GA4 + ad pixel to the `ampy_ec_*` dataLayer events (§7) for funnel + retargeting.
 
 ## 10. Verify after install (essentials)
