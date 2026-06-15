@@ -54,8 +54,8 @@ html { font-size: 62.5%; }
   --ampy-cta-gradient-blue: linear-gradient(120deg, #b6f2ff 0%, #70becb 100%); /* = Elkollen-herons .ampy-btn--phone */
   --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);       /* = Elkollen-herons .ampy-btn */
   --ampy-cta-fs: clamp(1.4rem, calc(0.21vw + 1.33rem), 1.6rem);  /* = .ampy-btn font-size */
-  --ampy-cta-pad-y: clamp(1.02rem, calc(0.39vw + 0.9rem), 1.4rem);
-  --ampy-cta-pad-x: clamp(2rem, calc(2rem + 0.0044 * (100vw - 380px)), 2.4rem); /* = .ampy-btn horisontell padding */
+  --ampy-cta-pad-y: clamp(1.1rem, calc(0.39vw + 1.0rem), 1.5rem); /* .ampy-btn vertikal padding, +~2px höjd (ägaren ville ha en gnutta större CTA); textstorleken hålls 1:1 med Elkollen */
+  --ampy-cta-pad-x: clamp(2rem, calc(2rem + 0.0044 * (100vw - 380px)), 2.4rem); /* = .ampy-btn horisontell padding (ampy.se-token, 1:1) */
   --ampy-cta-radius: 0.8rem;                                     /* = .ampy-btn 8px (bricks-button-kaskaden) */
   --action-primary-strong-hover: rgb(0, 108, 93);
   --action-tint: rgb(240, 250, 248);                 /* selected fill, distinct from grey hover */
@@ -184,9 +184,10 @@ html { font-size: 62.5%; }
   font-size: 1.8rem; font-weight: 400; line-height: 1.55;
   color: var(--text-secondary); margin: 0 0 2.8rem; max-width: 46ch;
 }
-/* Trust-bullets = 1:1 med hero__trust: 1.5rem/500/mörk text, ikon 2rem teal, margin-top .3rem. */
+/* Trust-bullets = hero__trust: 1.5rem/500/ikon 2rem teal, margin-top .3rem. Färgen mjukad en aning
+   mot Elkollens live-rendering (mörk slate, inte ren navy) — ägarjustering, finkalibreras vid behov. */
 .ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 2.8rem; display: flex; flex-direction: column; gap: 1.6rem; }
-.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.5rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); }
+.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.5rem; line-height: 1.45; font-weight: 500; color: rgb(40, 43, 76); }
 .ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2rem; height: 2rem; min-width: 2rem; margin-top: 0.3rem; color: var(--action-primary); }
 .ampy-ec__rail-bullet-icon svg { width: 2rem; height: 2rem; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
