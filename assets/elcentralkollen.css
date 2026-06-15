@@ -53,7 +53,7 @@ html { font-size: 62.5%; }
   --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
   --ampy-cta-gradient-blue: linear-gradient(120deg, #b6f2ff 0%, #70becb 100%); /* = Elkollen-herons .ampy-btn--phone */
   --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);       /* = Elkollen-herons .ampy-btn */
-  --ampy-cta-fs: clamp(1.4rem, calc(0.21vw + 1.33rem), 1.6rem);  /* = .ampy-btn font-size */
+  --ampy-cta-fs: clamp(1.5rem, calc(0.21vw + 1.5rem), 1.8rem);  /* .ampy-btn font-size, +1 storlek (16→18px desktop) per ägaren */
   --ampy-cta-pad-y: clamp(1.1rem, calc(0.39vw + 1.0rem), 1.5rem); /* .ampy-btn vertikal padding, +~2px höjd (ägaren ville ha en gnutta större CTA); textstorleken hålls 1:1 med Elkollen */
   --ampy-cta-pad-x: clamp(2rem, calc(2rem + 0.0044 * (100vw - 380px)), 2.4rem); /* = .ampy-btn horisontell padding (ampy.se-token, 1:1) */
   --ampy-cta-radius: 0.8rem;                                     /* = .ampy-btn 8px (bricks-button-kaskaden) */
@@ -165,10 +165,14 @@ html { font-size: 62.5%; }
        SAMMA bredd som referensen (~49rem på desktop) så copy-blocket bryter likadant. */
     grid-template-columns: minmax(36rem, 44fr) minmax(46rem, 56fr);
     gap: 6.4rem;
-    align-items: start; /* railen toppställd → STABIL position, flyttar sig inte mellan slides */
+    align-items: center; /* vänsterspalten vertikalt centrerad mot kort-blocket → lika luft upp/ner (ägarbeslut) */
   }
-  /* Sticky rail → står still i viewporten genom hela flödet (intakt vänsterspalt). */
-  .ampy-ec__rail { position: sticky; top: var(--space-9); align-self: start; }
+  /* Rail vertikalt centrerad mot stage-kortet på start + frågor (delar samma höjd via --ec-q-minh →
+     ligger stilla genom hela quizet med lika luft upp/ner, ägarbeslut). På det HÖGA besked-/formulär-
+     kortet toppställs + sticky:as den istället (centrering skulle annars flyta ner till mitten med tom topp). */
+  .ampy-ec__rail { align-self: center; }
+  .ampy-ec__shell[data-view="result"] .ampy-ec__rail,
+  .ampy-ec__shell[data-view="lead"] .ampy-ec__rail { align-self: start; position: sticky; top: var(--space-9); }
 }
 
 /* RAIL — varumärke + tes + verifierbart trust */
@@ -187,7 +191,7 @@ html { font-size: 62.5%; }
 /* Trust-bullets = hero__trust: 1.5rem/500/ikon 2rem teal, margin-top .3rem. Färgen mjukad en aning
    mot Elkollens live-rendering (mörk slate, inte ren navy) — ägarjustering, finkalibreras vid behov. */
 .ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 2.8rem; display: flex; flex-direction: column; gap: 1.6rem; }
-.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.5rem; line-height: 1.45; font-weight: 500; color: rgb(40, 43, 76); }
+.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.6rem; line-height: 1.45; font-weight: 600; color: rgb(64, 68, 100); }
 .ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2rem; height: 2rem; min-width: 2rem; margin-top: 0.3rem; color: var(--action-primary); }
 .ampy-ec__rail-bullet-icon svg { width: 2rem; height: 2rem; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
@@ -217,13 +221,13 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-phone, .ampy-ec__rail-contact {
   box-sizing: border-box; min-height: 4.4rem;
   display: inline-flex; align-items: center; justify-content: space-between; gap: 2rem; text-decoration: none; white-space: nowrap;
-  font-family: 'Outfit', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 400; line-height: 1.2; color: #1e1e1e;
+  font-family: 'Outfit', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 600; line-height: 1.2; color: #333333;
   padding: var(--ampy-cta-pad-y) var(--ampy-cta-pad-x); border: 0; border-radius: var(--ampy-cta-radius); box-shadow: var(--ampy-cta-shadow);
   transition: opacity var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 .ampy-ec__rail-contact { background-image: var(--ampy-cta-gradient); }
 .ampy-ec__rail-phone { background-image: var(--ampy-cta-gradient-blue); }
-.ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: #1e1e1e; }
+.ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: #333333; }
 .ampy-ec__rail-contact-icon svg { width: 1.8rem; height: 1.8rem; }
 .ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 2.0rem; }
 .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--ampy-cta-radius); box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9); }
