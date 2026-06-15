@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.10 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.11 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -11,6 +11,7 @@
 
   const ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+    checkCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
     alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>',
     ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
@@ -147,7 +148,7 @@
       this.mount = mount; this.data = data; this.questions = data.questions;
       this.N = this.questions.length;            // antal frågor (7)
       this.answers = {}; this.step = 0;          // 0 = start, 1..N = frågor, N+1 = besked
-      this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false; this._tracked = {};
+      this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false; this._tracked = {}; this.leadOpen = false;
       this.hydrateFromUrl(); this.bindHistory();
     }
 
@@ -193,9 +194,11 @@
       this.answers[q.id] = cur;
     }
     track(event, params) { try { const dl = (window.dataLayer = window.dataLayer || []); const key = event + ':' + (params && params.step != null ? params.step : ''); if (this._tracked[key]) return; this._tracked[key] = true; dl.push(Object.assign({ event: 'ampy_ec_' + event }, params || {})); } catch (e) {} }
-    advance() { this.dir = 'fwd'; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
-    back() { this.dir = 'back'; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
-    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
+    advance() { this.dir = 'fwd'; this.leadOpen = false; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
+    openLead() { this.leadOpen = true; try { this.track('lead_form_open', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} this.render(); }
+    closeLead() { this.leadOpen = false; this.render(); }
+    back() { this.dir = 'back'; this.leadOpen = false; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
+    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; this.leadOpen = false; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
 
     buildShell() {
       this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
@@ -209,18 +212,23 @@
       const aside = el('aside', { class: 'ampy-ec__rail' });
       aside.appendChild(el('h1', { class: 'ampy-ec__rail-heading' }, m.page_heading));
       aside.appendChild(el('p', { class: 'ampy-ec__rail-lead' }, m.page_lead));
-      // Två kontakt-CTA (1:1-replika av ampy.se: telefon + gradient-knapp). Desktop-only via CSS.
+      // Trust-bullets (ersätter credential-rutan) — ikon + text, ev. verifierbar länk.
+      const bullets = rail.bullets || [];
+      if (bullets.length) {
+        const ul = el('ul', { class: 'ampy-ec__rail-bullets', role: 'list' });
+        bullets.forEach(b => {
+          const textNode = b.link
+            ? el('a', { class: 'ampy-ec__rail-bullet-link', href: b.link, target: '_blank', rel: 'noopener noreferrer' }, b.text)
+            : document.createTextNode(b.text);
+          ul.appendChild(el('li', { class: 'ampy-ec__rail-bullet' }, [iconSpan(b.icon || 'check', 'ampy-ec__rail-bullet-icon'), el('span', {}, [textNode])]));
+        });
+        aside.appendChild(ul);
+      }
+      // Två kontakt-CTA (1:1-replika av ampy.se: Kontakta oss + telefon, gradient-piller).
       const contact = rail.contact || {};
       aside.appendChild(el('div', { class: 'ampy-ec__rail-actions' }, [
         el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')]),
         el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [el('span', {}, (contact.phone_label || '010-265 79 79')), iconSpan('phoneAmpy', 'ampy-ec__rail-phone-icon')])
-      ]));
-      aside.appendChild(el('div', { class: 'ampy-ec__rail-cred' }, [
-        iconSpan('shield', 'ampy-ec__rail-cred-icon'),
-        el('p', { class: 'ampy-ec__rail-cred-text' }, [
-          el('a', { class: 'ampy-ec__rail-cred-link', href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (rail.credential_link || 'Auktoriserat elinstallationsföretag')),
-          (rail.credential_rest || ', registrerat hos Elsäkerhetsverket.')
-        ])
       ]));
       return aside;
     }
@@ -230,7 +238,10 @@
       if (!this.stage) this.buildShell();
       let block;
       if (this.step <= 0) block = this.renderStart();
-      else if (this.step > this.N) { block = this.renderResult(); try { this.track('quiz_complete', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} }
+      else if (this.step > this.N) {
+        if (this.leadOpen) block = this.renderLead();
+        else { block = this.renderResult(); try { this.track('quiz_complete', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} }
+      }
       else { const q = this.questions[this.step - 1]; block = this.renderQuestion(q); this.track('step_view', { step: this.step, question_id: q.id }); }
       block.dataset.dir = this.dir;
       this.stage.replaceChildren(block);
@@ -254,7 +265,6 @@
       block.appendChild(el('h2', { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
       if (s.body) block.appendChild(el('p', { class: 'ampy-ec__start-body' }, s.body));
       block.appendChild(el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__start-cta', type: 'button', onclick: () => this.advance() }, [(s.cta || 'Starta test'), iconSpan('arrowRight')]));
-      block.appendChild(this.renderCompactCred());
       return block;
     }
 
@@ -279,7 +289,7 @@
       const list = el('ul', { class: 'ampy-ec__options', role: 'list' });
       q.options.forEach(opt => {
         const selected = this.answers[q.id] === opt.id;
-        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : '') + (opt.id === 'vet_inte' ? ' ampy-ec__option--soft' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id) },
+        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id) },
           [el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])])));
       });
       return list;
@@ -419,19 +429,85 @@
           if (linkDef.lead) wrap.appendChild(el('p', { class: 'ampy-ec__cta-lead' }, linkDef.lead));
           wrap.appendChild(el('a', { class: 'ampy-ec__cta-link', href: this.resolveCtaUrl(linkDef) }, [linkDef.label, iconSpan('arrowRight')]));
         }
-        else if (dx.safety.state === 'oklart') { const d = defs.radgivning; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(d) }, [d.label, iconSpan('arrowRight')])); }
+        else if (dx.safety.state === 'oklart') { wrap.appendChild(this.renderCtaDef(defs.radgivning, 'ampy-ec__cta-secondary')); }
         return wrap;
       }
       const primaryDef = defs[cta.primary];
       const ringSigned = defs.ring && typeof defs.ring.url === 'string' && /^tel:\+?\d{6,}$/.test(defs.ring.url);
       if (dx.safety.escalation && ringSigned) {
         wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: defs.ring.url }, [iconSpan('phone'), defs.ring.label]));
-        if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
+        if (primaryDef) wrap.appendChild(this.renderCtaDef(primaryDef, 'ampy-ec__cta-secondary'));
       } else {
-        if (primaryDef) wrap.appendChild(el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: this.resolveCtaUrl(primaryDef) }, [primaryDef.label, iconSpan('arrowRight')]));
-        if (cta.secondary) { const sec = defs[cta.secondary]; wrap.appendChild(el('a', { class: 'ampy-ec__cta-secondary', href: this.resolveCtaUrl(sec) }, [sec.label, iconSpan('arrowRight')])); }
+        if (primaryDef) wrap.appendChild(this.renderCtaDef(primaryDef, 'ampy-ec__cta-primary ampy-ec__cta-primary--solid'));
+        if (cta.secondary) wrap.appendChild(this.renderCtaDef(defs[cta.secondary], 'ampy-ec__cta-secondary'));
       }
       return wrap;
+    }
+    // En CTA-def → länk (utgående) ELLER knapp som öppnar in-tool lead-formuläret (opens_form).
+    renderCtaDef(def, cls) {
+      if (!def) return document.createComment('cta saknas');
+      if (def.opens_form) return el('button', { class: cls, type: 'button', onclick: () => this.openLead() }, [def.label, iconSpan('arrowRight')]);
+      return el('a', { class: cls, href: this.resolveCtaUrl(def) }, [def.label, iconSpan('arrowRight')]);
+    }
+    /* ---------------- LEAD-FORMULÄR (in-tool capture, Elkollen-paritet) ---------------- */
+    renderLead() {
+      const dx = diagnose(this.answers, this.data), f = this.data.meta.lead_form || {};
+      const block = el('div', { class: 'ampy-ec__block ampy-ec__lead', role: 'region', 'aria-labelledby': 'ampy-ec-lead-h' });
+      block.appendChild(el('button', { class: 'ampy-ec__lead-back', type: 'button', onclick: () => this.closeLead() }, [iconSpan('arrowLeft'), (f.back || 'Tillbaka till beskedet')]));
+      block.appendChild(el('h2', { class: 'ampy-ec__lead-title', id: 'ampy-ec-lead-h', tabindex: '-1', 'data-focus': 'true' }, (f.title || 'Få kostnadsfri rådgivning')));
+      block.appendChild(el('p', { class: 'ampy-ec__lead-intro' }, (f.intro || 'Ampys behöriga elektriker hör av sig med ett förslag, oftast inom en arbetsdag.')));
+      const form = el('form', { class: 'ampy-ec__lead-form', novalidate: 'true' });
+      const field = (name, label, type, inputmode) => {
+        const id = 'ampy-ec-lf-' + name;
+        const input = el('input', Object.assign({ class: 'ampy-ec__lead-input', id: id, name: name, type: type, required: true, autocomplete: 'on' }, inputmode ? { inputmode: inputmode } : {}));
+        return { w: el('div', { class: 'ampy-ec__lead-field' }, [el('label', { class: 'ampy-ec__lead-label', for: id }, label), input]), input: input };
+      };
+      const namn = field('namn', 'Namn', 'text'), epost = field('epost', 'E-post', 'email', 'email'),
+            tel = field('telefon', 'Telefon', 'tel', 'tel'), post = field('postnummer', 'Postnummer', 'text', 'numeric');
+      form.appendChild(el('div', { class: 'ampy-ec__lead-grid' }, [namn.w, epost.w, tel.w, post.w]));
+      const honey = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__lead-hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
+      form.appendChild(honey);
+      const consentId = 'ampy-ec-lf-consent';
+      const consent = el('input', { type: 'checkbox', id: consentId, class: 'ampy-ec__lead-check', required: true });
+      form.appendChild(el('div', { class: 'ampy-ec__lead-consent' }, [consent, el('label', { for: consentId }, [
+        (f.consent || 'Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med ett förslag, enligt '),
+        el('a', { href: this.data.meta.privacy_policy_url || 'https://ampy.se/integritetspolicy/', target: '_blank', rel: 'noopener noreferrer' }, (f.consent_link || 'integritetspolicyn')), '.'
+      ])]));
+      const errorBox = el('p', { class: 'ampy-ec__lead-error', role: 'alert', hidden: true });
+      form.appendChild(errorBox);
+      const submit = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__lead-submit', type: 'submit' }, (f.submit || 'Skicka förfrågan'));
+      form.appendChild(submit);
+      form.appendChild(el('p', { class: 'ampy-ec__lead-foot' }, (f.foot || 'Kostnadsfritt och utan förbindelse.')));
+      form.addEventListener('submit', (e) => {
+        e.preventDefault(); errorBox.hidden = true;
+        if (honey.value) return;
+        if (!namn.input.value.trim() || !epost.input.value.trim() || !tel.input.value.trim() || !post.input.value.trim() || !consent.checked) {
+          errorBox.textContent = f.error_required || 'Fyll i alla fält och godkänn villkoren.'; errorBox.hidden = false; return;
+        }
+        submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
+        this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
+          this.track('lead_submitted', { cell: dx.cell });
+          block.replaceChildren(el('div', { class: 'ampy-ec__lead-success', tabindex: '-1', 'data-focus': 'true' }, [
+            iconSpan('check', 'ampy-ec__lead-success-icon'),
+            el('h2', {}, (f.success_title || 'Tack! Vi hör av oss inom kort.')),
+            el('p', {}, (f.success_body || 'En behörig elektriker återkommer med ett förslag, oftast inom en arbetsdag.')),
+            el('button', { class: 'ampy-ec__lead-back', type: 'button', onclick: () => this.closeLead() }, [iconSpan('arrowLeft'), (f.success_back || 'Tillbaka till beskedet')])
+          ]));
+          const t = block.querySelector('[data-focus]'); if (t) { try { t.focus({ preventScroll: true }); } catch (e2) {} }
+        }).catch(() => {
+          submit.disabled = false; submit.textContent = f.submit || 'Skicka förfrågan';
+          errorBox.textContent = f.error_send || 'Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.'; errorBox.hidden = false;
+        });
+      });
+      block.appendChild(form);
+      return block;
+    }
+    submitLead(dx, fields) {
+      const cfg = (typeof window !== 'undefined' && window.AmpyEC) ? window.AmpyEC : null;
+      const url = this.data.meta.lead_webhook_url;
+      const payload = Object.assign({ cell: dx.cell, vector: this.encodeVector() }, fields);
+      if (!url) return new Promise((res) => setTimeout(res, 600)); // ingen webhook (preview) → simulera success
+      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': (cfg && cfg.restNonce) || '' }, body: JSON.stringify(payload) }).then(r => { if (!r.ok) throw new Error('bad status'); return r.json().catch(() => ({})); });
     }
     renderShareRow(dx) {
       const row = el('div', { class: 'ampy-ec__share-row' });

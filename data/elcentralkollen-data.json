@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "2.10.0",
+    "version": "2.11.0",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker och redo?",
     "page_lead": "Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida investeringar (laddbox, värmepump och solceller).",
@@ -21,7 +21,22 @@
         "phone_url": "tel:+46102657979",
         "contact_label": "Kontakta oss",
         "contact_url": "https://ampy.se/offert/"
-      }
+      },
+      "bullets": [
+        {
+          "icon": "check",
+          "text": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket"
+        },
+        {
+          "icon": "shield",
+          "text": "Registrerat elinstallationsföretag",
+          "link": "https://www.elsakerhetsverket.se/kollaelforetaget/foretagsregister/?foretag=12047521&sok=1"
+        },
+        {
+          "icon": "checkCircle",
+          "text": "Helt gratis. Inget mejl, ingen inloggning, ingen hake"
+        }
+      ]
     },
     "start": {
       "heading": "Då sätter vi igång",
@@ -40,7 +55,23 @@
       "/elbesiktning/",
       "/jordfelsbrytare/",
       "/lastbalansering/"
-    ]
+    ],
+    "lead_form": {
+      "title": "Få kostnadsfri rådgivning",
+      "intro": "Ampys behöriga elektriker hör av sig med ett förslag, oftast inom en arbetsdag.",
+      "back": "Tillbaka till beskedet",
+      "submit": "Skicka förfrågan",
+      "submitting": "Skickar…",
+      "foot": "Kostnadsfritt och utan förbindelse.",
+      "consent": "Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med ett förslag, enligt ",
+      "consent_link": "integritetspolicyn",
+      "error_required": "Fyll i alla fält och godkänn villkoren.",
+      "error_send": "Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.",
+      "success_title": "Tack! Vi hör av oss inom kort.",
+      "success_body": "En behörig elektriker återkommer med ett förslag, oftast inom en arbetsdag.",
+      "success_back": "Tillbaka till beskedet"
+    },
+    "lead_webhook_url": null
   },
   "questions": [
     {
@@ -491,7 +522,8 @@
     "radgivning": {
       "kind": "primary",
       "label": "Få kostnadsfri rådgivning",
-      "url": "ampy_offert_url"
+      "url": "ampy_offert_url",
+      "opens_form": true
     },
     "laddbox_bridge": {
       "kind": "link",
