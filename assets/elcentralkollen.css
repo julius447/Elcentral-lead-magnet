@@ -32,7 +32,10 @@ html { font-size: 62.5%; }
 
 .ampy-ec {
   -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent; /* ingen grå iOS-tap-blink; vi ger egen feedback */
+  overflow-x: clip; /* overflow-guard i okänd WP/Bricks-embed (bryter ej sticky som hidden kan) */
   --ec-q-minh: 56rem; /* M2: stabil frågehöjd (desktop) → lugn, jämn scroll mellan steg */
+  --focus-ring: 0 0 0 3px rgba(0, 169, 145, 0.25); /* EN fokusring för all input + knapp */
   /* Colors */
   --bg-primary: #ffffff;
   --bg-secondary: #f4f5fb;
@@ -49,7 +52,7 @@ html { font-size: 62.5%; }
   /* 1:1 från ampy.se (Core Framework, samma 1rem=10px-rot): exakta gradient/skugga + fluida tokens */
   --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
   --ampy-cta-gradient-blue: linear-gradient(120deg, #a8e3f0 0%, #5eb1bf 100%); /* ampy "blue-cta" telefon-knapp */
-  --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);
+  --ampy-cta-shadow: 0 4px 14px 0 rgba(11, 13, 42, 0.10);
   --ampy-cta-fs: clamp(1.4rem, 0.21vw + 1.33rem, 1.6rem);        /* ampy --aptext-sm */
   --ampy-cta-pad-y: clamp(1.02rem, 0.39vw + 0.9rem, 1.4rem);     /* ampy --apspace-xs */
   --ampy-cta-pad-x: clamp(1.6rem, 1.25vw + 1.2rem, 2.8rem);      /* ampy --space-m (apspace-m) */
@@ -151,7 +154,8 @@ html { font-size: 62.5%; }
 .ampy-ec__shell {
   max-width: 128rem; /* Ampy-container (1280px) — minskar kant-whitespace på desktop */
   margin: 0 auto;
-  padding: clamp(2.4rem, 4vw, 5.6rem) clamp(1.6rem, 4vw, 4rem);
+  min-width: 0;
+  padding: clamp(2.4rem, 4vw, 5.6rem) calc(clamp(1.6rem, 4vw, 4rem) + env(safe-area-inset-right)) calc(clamp(2.4rem, 4vw, 5.6rem) + env(safe-area-inset-bottom)) calc(clamp(1.6rem, 4vw, 4rem) + env(safe-area-inset-left));
   display: grid;
   gap: var(--space-9);
 }
@@ -183,7 +187,7 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-bullet-icon { height: 1.5em; font-size: var(--fs-15); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-success); }
 .ampy-ec__rail-bullet-icon svg { width: 1.9rem; height: 1.9rem; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.ampy-ec__rail-bullet-link:hover { color: var(--text-primary); }
+.ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
 /* Tesen är desktop-only (skulle trycka ner första frågan på mobil). */
 /* Credential i rail = ENDAST desktop. På mobil bärs den av .ampy-ec__compact-cred (start + besked).
    Designad RUTA (ägaren ville ha tillbaka den): subtil bakgrund, padding, rundade hörn. */
@@ -204,7 +208,7 @@ html { font-size: 62.5%; }
 /* Kontakt-CTA i rail (1:1-replika av ampy.se: telefon-länk + gradient-knapp "Kontakta oss").
    ampy.se:s EXAKTA tokens (färg/storlek/spacing). Visas på desktop alltid; på mobil bara på
    start + besked (railen ligger överst på varje mobilslide → vill inte tränga ut frågorna). */
-.ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: var(--space-10) 0 var(--space-4); }
+.ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: var(--space-9) 0 var(--space-4); }
 /* BÅDA CTA = gradient-piller (1:1 ampy.se): Kontakta=grön, telefon=blå. Text vänster, ikon höger. */
 .ampy-ec__rail-phone, .ampy-ec__rail-contact {
   flex: 1 1 16rem; min-width: 0;
@@ -218,7 +222,7 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: var(--text-primary); }
 .ampy-ec__rail-contact-icon svg { width: 1.8rem; height: 1.8rem; }
 .ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 2.0rem; }
-.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--ampy-cta-radius); }
+.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--ampy-cta-radius); box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9); }
 @media (hover: hover) {
   .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 18px 0 rgba(94, 177, 191, 0.38); }
 }
@@ -249,7 +253,7 @@ html { font-size: 62.5%; }
 .ampy-ec__crumb--start { justify-content: center; margin-bottom: var(--space-11); }
 .ampy-ec__start-illu { width: 11rem; height: 11rem; margin: var(--space-5) auto var(--space-9); }
 .ampy-ec__start-illu svg { width: 100%; height: 100%; display: block; }
-.ampy-ec__start-heading { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-display); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 var(--space-5); }
+.ampy-ec__start-heading { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-display); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 auto var(--space-5); max-width: 20ch; }
 .ampy-ec__start-heading:focus { outline: none; }
 .ampy-ec__start-body { font-size: var(--fs-15); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-11); max-width: 40ch; }
 .ampy-ec__start-cta { max-width: 32rem; margin-left: auto; margin-right: auto; }
@@ -293,11 +297,15 @@ html { font-size: 62.5%; }
   .ampy-ec__start-body { font-size: var(--fs-18); margin-bottom: var(--space-13); }
 
   /* Besked */
-  .ampy-ec__result-lede { font-size: var(--fs-18); }
+  .ampy-ec { --rhythm-section: var(--space-13); } /* sektionsrytm växer med desktop-typografin */
+  .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; }
   .ampy-ec__finding-text { font-size: var(--fs-18); }
-  .ampy-ec__finding-icon { font-size: var(--fs-18); } /* radhöjd-ikon följer textstorleken på desktop */
+  .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 2.0rem; } /* radhöjd-ikon + SVG följer textgraden */
+  .ampy-ec__findings { gap: var(--space-7); } /* luften växer med textgraden (mobil 1.2rem → desktop 1.6rem) */
   .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
   .ampy-ec__pill { font-size: var(--fs-18); }
+  .ampy-ec__statusrow-axis { font-size: var(--fs-15); }
+  .ampy-ec__lead-intro { max-width: 52ch; }
 }
 
 /* ============================================================================
@@ -320,7 +328,12 @@ html { font-size: 62.5%; }
 .ampy-ec__block[data-dir="back"] { animation: ec-in-back var(--dur-base) var(--ease-out) both; }
 @keyframes ec-in-fwd { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 @keyframes ec-in-back { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
-@media (max-width: 767px) { .ampy-ec { --ec-q-minh: 60rem; } .ampy-ec__block { padding: var(--space-9); } }
+@media (max-width: 767px) { .ampy-ec { --ec-q-minh: 60rem; } .ampy-ec__block { padding: var(--space-9); } .ampy-ec__crumb { margin-bottom: var(--space-9); } }
+/* Forced-colors (Windows högkontrast): box-shadow-ringar strippas → återinför äkta outline. */
+@media (forced-colors: active) {
+  .ampy-ec__option:focus-visible, .ampy-ec__cta-primary:focus-visible, .ampy-ec__cta-secondary:focus-visible,
+  .ampy-ec__lead-input:focus, .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
+}
 
 /* ============================================================================
    CRUMB + PROGRESS (bar only; numeral = sr-only)
@@ -330,8 +343,8 @@ html { font-size: 62.5%; }
 .ampy-ec__crumb-left { display: inline-flex; align-items: center; }
 .ampy-ec__steps { display: inline-flex; gap: var(--space-2); align-items: center; }
 .ampy-ec__steps span { width: 1.8rem; height: 0.4rem; border-radius: var(--radius-full); background: var(--border-default); transition: background var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out); }
-.ampy-ec__steps span.is-done { background: color-mix(in srgb, var(--action-primary) 55%, #fff); }
-.ampy-ec__steps span.is-current { background: var(--action-primary); width: 2.8rem; }
+.ampy-ec__steps span.is-done { background: color-mix(in srgb, var(--action-primary-strong) 70%, #fff); }
+.ampy-ec__steps span.is-current { background: var(--action-primary-strong); width: 2.8rem; }
 .ampy-ec__crumb-back, .ampy-ec__crumb-restart {
   display: inline-flex; align-items: center; gap: var(--space-3); background: none; border: 0; padding: var(--space-2) 0; margin: 0; font: inherit;
   font-size: var(--fs-13); color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-sm); transition: color var(--dur-fast) var(--ease-out); min-height: 4.4rem;
@@ -340,7 +353,7 @@ html { font-size: 62.5%; }
 .ampy-ec__crumb-back:focus-visible, .ampy-ec__crumb-restart:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 .ampy-ec__crumb-back svg { width: 1.6rem; height: 1.6rem; }
 /* "Börja om" nedtonad (mindre + dovare) — nollställer alla svar, ska inte vara en feltrycks-magnet bredvid "Tillbaka". */
-.ampy-ec__crumb-restart { color: var(--text-tertiary); font-size: var(--fs-12); }
+.ampy-ec__crumb-restart { color: var(--text-secondary); font-size: var(--fs-12); }
 
 /* ============================================================================
    FRÅGESTEG
@@ -349,8 +362,9 @@ html { font-size: 62.5%; }
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-title); font-weight: 600;
   line-height: 1.25; color: var(--text-primary); letter-spacing: -0.015em; margin: 0 0 var(--space-9); max-width: 26ch;
 }
+.ampy-ec__q-title:has(+ .ampy-ec__q-subtitle) { margin-bottom: var(--rhythm-label); } /* tät koppling titel→subtitle (token, ej negativ marginal) */
 .ampy-ec__q-title:focus { outline: none; }
-.ampy-ec__q-subtitle { font-size: var(--fs-13); color: var(--text-secondary); margin: -1.2rem 0 var(--space-9); }
+.ampy-ec__q-subtitle { font-size: var(--fs-13); line-height: 1.45; color: var(--text-secondary); margin: 0 0 var(--space-9); }
 
 .ampy-ec__options { display: flex; flex-direction: column; gap: var(--space-5); list-style: none; padding: 0; margin: 0 0 var(--space-9); }
 .ampy-ec__option {
@@ -360,15 +374,16 @@ html { font-size: 62.5%; }
   transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 @media (hover: hover) { .ampy-ec__option:hover { border-color: var(--action-primary); background: var(--bg-subtle); transform: translateY(-1px); box-shadow: var(--shadow-sm); } }
-.ampy-ec__option:active { transform: scale(0.99); }
-.ampy-ec__option:focus-visible { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0, 169, 145, 0.18); }
+.ampy-ec__option:active { transform: scale(0.99); border-color: var(--action-primary); background: var(--action-tint); }
+.ampy-ec__option:focus-visible { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
 .ampy-ec__option.is-selected { border-color: var(--action-primary); background: var(--action-tint); }
 .ampy-ec__option-body { display: block; min-width: 0; flex: 1; }
 .ampy-ec__option-title { display: block; font-size: var(--fs-15); font-weight: 500; line-height: 1.4; color: var(--text-primary); }
-.ampy-ec__option-clarifier { display: block; margin-top: 0.2rem; font-size: var(--fs-13); font-weight: 400; line-height: 1.45; color: var(--text-secondary); }
+.ampy-ec__option-clarifier { display: block; margin-top: var(--space-1); font-size: var(--fs-13); font-weight: 400; line-height: 1.45; color: var(--text-secondary); }
 
 /* Multi-select: checkbox-affordans */
-.ampy-ec__option--multi { gap: var(--space-6); }
+.ampy-ec__option--multi { gap: var(--space-6); align-items: flex-start; }
+.ampy-ec__option--multi .ampy-ec__check { margin-top: 0.2rem; align-self: flex-start; }
 .ampy-ec__check { flex-shrink: 0; width: 2.2rem; height: 2.2rem; border: 1px solid var(--border-default); border-radius: var(--radius-sm); display: inline-flex; align-items: center; justify-content: center; color: var(--text-inverse); transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
 .ampy-ec__option--multi.is-selected .ampy-ec__check { background: var(--action-primary); border-color: var(--action-primary); }
 .ampy-ec__check svg { width: 1.5rem; height: 1.5rem; }
@@ -377,7 +392,7 @@ html { font-size: 62.5%; }
 .ampy-ec__multi-hint.is-shown { position: static; width: auto; height: auto; clip: auto; margin: 0 0 var(--space-2); font-size: var(--fs-13); color: var(--text-secondary); }
 
 .ampy-ec__info { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-5) var(--space-6); background: var(--bg-subtle); border: 1px solid var(--border-tertiary); border-radius: var(--radius-md); margin: 0; }
-.ampy-ec__info-icon { --ec-row-icon-size: 1.6rem; color: var(--text-info); }
+.ampy-ec__info-icon { --ec-row-icon-size: 1.6rem; color: var(--accent-info); }
 .ampy-ec__info-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 
 /* ============================================================================
@@ -403,7 +418,7 @@ html { font-size: 62.5%; }
 .ampy-ec__dualstatus[data-worst="info"]     .ampy-ec__dualstatus-accent { background: var(--accent-info); }
 .ampy-ec__dualstatus-rows { display: flex; flex-direction: column; gap: var(--space-5); flex: 1; min-width: 0; }
 .ampy-ec__statusrow { display: flex; align-items: center; gap: var(--space-5); }
-.ampy-ec__statusrow-axis { flex-shrink: 0; min-width: 9.5rem; font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); }
+.ampy-ec__statusrow-axis { flex-shrink: 0; min-width: 9.5rem; font-size: var(--fs-14); font-weight: 500; line-height: 1.3; color: var(--text-secondary); }
 .ampy-ec__pill {
   display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-full); font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -414,17 +429,17 @@ html { font-size: 62.5%; }
 .ampy-ec__pill[data-level="warning"] { background: var(--pill-warning-bg); color: var(--pill-warning-fg); }
 .ampy-ec__pill[data-level="error"]   { background: var(--pill-error-bg);   color: var(--pill-error-fg); }
 .ampy-ec__pill[data-level="info"]    { background: var(--pill-info-bg);    color: var(--pill-info-fg); }
-.ampy-ec__pill[data-level="neutral"] { border: 1px solid var(--border-default); } /* "lugn men avsiktlig", inte disabled */
+.ampy-ec__pill[data-level="neutral"] { border: 1px solid var(--text-tertiary); } /* synlig kant mot tonad zon; "lugn men avsiktlig" */
 .ampy-ec__pill-icon { display: inline-flex; }
-.ampy-ec__pill svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; }
+.ampy-ec__pill svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2.2; }
 
-.ampy-ec__result-lede { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--rhythm-section); max-width: 62ch; }
+.ampy-ec__result-lede { font-size: var(--fs-16); font-weight: 400; line-height: 1.55; color: var(--text-primary); margin: 0 0 var(--rhythm-section); max-width: 58ch; }
 
 @keyframes ec-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* FYND */
 .ampy-ec__findings-wrap { margin: 0 0 var(--rhythm-section); }
-.ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; color: var(--text-primary); margin: 0 0 var(--rhythm-label); }
+.ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 var(--rhythm-label); }
 .ampy-ec__findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--rhythm-group); }
 .ampy-ec__finding { display: flex; align-items: flex-start; gap: var(--space-4); animation: ec-rise var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
 /* Ikonen centreras optiskt på FÖRSTA textraden via radhöjd (1.5em = textens line-height),
@@ -433,8 +448,8 @@ html { font-size: 62.5%; }
 .ampy-ec__finding-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__finding--ok .ampy-ec__finding-icon { color: var(--text-success); }
 .ampy-ec__finding--warn .ampy-ec__finding-icon { color: var(--accent-warning); }
-.ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--text-info); }
-.ampy-ec__finding-text { font-size: var(--fs-15); font-weight: 400; line-height: 1.5; color: var(--text-secondary); margin: 0; max-width: 62ch; }
+.ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--accent-info); }
+.ampy-ec__finding-text { font-size: var(--fs-15); font-weight: 400; line-height: 1.6; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 
 /* FAKTANOTIS — enda amber-accenten */
 .ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); border-left: 3px solid var(--accent-warning); border-radius: 0; padding: 0.2rem 0 0.2rem var(--space-5); margin: 0 0 var(--rhythm-section); }
@@ -447,8 +462,8 @@ html { font-size: 62.5%; }
 /* AKUT (röd, tyngst på skärmen, först i DOM) */
 .ampy-ec__akut { display: flex; align-items: flex-start; gap: var(--space-4); border-left: 4px solid var(--accent-error); background: rgb(252, 237, 238); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: var(--space-6) var(--space-7); margin: 0 0 var(--rhythm-section); }
 .ampy-ec__akut-icon { color: var(--accent-error); }
-.ampy-ec__akut-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 700; color: var(--accent-error); margin: 0 0 0.2rem; }
-.ampy-ec__akut-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0; max-width: 62ch; }
+.ampy-ec__akut-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 700; color: var(--accent-error); margin: 0 0 var(--space-2); }
+.ampy-ec__akut-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-primary); margin: 0; max-width: 62ch; }
 
 /* ============================================================================
    LEAD-FORMULÄR — in-tool capture (öppnas av "Få kostnadsfri rådgivning"). Elkollen-paritet.
@@ -460,11 +475,11 @@ html { font-size: 62.5%; }
 .ampy-ec__lead-title { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-primary); }
 .ampy-ec__lead-title:focus { outline: none; }
 .ampy-ec__lead-intro { margin: 0 0 var(--space-9); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 60ch; }
-.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
-.ampy-ec__lead-field { display: flex; flex-direction: column; gap: var(--space-2); }
+.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-9) var(--space-6); }
+.ampy-ec__lead-field { display: flex; flex-direction: column; gap: var(--rhythm-label); }
 .ampy-ec__lead-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 600; color: var(--text-primary); }
 .ampy-ec__lead-input { width: 100%; min-height: 5.2rem; padding: var(--space-4) var(--space-5); font: inherit; font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-16); color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
-.ampy-ec__lead-input:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0, 122, 105, 0.15); }
+.ampy-ec__lead-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
 .ampy-ec__lead-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .ampy-ec__lead-consent { display: flex; align-items: flex-start; gap: var(--space-4); margin: var(--space-7) 0 var(--space-2); font-size: var(--fs-13); line-height: 1.55; color: var(--text-secondary); }
 .ampy-ec__lead-check { margin-top: 0.2rem; width: 2rem; height: 2rem; flex-shrink: 0; accent-color: var(--action-primary-strong); cursor: pointer; }
@@ -472,14 +487,14 @@ html { font-size: 62.5%; }
 .ampy-ec__lead-error { margin: var(--space-4) 0 0; font-size: var(--fs-13); font-weight: 500; color: var(--accent-error); }
 .ampy-ec__lead-error[hidden] { display: none; }
 .ampy-ec__lead-submit { width: 100%; margin: var(--space-7) 0 0; min-height: 5.4rem; }
-.ampy-ec__lead-submit:disabled { opacity: 0.7; cursor: default; }
+.ampy-ec__lead-submit:disabled { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); cursor: default; }
 .ampy-ec__lead-foot { margin: var(--space-4) 0 0; text-align: center; font-size: var(--fs-12); color: var(--text-secondary); }
 .ampy-ec__lead-success { text-align: center; padding: var(--space-11) var(--space-4); }
-.ampy-ec__lead-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 5.6rem; height: 5.6rem; margin-bottom: var(--space-6); border-radius: var(--radius-full); background: var(--tint-success, rgba(54, 178, 92, 0.14)); color: var(--text-success); }
+.ampy-ec__lead-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 5.6rem; height: 5.6rem; margin-bottom: var(--space-6); border-radius: var(--radius-full); background: var(--tint-success); color: var(--text-success); }
 .ampy-ec__lead-success-icon svg { width: 2.8rem; height: 2.8rem; }
 .ampy-ec__lead-success h2 { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; color: var(--text-primary); }
 .ampy-ec__lead-success p { margin: 0 auto var(--space-7); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
-@media (max-width: 600px) { .ampy-ec__lead-grid { grid-template-columns: 1fr; } }
+@media (max-width: 767px) { .ampy-ec__lead-grid { grid-template-columns: 1fr; } }
 
 /* ============================================================================
    CTA
@@ -492,9 +507,11 @@ html { font-size: 62.5%; }
 }
 .ampy-ec__cta-primary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
 .ampy-ec__cta-primary:active { transform: scale(0.99); }
-.ampy-ec__cta-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 169, 145, 0.25); }
+.ampy-ec__cta-primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .ampy-ec__cta-primary svg { width: 1.6rem; height: 1.6rem; }
 .ampy-ec__cta-primary[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+/* "Fortsätt" är aria-disabled men KLICKBAR (visar hinten) → dimma den inte, gör den lugnt nedtonad. */
+.ampy-ec__cta-primary--outline[aria-disabled="true"] { opacity: 1; cursor: pointer; color: var(--text-secondary); border-color: var(--border-default); }
 .ampy-ec__cta-primary--solid { background: var(--action-primary-strong); color: var(--text-inverse); border-color: var(--action-primary-strong); }
 .ampy-ec__cta-primary--solid:hover { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); }
 .ampy-ec__cta-primary--outline { background: transparent; }
@@ -505,10 +522,10 @@ html { font-size: 62.5%; }
   cursor: pointer; text-decoration: none; transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); min-height: 4.8rem;
 }
 .ampy-ec__cta-secondary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
-.ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 169, 145, 0.25); }
+.ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .ampy-ec__cta-secondary svg { width: 1.6rem; height: 1.6rem; }
 /* Ledtext ovanför en cta-link (t.ex. "Din central klarar en laddbox." + klickbart "Räkna ut din besparing"). */
-.ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-1); max-width: 62ch; }
+.ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-3); max-width: 62ch; }
 .ampy-ec__cta-link {
   background: none; border: 0; padding: var(--space-3) 0; margin: 0 0 var(--space-3); font: inherit; font-family: 'Outfit', system-ui, sans-serif;
   font-size: var(--fs-14); font-weight: 500; color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
@@ -545,7 +562,7 @@ html { font-size: 62.5%; }
 .ampy-ec__pdf-form[hidden] { display: none; }
 .ampy-ec__pdf-flabel { font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); }
 .ampy-ec__pdf-input { width: 100%; font: inherit; font-size: var(--fs-16); padding: var(--space-5); border: 1px solid var(--border-default); border-radius: var(--radius-md); min-height: 4.4rem; }
-.ampy-ec__pdf-input:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0, 169, 145, 0.15); }
+.ampy-ec__pdf-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
 .ampy-ec__pdf-consent { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--fs-12); color: var(--text-secondary); line-height: 1.5; }
 .ampy-ec__pdf-consent input { margin-top: 0.3rem; flex-shrink: 0; }
 .ampy-ec__pdf-consent a { color: var(--action-primary-strong); text-decoration: underline; }
@@ -561,13 +578,9 @@ html { font-size: 62.5%; }
 @media (max-width: 520px) {
   .ampy-ec__statusrow { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
   .ampy-ec__statusrow-axis { min-width: 0; }
-  .ampy-ec__pill { font-size: var(--fs-15); padding: var(--space-2) var(--space-5); gap: var(--space-2); }
+  .ampy-ec__pill { font-size: var(--fs-15); padding: var(--space-2) var(--space-5); gap: var(--space-3); white-space: normal; }
   .ampy-ec__pill svg { width: 1.5rem; height: 1.5rem; }
-  .ampy-ec__findings { gap: var(--space-6); }
-}
-@media (max-width: 480px) {
-  .ampy-ec__option--multi .ampy-ec__check { margin-top: 0.2rem; align-self: flex-start; }
-  .ampy-ec__option--multi { align-items: flex-start; }
+  .ampy-ec__dualstatus { padding: var(--space-6) var(--space-6) var(--space-6) var(--space-5); gap: var(--space-4); }
 }
 @media (max-width: 360px) {
   .ampy-ec__block { padding: var(--space-7); }

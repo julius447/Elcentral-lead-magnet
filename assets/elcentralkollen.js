@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.12 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.13 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -457,13 +457,15 @@
       block.appendChild(el('h2', { class: 'ampy-ec__lead-title', id: 'ampy-ec-lead-h', tabindex: '-1', 'data-focus': 'true' }, (f.title || 'Få kostnadsfri rådgivning')));
       block.appendChild(el('p', { class: 'ampy-ec__lead-intro' }, (f.intro || 'Ampys behöriga elektriker hör av sig med ett förslag, oftast inom en arbetsdag.')));
       const form = el('form', { class: 'ampy-ec__lead-form', novalidate: 'true' });
-      const field = (name, label, type, inputmode) => {
+      const field = (name, label, type, inputmode, ac, extra) => {
         const id = 'ampy-ec-lf-' + name;
-        const input = el('input', Object.assign({ class: 'ampy-ec__lead-input', id: id, name: name, type: type, required: true, autocomplete: 'on' }, inputmode ? { inputmode: inputmode } : {}));
+        const input = el('input', Object.assign({ class: 'ampy-ec__lead-input', id: id, name: name, type: type, required: true, autocomplete: ac || 'on' }, inputmode ? { inputmode: inputmode } : {}, extra || {}));
         return { w: el('div', { class: 'ampy-ec__lead-field' }, [el('label', { class: 'ampy-ec__lead-label', for: id }, label), input]), input: input };
       };
-      const namn = field('namn', 'Namn', 'text'), epost = field('epost', 'E-post', 'email', 'email'),
-            tel = field('telefon', 'Telefon', 'tel', 'tel'), post = field('postnummer', 'Postnummer', 'text', 'numeric');
+      const namn = field('namn', 'Namn', 'text', null, 'name', { enterkeyhint: 'next', autocapitalize: 'words' }),
+            epost = field('epost', 'E-post', 'email', 'email', 'email', { enterkeyhint: 'next', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' }),
+            tel = field('telefon', 'Telefon', 'tel', 'tel', 'tel', { enterkeyhint: 'next' }),
+            post = field('postnummer', 'Postnummer', 'text', 'numeric', 'postal-code', { enterkeyhint: 'done' });
       form.appendChild(el('div', { class: 'ampy-ec__lead-grid' }, [namn.w, epost.w, tel.w, post.w]));
       const honey = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__lead-hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
       form.appendChild(honey);
