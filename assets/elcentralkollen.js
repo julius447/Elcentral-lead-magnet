@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.14 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.15 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
@@ -170,20 +170,22 @@
         const q = this.questions.find(qq => qq.id === qid); if (!q) return;
         const digits = seg.slice(1);
         if (q.type === 'multi') { out[qid] = digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id); const exq = q.options.find(o => o.exclusive); if (exq && out[qid].includes(exq.id)) out[qid] = [exq.id]; }
-        else { const o = q.options[parseInt(digits, 10)]; if (o) out[qid] = o.id; }
+        else { const idx = parseInt(digits, 10); const o = (digits.length === 1 && idx >= 0 && idx < q.options.length) ? q.options[idx] : null; if (o) out[qid] = o.id; }
       });
       return out;
     }
     hydrateFromUrl() {
       const vec = new URLSearchParams(window.location.search).get('q');
-      if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => this.answers[q.id] != null); this.step = complete ? (this.N + 1) : 0; }
+      // Honesty-moat: en trunkerad/trasig ?q= får ALDRIG visa ett påhittat besked. Multi måste vara en
+      // icke-tom array (decodeVector ger []=tomt vid out-of-range siffror, och [] != null) → annars start.
+      if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => { const v = this.answers[q.id]; return q.type === 'multi' ? (Array.isArray(v) && v.length > 0) : v != null; }); this.step = complete ? (this.N + 1) : 0; }
     }
     writeResultUrl(push) {
       const p = new URLSearchParams(window.location.search); p.set('q', this.encodeVector());
       const url = window.location.pathname + '?' + p.toString() + window.location.hash;
       if (push) history.pushState({ step: this.N + 1 }, '', url); else history.replaceState({ step: this.N + 1 }, '', url);
     }
-    bindHistory() { window.addEventListener('popstate', () => { this.hydrateFromUrl(); this.render(); }); }
+    bindHistory() { window.addEventListener('popstate', () => { this.leadOpen = false; this.hydrateFromUrl(); this.render(); }); }
 
     answerSingle(q, optionId) { this.answers[q.id] = optionId; this.advance(); }
     toggleMulti(q, optionId) {
@@ -202,7 +204,9 @@
 
     buildShell() {
       this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
+      this.mount.lang = 'sv'; // svenskt verktyg — uttalas rätt även om värdsidan är lang="en" (WCAG 3.1.2)
       const shell = el('div', { class: 'ampy-ec__shell' });
+      this.shell = shell;
       shell.appendChild(this.renderRail());
       this.stage = el('div', { class: 'ampy-ec__stage' });
       shell.appendChild(this.stage); this.mount.appendChild(shell);
@@ -236,6 +240,8 @@
     render() {
       const noscript = this.mount.querySelector('.ampy-ec__noscript'); if (noscript) noscript.remove();
       if (!this.stage) this.buildShell();
+      // JS-satt vy-state → CSS-fallback för :has() (rail-bullets + kontakt-CTA på mobil) på iOS Safari <15.4.
+      this.shell.dataset.view = this.step <= 0 ? 'start' : (this.step > this.N ? (this.leadOpen ? 'lead' : 'result') : 'question');
       let block;
       if (this.step <= 0) block = this.renderStart();
       else if (this.step > this.N) {
@@ -289,7 +295,7 @@
       const list = el('ul', { class: 'ampy-ec__options', role: 'list' });
       q.options.forEach(opt => {
         const selected = this.answers[q.id] === opt.id;
-        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', onclick: () => this.answerSingle(q, opt.id) },
+        list.appendChild(el('li', {}, el('button', { class: 'ampy-ec__option' + (selected ? ' is-selected' : ''), type: 'button', 'aria-pressed': String(selected), onclick: () => this.answerSingle(q, opt.id) },
           [el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])])));
       });
       return list;
@@ -479,7 +485,6 @@
       form.appendChild(errorBox);
       const submit = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__lead-submit', type: 'submit' }, (f.submit || 'Skicka förfrågan'));
       form.appendChild(submit);
-      form.appendChild(el('p', { class: 'ampy-ec__lead-foot' }, (f.foot || 'Kostnadsfritt och utan förbindelse.')));
       form.addEventListener('submit', (e) => {
         e.preventDefault(); errorBox.hidden = true;
         if (honey.value) return;
@@ -488,7 +493,8 @@
         }
         submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
         this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
-          this.track('lead_submitted', { cell: dx.cell });
+          // Konvertering pushas utanför track()-dedupen (lead_submitted saknar step → annars tappas 2:a submit).
+          try { (window.dataLayer = window.dataLayer || []).push({ event: 'ampy_ec_lead_submitted', cell: dx.cell }); } catch (e3) {}
           block.replaceChildren(el('div', { class: 'ampy-ec__lead-success', tabindex: '-1', 'data-focus': 'true' }, [
             iconSpan('check', 'ampy-ec__lead-success-icon'),
             el('h2', {}, (f.success_title || 'Tack! Vi hör av oss inom kort.')),
@@ -505,11 +511,12 @@
       return block;
     }
     submitLead(dx, fields) {
-      const cfg = (typeof window !== 'undefined' && window.AmpyEC) ? window.AmpyEC : null;
+      // ETT lead-flöde: extern webhook (meta.lead_webhook_url, n8n/Make som övriga Ampy-kalkylatorer).
+      // Honeypot (webbplats) + validering ligger i payloaden → verifieras i flödet. Ingen WP-nonce/REST här.
       const url = this.data.meta.lead_webhook_url;
       const payload = Object.assign({ cell: dx.cell, vector: this.encodeVector() }, fields);
       if (!url) return new Promise((res) => setTimeout(res, 600)); // ingen webhook (preview) → simulera success
-      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': (cfg && cfg.restNonce) || '' }, body: JSON.stringify(payload) }).then(r => { if (!r.ok) throw new Error('bad status'); return r.json().catch(() => ({})); });
+      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then(r => { if (!r.ok) throw new Error('bad status'); return r.json().catch(() => ({})); });
     }
     renderShareRow(dx) {
       const row = el('div', { class: 'ampy-ec__share-row' });

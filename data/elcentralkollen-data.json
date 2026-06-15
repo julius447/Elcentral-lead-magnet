@@ -1,9 +1,9 @@
 {
   "meta": {
-    "version": "2.14.0",
+    "version": "2.15.0",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker och redo?",
-    "page_lead": "Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida investeringar (laddbox, värmepump och solceller).",
+    "page_lead": "Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).",
     "disclaimer": "Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.",
     "primary_source": "Elsäkerhetsverket & Skatteverket",
     "verify_company_url": "https://www.elsakerhetsverket.se/kollaelforetaget/foretagsregister/?foretag=12047521&sok=1",
@@ -61,7 +61,6 @@
       "back": "Tillbaka till beskedet",
       "submit": "Skicka förfrågan",
       "submitting": "Skickar…",
-      "foot": "Kostnadsfritt och utan förbindelse.",
       "consent": "Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med ett förslag, enligt ",
       "consent_link": "integritetspolicyn",
       "error_required": "Fyll i alla fält och godkänn villkoren.",
@@ -538,7 +537,7 @@
     "ring": {
       "kind": "link",
       "label": "Ring oss",
-      "url": null
+      "url": "tel:+46102657979"
     },
     "centralbyte_how": {
       "kind": "secondary",

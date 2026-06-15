@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.14.0
+ * Version:           2.15.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.14.0' );
+define( 'AMPY_EC_VERSION', '2.15.0' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
@@ -130,7 +130,13 @@ function ampy_ec_dynamic_og() {
 	if ( ! $data ) { return; }
 	if ( ! is_singular() && ! is_page() ) { return; }
 	$post = get_post();
-	if ( ! $post || ! has_shortcode( (string) $post->post_content, 'elcentralkollen' ) ) { return; }
+	if ( ! $post ) { return; }
+	if ( ! has_shortcode( (string) $post->post_content, 'elcentralkollen' ) ) {
+		// Bricks lagrar sidans innehåll i postmeta (_bricks_page_content_2), inte i post_content →
+		// has_shortcode() ser aldrig shortcoden och HELA OG-blocket skulle hoppas över. Kolla Bricks-datan.
+		$bricks = get_post_meta( $post->ID, '_bricks_page_content_2', true );
+		if ( ! ( is_string( $bricks ) && strpos( $bricks, 'elcentralkollen' ) !== false ) ) { return; }
+	}
 
 	$title = isset( $data['meta']['page_heading'] ) ? $data['meta']['page_heading'] . ' | Ampy' : 'Elcentral-kollen | Ampy';
 	$desc  = isset( $data['meta']['page_lead'] ) ? $data['meta']['page_lead'] : '';

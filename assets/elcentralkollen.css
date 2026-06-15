@@ -33,7 +33,7 @@ html { font-size: 62.5%; }
 .ampy-ec {
   -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent; /* ingen grå iOS-tap-blink; vi ger egen feedback */
-  overflow-x: clip; /* overflow-guard i okänd WP/Bricks-embed (bryter ej sticky som hidden kan) */
+  overflow-x: hidden; overflow-x: clip; /* overflow-guard i okänd WP/Bricks-embed; hidden-fallback för iOS Safari <16, clip bevarar sticky-rail på 16+ */
   --ec-q-minh: 56rem; /* M2: stabil frågehöjd (desktop) → lugn, jämn scroll mellan steg */
   --focus-ring: 0 0 0 3px rgba(0, 169, 145, 0.25); /* EN fokusring för all input + knapp */
   /* Colors */
@@ -228,15 +228,20 @@ html { font-size: 62.5%; }
   .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { opacity: 0.92; box-shadow: 0 0 20px 0 rgba(9, 11, 50, 0.10); }
 }
 @media (max-width: 1023px) {
-  /* Bullets + CTA:er bara på start + besked på mobil (railen ligger överst på varje slide). */
+  /* Bullets + CTA:er bara på start + besked på mobil (railen ligger överst på varje slide).
+     Styrs av JS-satt data-view (render()) — INTE :has() — så huvud-CTA (inkl. tel:-knappen) håller
+     på iOS Safari <15.4 / äldre Android Chrome, den primära mobil-sociala kanalen. */
   .ampy-ec__rail-actions, .ampy-ec__rail-bullets { display: none; }
-  .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-bullets,
-  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-bullets { display: flex; }
+  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-bullets,
+  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-bullets { display: flex; }
   /* Mobil: stapla CTA:erna i full bredd, centrerat innehåll, med luft (best practice). Bara start + besked. */
-  .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-actions,
-  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); }
-  .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-phone, .ampy-ec__shell:has(.ampy-ec__start) .ampy-ec__rail-contact,
-  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-phone, .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail-contact { width: 100%; justify-content: center; gap: 1.2rem; }
+  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-actions,
+  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 42rem; margin-inline: auto; }
+  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="start"] .ampy-ec__rail-contact,
+  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="result"] .ampy-ec__rail-contact { width: 100%; justify-content: center; gap: 1.2rem; }
+  /* iPad/tablet (singel-kolumn): kapa besked-/start-CTA + lead-submit så de inte sträcks uppblåst breda.
+     Telefoner (< 44rem brett innehåll) påverkas ej → behåller full bredd. */
+  .ampy-ec__cta-primary, .ampy-ec__cta-secondary { max-width: 44rem; margin-inline: auto; }
 }
 
 /* Slim mobil-credential (start + besked); dold på desktop där rail-credentialen visas */
@@ -338,7 +343,7 @@ html { font-size: 62.5%; }
 .ampy-ec__crumb-left { display: inline-flex; align-items: center; }
 .ampy-ec__steps { display: inline-flex; gap: var(--space-2); align-items: center; }
 .ampy-ec__steps span { width: 1.8rem; height: 0.4rem; border-radius: var(--radius-full); background: var(--border-default); transition: background var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out); }
-.ampy-ec__steps span.is-done { background: color-mix(in srgb, var(--action-primary-strong) 70%, #fff); }
+.ampy-ec__steps span.is-done { background: rgb(77, 163, 148); background: color-mix(in srgb, var(--action-primary-strong) 70%, #fff); }
 .ampy-ec__steps span.is-current { background: var(--action-primary-strong); width: 2.8rem; }
 .ampy-ec__crumb-back, .ampy-ec__crumb-restart {
   display: inline-flex; align-items: center; gap: var(--space-3); background: none; border: 0; padding: var(--space-2) 0; margin: 0; font: inherit;
@@ -446,16 +451,16 @@ html { font-size: 62.5%; }
 .ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--accent-info); }
 .ampy-ec__finding-text { font-size: var(--fs-15); font-weight: 400; line-height: 1.6; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 
-/* FAKTANOTIS — enda amber-accenten */
-.ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); border-left: 3px solid var(--accent-warning); border-radius: 0; padding: 0.2rem 0 0.2rem var(--space-5); margin: 0 0 var(--rhythm-section); }
+/* FAKTANOTIS — enda amber-accenten (full hairline + ton i brand-amber, ingen sido-stripe) */
+.ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); background: rgba(135, 101, 7, 0.05); border: 1px solid rgba(135, 101, 7, 0.22); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); margin: 0 0 var(--rhythm-section); }
 .ampy-ec__factnote-icon { --ec-row-icon-size: 1.6rem; color: var(--accent-warning); }
 .ampy-ec__factnote-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 .ampy-ec__factnote-src { font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); margin: var(--space-3) 0 0; }
 .ampy-ec__factnote-src-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
 .ampy-ec__factnote-src-link:hover { color: var(--text-primary); }
 
-/* AKUT (röd, tyngst på skärmen, först i DOM) */
-.ampy-ec__akut { display: flex; align-items: flex-start; gap: var(--space-4); border-left: 4px solid var(--accent-error); background: rgb(252, 237, 238); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: var(--space-6) var(--space-7); margin: 0 0 var(--rhythm-section); }
+/* AKUT (röd, tyngst på skärmen, först i DOM) — full röd ram + röd ton, ingen sido-stripe */
+.ampy-ec__akut { display: flex; align-items: flex-start; gap: var(--space-4); border: 1px solid rgba(122, 22, 35, 0.38); background: rgb(252, 237, 238); border-radius: var(--radius-sm); padding: var(--space-6) var(--space-7); margin: 0 0 var(--rhythm-section); }
 .ampy-ec__akut-icon { color: var(--accent-error); }
 .ampy-ec__akut-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 700; color: var(--accent-error); margin: 0 0 var(--space-2); }
 .ampy-ec__akut-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-primary); margin: 0; max-width: 62ch; }
@@ -470,20 +475,19 @@ html { font-size: 62.5%; }
 .ampy-ec__lead-title { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-primary); }
 .ampy-ec__lead-title:focus { outline: none; }
 .ampy-ec__lead-intro { margin: 0 0 var(--space-9); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 60ch; }
-.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-9) var(--space-6); }
+.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-9) var(--space-6); margin: 0 0 var(--space-9); }
 .ampy-ec__lead-field { display: flex; flex-direction: column; gap: var(--rhythm-label); }
 .ampy-ec__lead-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 600; color: var(--text-primary); }
 .ampy-ec__lead-input { width: 100%; min-height: 5.2rem; padding: var(--space-4) var(--space-5); font: inherit; font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-16); color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
 .ampy-ec__lead-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
 .ampy-ec__lead-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.ampy-ec__lead-consent { display: flex; align-items: flex-start; gap: var(--space-4); margin: var(--space-7) 0 var(--space-2); font-size: var(--fs-13); line-height: 1.55; color: var(--text-secondary); }
+.ampy-ec__lead-consent { display: flex; align-items: flex-start; gap: var(--space-4); margin: 0 0 var(--space-10); font-size: var(--fs-13); line-height: 1.55; color: var(--text-secondary); }
 .ampy-ec__lead-check { margin-top: 0.2rem; width: 2rem; height: 2rem; flex-shrink: 0; accent-color: var(--action-primary-strong); cursor: pointer; }
 .ampy-ec__lead-consent a { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
 .ampy-ec__lead-error { margin: var(--space-4) 0 0; font-size: var(--fs-13); font-weight: 500; color: var(--accent-error); }
 .ampy-ec__lead-error[hidden] { display: none; }
-.ampy-ec__lead-submit { width: 100%; margin: var(--space-7) 0 0; min-height: 5.4rem; }
+.ampy-ec__lead-submit { width: 100%; margin: var(--space-10) 0 0; min-height: 5.4rem; }
 .ampy-ec__lead-submit:disabled { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); cursor: default; }
-.ampy-ec__lead-foot { margin: var(--space-4) 0 0; text-align: center; font-size: var(--fs-12); color: var(--text-secondary); }
 .ampy-ec__lead-success { text-align: center; padding: var(--space-11) var(--space-4); }
 .ampy-ec__lead-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 5.6rem; height: 5.6rem; margin-bottom: var(--space-6); border-radius: var(--radius-full); background: var(--tint-success); color: var(--text-success); }
 .ampy-ec__lead-success-icon svg { width: 2.8rem; height: 2.8rem; }

@@ -15,7 +15,7 @@
 - **Bump `AMPY_EC_VERSION`** in `elcentral-kollen.php` on every CSS/JS change (cache-busting).
 
 ## 1. What it does
-A homeowner answers 6 tap-only questions and gets a **two-axis verdict — Säker? / Redo?** — from a calibrated 2×2 matrix, plus their specific findings (⚠/✓/ⓘ), an indicative cost (ROT/grön teknik exact), and exactly one honest primary CTA routed to a real Ampy service. It can honestly say "din central ser bra ut" with no sell — that honesty is the moat.
+A homeowner answers 7 tap-only questions and gets a **two-axis verdict — Säker? / Redo?** — from a calibrated 2×2 matrix, plus their specific findings (⚠/✓/ⓘ) and exactly one honest primary CTA routed to a real Ampy service (soft "Få kostnadsfri rådgivning"; the kr/ROT cost block was removed per owner feedback — see CHECKLIST A2). It can honestly say "din central ser bra ut" with no sell — that honesty is the moat.
 
 ## 2. File tree
 ```
@@ -98,7 +98,7 @@ Elkollen's renderer dropped focus on every view change — fixed here: `render()
 8. **Analytics:** connect GTM/GA4 + ad pixel to the `ampy_ec_*` dataLayer events (§7) for funnel + retargeting.
 
 ## 10. Verify after install (essentials)
-- Wizard: all 6 steps; F4/F6 multi-select with exclusive "Inget" + "Fortsätt"; "Vet inte" completes and never gates.
+- Wizard: all 7 steps; F5/F7 multi-select with exclusive "Inget" + "Fortsätt"; "Vet inte" completes and never gates.
 - Each cell: sr (green, no solid teal, calm bridge) · si (laddbox + lastbalansering, grön teknik "kan") · rs (besiktning, amber fact-note) · rr (centralbyte, cross-axis "byte löser båda", two cost bases).
 - Akut: select bränd lukt → role=alert first; "Ring oss" surfaces.
 - Oklart: 3× "Vet inte" on a modern home → "Oklart" info, NOT amber risk.

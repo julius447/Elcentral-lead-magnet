@@ -29,7 +29,7 @@ function ampy_ec_render_mount( $data ) {
 
 	ob_start();
 	?>
-	<div class="ampy-ec" data-data-url="<?php echo esc_url( AMPY_EC_URL . 'data/elcentralkollen-data.json' ); ?>">
+	<div class="ampy-ec" lang="sv" data-data-url="<?php echo esc_url( AMPY_EC_URL . 'data/elcentralkollen-data.json' ); ?>">
 		<div class="ampy-ec__noscript">
 			<div class="ampy-ec__block">
 				<h1><?php echo esc_html( $heading ); ?></h1>
