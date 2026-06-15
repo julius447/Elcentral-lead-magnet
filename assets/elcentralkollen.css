@@ -159,12 +159,10 @@ html { font-size: 62.5%; }
   .ampy-ec__shell {
     grid-template-columns: minmax(34rem, 42rem) minmax(0, 78rem);
     gap: 6.4rem;
-    align-items: center; /* start + frågor: balanserar rail mot kortet (ingen 2/5-svans i botten) */
+    align-items: start; /* railen toppställd → STABIL position, flyttar sig inte mellan slides */
   }
-  /* Beskedet är högt → toppställ railen så topp-vänster inte blir tom när man landar. */
-  .ampy-ec__shell:has(.ampy-ec__result) { align-items: start; }
-  /* Sticky rail på beskedet → telefon/Kontakta/credential följer med i beslutsögonblicket. */
-  .ampy-ec__shell:has(.ampy-ec__result) .ampy-ec__rail { position: sticky; top: var(--space-9); align-self: start; }
+  /* Sticky rail → står still i viewporten genom hela flödet (intakt vänsterspalt). */
+  .ampy-ec__rail { position: sticky; top: var(--space-9); align-self: start; }
 }
 
 /* RAIL — varumärke + tes + verifierbart trust */
