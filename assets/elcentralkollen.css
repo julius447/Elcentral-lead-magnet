@@ -161,7 +161,9 @@ html { font-size: 62.5%; }
 }
 @media (min-width: 1024px) {
   .ampy-ec__shell {
-    grid-template-columns: minmax(34rem, 42rem) minmax(0, 78rem);
+    /* 1:1 med Elkollen-herons hero__grid-proportioner (44fr/56fr) → rail-spalten får
+       SAMMA bredd som referensen (~49rem på desktop) så copy-blocket bryter likadant. */
+    grid-template-columns: minmax(36rem, 44fr) minmax(46rem, 56fr);
     gap: 6.4rem;
     align-items: start; /* railen toppställd → STABIL position, flyttar sig inte mellan slides */
   }
@@ -176,7 +178,7 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-heading {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: clamp(3.2rem, 4vw, 4.4rem); font-weight: 700; line-height: 1.08;
-  letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 2rem; max-width: 18ch;
+  letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 2rem;
 }
 .ampy-ec__rail-lead {
   font-size: 1.8rem; font-weight: 400; line-height: 1.55;
@@ -184,7 +186,7 @@ html { font-size: 62.5%; }
 }
 /* Trust-bullets = 1:1 med hero__trust: 1.5rem/500/mörk text, ikon 2rem teal, margin-top .3rem. */
 .ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 2.8rem; display: flex; flex-direction: column; gap: 1.6rem; }
-.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.5rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); max-width: 42ch; }
+.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.5rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); }
 .ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2rem; height: 2rem; min-width: 2rem; margin-top: 0.3rem; color: var(--action-primary); }
 .ampy-ec__rail-bullet-icon svg { width: 2rem; height: 2rem; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }

@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.15 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.16 — diagnosmotor + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
                  som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
