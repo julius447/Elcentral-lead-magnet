@@ -18,7 +18,7 @@
 | D1 | **Redo axis splits by PLAN, not just capacity.** A "Säker & redo" user who picked Elbil/laddbox in F6 gets a *confident-but-calm* bridge into the Laddbox-kalkylatorn; the true no-sell is reserved for "Säker & redo + Inget särskilt." | UVP **critical** + CRO + architect converged. Highest single lever on lead yield; invariant-safe because it serves a *stated* plan, not an invented problem. |
 | D2 | **Exactly ONE solid-teal primary CTA per cell.** Second action = outline; third = inline text link. Green cell = **no solid teal at all**. | UVP + UI + CRO independently. Restores doctrine + diagnosis-before-quote honesty. |
 | D3 | **Keep ≤6 questions (invariant #8). Scope the Redo verdict honestly** when current load/heating is unknown ("din central klarar X kapacitetsmässigt; exakt marginal räknar en besiktning ut"). | UVP flagged the heating gap; CPO keeps the 60–90 s promise sacred and resolves via honest scoping instead of a 7th question. |
-| D4 | **Prices are NATIONAL (hela Sverige).** Owner directive (2026-06-11) — supersedes the earlier Stockholm scope. Numbers re-researched to riksrepresentative spans (FACTS §D1), shown as **före-ROT + ROT rule** (no unsigned efter-ROT figure) until the electrician signs the labour split. | Ampy works across Sweden. The tool shows a national scope line + a post-verdict housing-type control for correct per-type pricing. |
+| D4 | **Prices are NATIONAL (hela Sverige).** Owner directive (2026-06-11) — supersedes the earlier Stockholm scope. Numbers re-researched to nationally representative spans (FACTS §D1), shown as **before-ROT + ROT rule** (no unsigned after-ROT figure) until the electrician signs the labour split. | Ampy works across Sweden. The tool shows a national scope line + a post-verdict housing-type control for correct per-type pricing. |
 | D5 | **Uncertainty ≠ risk.** "Vet inte" never alone pushes to amber; an uncertainty-dominated result renders **"Oklart — det svarar en besiktning på"** (info, not risk). | Architect + a11y + UVP. Protects honesty moat (invariant #2). |
 | D6 | **Escalation + present-symptom rules are hard FLOORS, not addends.** | Architect **critical**. A "pure addition" build otherwise ships GREEN for a stated fire-precursor. |
 | D7 | **Fourth, non-risk INFO pill state** for "Redo med lastbalansering" / "kräver bedömning". Amber/red spent only on real risk. | UI designer. Protects the amber/red signal. |
@@ -32,7 +32,7 @@
 
 Tap-only, no free text, "Vet inte" always a first-class equal-weight answer. Each question has a
 title + clarifier subrows + ONE always-visible calm info-note (never an expander). The user never
-opens the central.
+opens the elcentral.
 
 - **F1 — Ålder** *(single)* · "Hur gammalt är huset — eller elcentralen om du vet?"
   `Före 1970 · 1970–1990 · 1990–2010 · Efter 2010 · Vet inte`
@@ -43,7 +43,7 @@ opens the central.
 - **F3 — Jordfelsbrytare** *(single)* · "Finns det en jordfelsbrytare i centralen?"
   `Ja (brytare med testknapp, ofta märkt T) · Nej · Vet inte`
   note: "Jordfelsbrytaren är det moderna skyddet mot felströmmar — den bryter mycket snabbt, inom bråkdelar av en sekund."
-- **F4 — Varningstecken** *(MULTI — välj alla som stämmer)* · "Känner du igen något av det här hemma?"
+- **F4 — Varningstecken** *(MULTI — select all that apply)* · "Känner du igen något av det här hemma?"
   `Säkringar som löser ut ofta · Uttag/strömbrytare som blir varma · Lampor som flimrar · Bränd lukt eller missfärgade uttag · Inget av detta`
   note: "Värme och missfärgning är klassiska tecken på glappkontakt." · "Inget av detta" is mutually exclusive.
 - **F5 — Huvudsäkring** *(single)* · "Hur stor är din huvudsäkring?"

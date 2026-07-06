@@ -1,10 +1,10 @@
 /* ============================================================================
-   Elcentral-kollen v2.16 — diagnosmotor + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.16 — diagnosis engine + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
-     2. ENGINE — pure compute: effektiv central-ålder (central_alder, hus_alder
-                 som proxy) + säkringstyp + JFB + symptom-golv -> 2x2-cell
-     3. VIEW   — start -> 7 frågor -> tvåaxlat besked. Tvåpanels-shell på desktop.
-   Doktrin: docs/SPEC.md + docs/DESIGN.md. UI-copy är svensk by design.
+     2. ENGINE — pure compute: effective panel age (central_alder, hus_alder
+                 as proxy) + fuse type + RCD + symptom floor -> 2x2 cell
+     3. VIEW   — start -> 7 questions -> two-axis verdict. Two-pane shell on desktop.
+   Doctrine: docs/SPEC.md + docs/DESIGN.md. UI copy is Swedish by design.
    ============================================================================ */
 (function () {
   'use strict';
@@ -60,12 +60,12 @@
   const LEVEL_ORDER = { lag: 0, forhojd: 1, hog: 2 };
   const maxLevel = (a, b) => (LEVEL_ORDER[a] >= LEVEL_ORDER[b] ? a : b);
 
-  // Effektiv central-ålder för poäng: central_alder styr, hus_alder är proxy vid 'original'.
+  // Effective panel age for scoring: central_alder drives it, hus_alder is the proxy when 'original'.
   function effectiveCentralAge(a, data) {
     const c = a.central_alder, hus = a.hus_alder, map = (data.scoring.central_age_map || {});
     if (c === 'recent' || c === 'older') return { bracket: map[c], uncertain: false };
     if (c === 'original') { const known = hus && hus !== 'vet_inte'; return { bracket: known ? hus : null, uncertain: !known }; }
-    // c === 'vet_inte' / undefined: proxa hus men markera osäker
+    // c === 'vet_inte' / undefined: proxy off the house but mark as uncertain
     const known = hus && hus !== 'vet_inte';
     return { bracket: known ? hus : null, uncertain: true };
   }
@@ -134,7 +134,7 @@
   }
   function collectFindings(dx, data) {
     let matched = (data.findings || []).filter(f => findingMatches(f.when, dx, data)).filter(f => f.id !== 'f_brand_lukt');
-    // Under akut (bränd lukt): inga muntra OK-rader och aldrig nedsäkrings-tipset bredvid en röd varning.
+    // During akut (burnt smell): no cheery OK rows and never the fuse-downsizing tip next to a red warning.
     if (dx.safety.escalation) matched = matched.filter(f => f.icon !== 'ok' && f.id !== 'f_nedsakring');
     if (matched.some(f => f.icon === 'warn')) matched = matched.filter(f => f.id !== 'f_nedsakring');
     const hasWarn = matched.some(f => f.icon === 'warn');
@@ -146,8 +146,8 @@
   class ElcentralApp {
     constructor(mount, data) {
       this.mount = mount; this.data = data; this.questions = data.questions;
-      this.N = this.questions.length;            // antal frågor (7)
-      this.answers = {}; this.step = 0;          // 0 = start, 1..N = frågor, N+1 = besked
+      this.N = this.questions.length;            // number of questions (7)
+      this.answers = {}; this.step = 0;          // 0 = start, 1..N = questions, N+1 = verdict
       this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false; this._tracked = {}; this.leadOpen = false;
       this.hydrateFromUrl(); this.bindHistory();
     }
@@ -176,8 +176,8 @@
     }
     hydrateFromUrl() {
       const vec = new URLSearchParams(window.location.search).get('q');
-      // Honesty-moat: en trunkerad/trasig ?q= får ALDRIG visa ett påhittat besked. Multi måste vara en
-      // icke-tom array (decodeVector ger []=tomt vid out-of-range siffror, och [] != null) → annars start.
+      // Honesty moat: a truncated/broken ?q= must NEVER show a fabricated verdict. Multi must be a
+      // non-empty array (decodeVector returns []=empty for out-of-range digits, and [] != null) → otherwise start.
       if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => { const v = this.answers[q.id]; return q.type === 'multi' ? (Array.isArray(v) && v.length > 0) : v != null; }); this.step = complete ? (this.N + 1) : 0; }
     }
     writeResultUrl(push) {
@@ -204,7 +204,7 @@
 
     buildShell() {
       this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
-      this.mount.lang = 'sv'; // svenskt verktyg — uttalas rätt även om värdsidan är lang="en" (WCAG 3.1.2)
+      this.mount.lang = 'sv'; // Swedish tool — pronounced correctly even if the host page is lang="en" (WCAG 3.1.2)
       const shell = el('div', { class: 'ampy-ec__shell' });
       this.shell = shell;
       shell.appendChild(this.renderRail());
@@ -216,7 +216,7 @@
       const aside = el('aside', { class: 'ampy-ec__rail' });
       aside.appendChild(el('h1', { class: 'ampy-ec__rail-heading' }, m.page_heading));
       aside.appendChild(el('p', { class: 'ampy-ec__rail-lead' }, m.page_lead));
-      // Trust-bullets (ersätter credential-rutan) — ikon + text, ev. verifierbar länk.
+      // Trust bullets (replace the credential box) — icon + text, optionally a verifiable link.
       const bullets = rail.bullets || [];
       if (bullets.length) {
         const ul = el('ul', { class: 'ampy-ec__rail-bullets', role: 'list' });
@@ -228,7 +228,7 @@
         });
         aside.appendChild(ul);
       }
-      // Två kontakt-CTA (1:1-replika av ampy.se: Kontakta oss + telefon, gradient-piller).
+      // Two contact CTAs (1:1 replica of ampy.se: Contact us + phone, gradient pills).
       const contact = rail.contact || {};
       aside.appendChild(el('div', { class: 'ampy-ec__rail-actions' }, [
         el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')]),
@@ -240,7 +240,7 @@
     render() {
       const noscript = this.mount.querySelector('.ampy-ec__noscript'); if (noscript) noscript.remove();
       if (!this.stage) this.buildShell();
-      // JS-satt vy-state → CSS-fallback för :has() (rail-bullets + kontakt-CTA på mobil) på iOS Safari <15.4.
+      // JS-set view state → CSS fallback for :has() (rail bullets + contact CTAs on mobile) on iOS Safari <15.4.
       this.shell.dataset.view = this.step <= 0 ? 'start' : (this.step > this.N ? (this.leadOpen ? 'lead' : 'result') : 'question');
       let block;
       if (this.step <= 0) block = this.renderStart();
@@ -252,7 +252,7 @@
       block.dataset.dir = this.dir;
       this.stage.replaceChildren(block);
       const focusTarget = block.querySelector('[data-focus]');
-      // Flytta inte fokus vid första paint (annars auto-scrollar en embed under viewporten till widgeten).
+      // Don't move focus on the first paint (otherwise an embed below the viewport auto-scrolls to the widget).
       if (focusTarget && this._booted) { try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); } }
       this._booted = true;
     }
@@ -274,7 +274,7 @@
       return block;
     }
 
-    /* ---------------- FRÅGESTEG ---------------- */
+    /* ---------------- QUESTION STEP ---------------- */
     renderQuestion(q) {
       const block = el('div', { class: 'ampy-ec__block', role: 'group', 'aria-labelledby': 'ampy-ec-q' });
       const crumb = el('div', { class: 'ampy-ec__crumb' });
@@ -321,7 +321,7 @@
       return el('div', { class: 'ampy-ec__multi' }, [group, hint, el('div', { class: 'ampy-ec__multi-foot' }, [fortsatt])]);
     }
 
-    /* ---------------- BESKED ---------------- */
+    /* ---------------- VERDICT ---------------- */
     renderResult() {
       const dx = diagnose(this.answers, this.data), data = this.data, m = data.verdict_matrix[dx.cell];
       const block = el('div', { class: 'ampy-ec__block ampy-ec__result', role: 'region', 'aria-labelledby': 'ampy-ec-result-h' });
@@ -346,13 +346,13 @@
       ])]));
       block.appendChild(this.renderCta(dx));
       block.appendChild(this.renderPdfCapture(dx));
-      // Footern avslutas medvetet på "Läs mer om elcentral" (sekundär CTA). Delningsraden,
-      // friskrivnings-paragrafen och den slimmade mobil-credentialen är borttagna (ägarbeslut)
-      // för ett kompakt avslut. Friskrivningens innebörd bärs av besked-copyn (t.ex. "en kort
-      // besiktning ger dig säkerheten") + den crawlbara render.php-fallbacken.
+      // The footer deliberately ends on "Läs mer om elcentral" (secondary CTA). The share row,
+      // the disclaimer paragraph and the slimmed mobile credential are removed (owner decision)
+      // for a compact ending. The disclaimer's meaning is carried by the verdict copy (e.g. "en kort
+      // besiktning ger dig säkerheten") + the crawlable render.php fallback.
       return block;
     }
-    // Slim trust-rad — visas bara på mobil (start + besked), där rail-credentialen är dold.
+    // Slim trust row — shown only on mobile (start + verdict), where the rail credential is hidden.
     renderCompactCred() {
       const m = this.data.meta, rail = m.rail || {};
       return el('div', { class: 'ampy-ec__compact-cred' }, [
@@ -390,8 +390,8 @@
     renderDualStatus(dx) {
       const data = this.data, ss = data.safety_states[dx.safety.state], readyMeta = data.ready_states[dx.ready.state];
       const readyPill = data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
-      // Amber-wash ENDAST vid verklig säkerhetsrisk. Grön/oklart säkerhet + ren kapacitetsåtgärd
-      // (readyPill warning) lutar mot info, larmar inte "säkerhetsfel". (Pillret förblir amber.)
+      // Amber wash ONLY on a real safety risk. Green/unclear safety + a pure capacity action
+      // (readyPill warning) leans toward info, doesn't alarm "safety fault". (The pill stays amber.)
       let worst;
       if (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') worst = ss.pill_level;
       else if (readyPill === 'warning') worst = 'info';
@@ -410,7 +410,7 @@
     }
     renderFindings(dx) {
       const findings = collectFindings(dx, this.data);
-      if (!findings.length) return null; // ingen tom "Våra fynd"-rubrik (t.ex. akut-eskalering där OK-fynd undertrycks)
+      if (!findings.length) return null; // no empty "Våra fynd" heading (e.g. akut escalation where OK findings are suppressed)
       const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
       wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Våra fynd'));
       const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
@@ -428,8 +428,8 @@
       if (dx.cell === 'sr') {
         let linkDef = null; const planer = this.answers.planer || [];
         const hasPlan = planer.some(p => p !== 'inget') && planer.length, highFuse = ['25', '35'].includes(this.answers.huvudsakring);
-        // Grön-bara-länkar (klarar-en-laddbox / nedsäkring) får ENDAST visas vid säkert läge (lag).
-        // Vid 'oklart' (sr-cell men osäkra svar) hade de hävdat mer än svaren ger → faller igenom till rådgivning.
+        // Green-only links (handles-a-laddbox / fuse-downsizing) may ONLY show in the safe state (lag).
+        // On 'oklart' (sr cell but uncertain answers) they would claim more than the answers give → fall through to advice.
         if (hasPlan && dx.safety.state === 'lag') linkDef = defs.laddbox_bridge; else if (highFuse && dx.safety.state === 'lag') linkDef = defs.nedsakring_hook;
         if (linkDef) {
           if (linkDef.lead) wrap.appendChild(el('p', { class: 'ampy-ec__cta-lead' }, linkDef.lead));
@@ -449,13 +449,13 @@
       }
       return wrap;
     }
-    // En CTA-def → länk (utgående) ELLER knapp som öppnar in-tool lead-formuläret (opens_form).
+    // A CTA def → link (outbound) OR button that opens the in-tool lead form (opens_form).
     renderCtaDef(def, cls) {
       if (!def) return document.createComment('cta saknas');
       if (def.opens_form) return el('button', { class: cls, type: 'button', onclick: () => this.openLead() }, [def.label, iconSpan('arrowRight')]);
       return el('a', { class: cls, href: this.resolveCtaUrl(def) }, [def.label, iconSpan('arrowRight')]);
     }
-    /* ---------------- LEAD-FORMULÄR (in-tool capture, Elkollen-paritet) ---------------- */
+    /* ---------------- LEAD FORM (in-tool capture, Elkollen parity) ---------------- */
     renderLead() {
       const dx = diagnose(this.answers, this.data), f = this.data.meta.lead_form || {};
       const block = el('div', { class: 'ampy-ec__block ampy-ec__lead', role: 'region', 'aria-labelledby': 'ampy-ec-lead-h' });
@@ -493,7 +493,7 @@
         }
         submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
         this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
-          // Konvertering pushas utanför track()-dedupen (lead_submitted saknar step → annars tappas 2:a submit).
+          // The conversion is pushed outside the track() dedupe (lead_submitted has no step → otherwise the 2nd submit is lost).
           try { (window.dataLayer = window.dataLayer || []).push({ event: 'ampy_ec_lead_submitted', cell: dx.cell }); } catch (e3) {}
           block.replaceChildren(el('div', { class: 'ampy-ec__lead-success', tabindex: '-1', 'data-focus': 'true' }, [
             iconSpan('check', 'ampy-ec__lead-success-icon'),
@@ -511,11 +511,11 @@
       return block;
     }
     submitLead(dx, fields) {
-      // ETT lead-flöde: extern webhook (meta.lead_webhook_url, n8n/Make som övriga Ampy-kalkylatorer).
-      // Honeypot (webbplats) + validering ligger i payloaden → verifieras i flödet. Ingen WP-nonce/REST här.
+      // ONE lead flow: external webhook (meta.lead_webhook_url, n8n/Make like the other Ampy calculators).
+      // Honeypot (webbplats) + validation sit in the payload → verified in the flow. No WP nonce/REST here.
       const url = this.data.meta.lead_webhook_url;
       const payload = Object.assign({ cell: dx.cell, vector: this.encodeVector() }, fields);
-      if (!url) return new Promise((res) => setTimeout(res, 600)); // ingen webhook (preview) → simulera success
+      if (!url) return new Promise((res) => setTimeout(res, 600)); // no webhook (preview) → simulate success
       return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then(r => { if (!r.ok) throw new Error('bad status'); return r.json().catch(() => ({})); });
     }
     renderShareRow(dx) {
@@ -549,8 +549,8 @@
       const status = el('span', { class: 'ampy-ec__share-status', role: 'status', 'aria-live': 'polite' });
       const shareUrl = window.location.origin + window.location.pathname + '?q=' + encodeURIComponent(this.encodeVector());
       const shareTitle = 'Elcentral-kollen';
-      // share_green_marginal ("...redo för elbil") gäller bara så länge redo_marginal är elbil-exklusivt (scoring.ready).
-      // Icke-grönt besked delar en neutral mening (aldrig den telegrafiska buildSummarySentence i offentlig delning).
+      // share_green_marginal ("...redo för elbil") only holds as long as redo_marginal is EV-exclusive (scoring.ready).
+      // A non-green verdict shares a neutral sentence (never the telegraphic buildSummarySentence in public sharing).
       const shareText = (dx.cell === 'sr' && dx.safety.state === 'lag') ? ((dx.ready.state === 'redo_marginal') ? this.data.copy.share_green_marginal : this.data.copy.share_green) : (this.data.copy.share_neutral || this.buildSummarySentence(dx));
       const anchor = el('span', { class: 'ampy-ec__share-anchor' });
       const menu = el('div', { class: 'ampy-ec__share-menu', role: 'menu', 'aria-label': 'Dela resultatet', hidden: true });

@@ -15,12 +15,12 @@
 
 /* ============================================================================
    Elcentral-kollen v3 — design
-   Tvåpanels-shell på desktop (rail + stage), en kolumn på mobil. Beskedet:
-   dual-status som hjälte (squint-testet), lugn komplement-lede. Inga chevroner
-   (hela raden är affordansen), bar-only progress. Hjälte-typ använder clamp()
-   (Ampy-designsystemets kanon). GDPR: fonter självhostade (inga Google-anrop).
-   Tokens: docs/SPEC.md §8 + docs/DESIGN.md. Suite-paritet: flagga delade tokens
-   till Elkollen (rytm, hjälte-clamp, motion, --action-primary-strong, tints).
+   Two-pane shell on desktop (rail + stage), single column on mobile. The verdict:
+   dual-status as the hero (squint test), calm supporting lede. No chevrons
+   (the whole row is the affordance), bar-only progress. Hero type uses clamp()
+   (Ampy design-system canon). GDPR: fonts self-hosted (no Google calls).
+   Tokens: docs/SPEC.md §8 + docs/DESIGN.md. Suite parity: flag shared tokens
+   to Elkollen (rhythm, hero clamp, motion, --action-primary-strong, tints).
    ============================================================================ */
 @font-face {
   font-family: 'Outfit'; font-style: normal; font-weight: 400 600; font-display: swap;
@@ -45,10 +45,10 @@
 
 .ampy-ec {
   -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent; /* ingen grå iOS-tap-blink; vi ger egen feedback */
-  overflow-x: hidden; overflow-x: clip; /* overflow-guard i okänd WP/Bricks-embed; hidden-fallback för iOS Safari <16, clip bevarar sticky-rail på 16+ */
-  --ec-q-minh: 560px; /* M2: stabil frågehöjd (desktop) → lugn, jämn scroll mellan steg */
-  --focus-ring: 0 0 0 3px rgba(0, 169, 145, 0.25); /* EN fokusring för all input + knapp */
+  -webkit-tap-highlight-color: transparent; /* no grey iOS tap-blink; we provide our own feedback */
+  overflow-x: hidden; overflow-x: clip; /* overflow guard in unknown WP/Bricks embed; hidden fallback for iOS Safari <16, clip preserves sticky rail on 16+ */
+  --ec-q-minh: 560px; /* M2: stable question height (desktop) → calm, even scroll between steps */
+  --focus-ring: 0 0 0 3px rgba(0, 169, 145, 0.25); /* ONE focus ring for all inputs + buttons */
   /* Colors */
   --bg-primary: #ffffff;
   --bg-secondary: #f4f5fb;
@@ -62,14 +62,14 @@
   --text-success: rgb(15, 110, 86);
   --action-primary: rgb(0, 169, 145);
   --action-primary-strong: rgb(0, 122, 105);        /* white-on ≈ 5.3:1 (AA) */
-  /* 1:1 från ampy.se (Core Framework, samma 10px=10px-rot): exakta gradient/skugga + fluida tokens */
+  /* 1:1 from ampy.se (Core Framework, same 10px=10px root): exact gradient/shadow + fluid tokens */
   --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
-  --ampy-cta-gradient-blue: linear-gradient(120deg, #b6f2ff 0%, #70becb 100%); /* = Elkollen-herons .ampy-btn--phone */
-  --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);       /* = Elkollen-herons .ampy-btn */
-  --ampy-cta-fs: clamp(14px, calc(0.21vw + 13.3px), 16px);  /* = Elkollen-herons .ampy-btn font-size (1:1) */
-  --ampy-cta-pad-y: clamp(10.2px, calc(0.39vw + 9px), 14px); /* = .ampy-btn vertikal padding (1:1) */
-  --ampy-cta-pad-x: clamp(20px, calc(20px + 0.0044 * (100vw - 380px)), 24px); /* = .ampy-btn horisontell padding (ampy.se-token, 1:1) */
-  --ampy-cta-radius: 8px;                                     /* = .ampy-btn 8px (bricks-button-kaskaden) */
+  --ampy-cta-gradient-blue: linear-gradient(120deg, #b6f2ff 0%, #70becb 100%); /* = Elkollen hero's .ampy-btn--phone */
+  --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);       /* = Elkollen hero's .ampy-btn */
+  --ampy-cta-fs: clamp(14px, calc(0.21vw + 13.3px), 16px);  /* = Elkollen hero's .ampy-btn font-size (1:1) */
+  --ampy-cta-pad-y: clamp(10.2px, calc(0.39vw + 9px), 14px); /* = .ampy-btn vertical padding (1:1) */
+  --ampy-cta-pad-x: clamp(20px, calc(20px + 0.0044 * (100vw - 380px)), 24px); /* = .ampy-btn horizontal padding (ampy.se token, 1:1) */
+  --ampy-cta-radius: 8px;                                     /* = .ampy-btn 8px (bricks button cascade) */
   --action-primary-strong-hover: rgb(0, 108, 93);
   --action-tint: rgb(240, 250, 248);                 /* selected fill, distinct from grey hover */
   --state-success: rgb(57, 194, 129);
@@ -79,7 +79,7 @@
   --border-tertiary: #ebedf3;
   --border-focus: rgb(0, 122, 105);
 
-  /* Pill (mörk-på-ljus, AA ≥6.8:1) */
+  /* Pill (dark-on-light, AA ≥6.8:1) */
   --pill-success-bg: rgb(214, 240, 229);  --pill-success-fg: rgb(6, 71, 55);
   --pill-warning-bg: rgb(250, 233, 197);  --pill-warning-fg: rgb(92, 64, 5);
   --pill-error-bg:   rgb(250, 224, 222);  --pill-error-fg:   rgb(124, 32, 32);
@@ -93,7 +93,7 @@
   --accent-info:    rgb(13, 86, 140);
   --accent-neutral: var(--text-tertiary);
 
-  /* Verdict-zon tint (whisper-wash, ingen border/shadow → ej ett kort) */
+  /* Verdict-zone tint (whisper-wash, no border/shadow → not a card) */
   --tint-success: rgb(240, 249, 245);
   --tint-warning: rgb(252, 247, 234);
   --tint-error:   rgb(252, 243, 243);
@@ -104,10 +104,10 @@
   --space-1: 4px;  --space-2: 6px;  --space-3: 8px;  --space-4: 10px;
   --space-5: 12px;  --space-6: 14px;  --space-7: 16px;  --space-8: 18px;
   --space-9: 20px;  --space-10: 22px; --space-11: 24px; --space-12: 28px; --space-13: 32px;
-  /* Tvånivå-rytm (R3) */
-  --rhythm-section: var(--space-11);  /* mellan resultat-sektioner */
-  --rhythm-group: var(--space-5);     /* inom grupp */
-  --rhythm-label: var(--space-3);     /* rubrik → ägt innehåll */
+  /* Two-level rhythm (R3) */
+  --rhythm-section: var(--space-11);  /* between result sections */
+  --rhythm-group: var(--space-5);     /* within a group */
+  --rhythm-label: var(--space-3);     /* heading → owned content */
 
   --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-full: 999px;
   --shadow-sm: 0 1px 2px rgba(11, 13, 42, 0.04);
@@ -115,7 +115,7 @@
   --shadow-lg: 0 14px 32px rgba(11, 13, 42, 0.1);
 
   --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-15: 15px; --fs-16: 16px; --fs-18: 18px; --fs-20: 20px;
-  /* Hjälte-roller: contained clamp (kanon) */
+  /* Hero roles: contained clamp (canon) */
   --fs-title: clamp(20px, 18px + 0.5vw, 24px);
   --fs-display: clamp(20px, 17px + 1.0vw, 28px);
 
@@ -126,10 +126,10 @@
   --block-padding-y: var(--space-11);
   --block-padding-x: var(--space-11);
 
-  /* Ikon-rad — delad optisk justering (ikon → första textraden). Alla ikon+text-rader
-     ärver dessa; varje radtyp överrider size/nudge lokalt vid behov (se IKON-RAD nedan). */
-  --ec-row-icon-size: 18px;   /* kvadratisk ikonbox (width = height) */
-  --ec-row-icon-nudge: 2px;  /* margin-top: optisk centrering mot första raden */
+  /* Icon row — shared optical alignment (icon → first text line). All icon+text rows
+     inherit these; each row type overrides size/nudge locally when needed (see ICON ROW below). */
+  --ec-row-icon-size: 18px;   /* square icon box (width = height) */
+  --ec-row-icon-nudge: 2px;  /* margin-top: optical centering against the first line */
 
   display: block;
   font-family: 'Outfit', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -142,12 +142,12 @@
 .ampy-ec *, .ampy-ec *::before, .ampy-ec *::after { box-sizing: border-box; }
 
 /* ============================================================================
-   IKON-RAD — delad ikon→text optisk justering
-   Alla ikon+text-rader (finding, faktanotis, akut, info, rail-cred) delar
-   samma mekanik: kvadratisk ikonbox + margin-top-nudge mot första textraden.
-   Storlek/nudge styrs av --ec-row-icon-size / --ec-row-icon-nudge (rot-default
-   18px / 2px). Varje radtyp överrider bara de värden som avviker — tidigare
-   hårdkodades de per klass och drev isär.
+   ICON ROW — shared icon→text optical alignment
+   All icon+text rows (finding, factnote, akut, info, rail-cred) share the
+   same mechanic: square icon box + margin-top nudge against the first text line.
+   Size/nudge are controlled by --ec-row-icon-size / --ec-row-icon-nudge (root default
+   18px / 2px). Each row type overrides only the values that deviate — previously
+   they were hard-coded per class and drifted apart.
    ============================================================================ */
 .ampy-ec__finding-icon,
 .ampy-ec__factnote-icon,
@@ -162,10 +162,10 @@
 }
 
 /* ============================================================================
-   SHELL — en kolumn (mobil), tvåpanels (≥1024px)
+   SHELL — single column (mobile), two-pane (≥1024px)
    ============================================================================ */
 .ampy-ec__shell {
-  max-width: 1280px; /* Ampy-container (1280px) — minskar kant-whitespace på desktop */
+  max-width: 1280px; /* Ampy container (1280px) — reduces edge whitespace on desktop */
   margin: 0 auto;
   min-width: 0;
   padding: clamp(24px, 4vw, 56px) calc(clamp(16px, 4vw, 40px) + env(safe-area-inset-right)) calc(clamp(24px, 4vw, 56px) + env(safe-area-inset-bottom)) calc(clamp(16px, 4vw, 40px) + env(safe-area-inset-left));
@@ -174,24 +174,24 @@
 }
 @media (min-width: 1024px) {
   .ampy-ec__shell {
-    /* 1:1 med Elkollen-herons hero__grid-proportioner (44fr/56fr) → rail-spalten får
-       SAMMA bredd som referensen (~490px på desktop) så copy-blocket bryter likadant. */
+    /* 1:1 with Elkollen hero's hero__grid proportions (44fr/56fr) → the rail column gets
+       the SAME width as the reference (~490px on desktop) so the copy block wraps identically. */
     grid-template-columns: minmax(360px, 44fr) minmax(460px, 56fr);
     gap: 64px;
-    align-items: start; /* rail toppställd → stabilt topp-läge, oberoende av kortets höjd */
+    align-items: start; /* rail top-aligned → stable top position, independent of the card's height */
   }
-  /* Start + frågor: rail-innehållet vertikalt CENTRERAT inom en FAST höjd (= normalslidens korthöjd
-     --ec-q-minh). Centrerat precis som på slide 1 OCH "fast" — flyttas INTE när ett multisval-kort
-     (Q5/Q7) blir högre, för rail-boxen behåller sin höjd istället för att följa det högre kortet. */
+  /* Start + questions: rail content vertically CENTERED within a FIXED height (= the normal slide's
+     card height --ec-q-minh). Centered just like on slide 1 AND "fixed" — it does NOT move when a
+     multi-select card (Q5/Q7) grows taller, because the rail box keeps its height instead of following the taller card. */
   .ampy-ec__rail { align-self: start; min-height: var(--ec-q-minh); display: flex; flex-direction: column; justify-content: center; padding-top: 0; }
-  /* Besked/formulär: kortet är mycket högre → toppställ + sticky, ingen fast-höjd-centrering. */
+  /* Verdict/form: the card is much taller → top-align + sticky, no fixed-height centering. */
   .ampy-ec__shell[data-view="result"] .ampy-ec__rail,
   .ampy-ec__shell[data-view="lead"] .ampy-ec__rail { min-height: 0; justify-content: flex-start; position: sticky; top: var(--space-9); padding-top: var(--space-3); }
 }
 
-/* RAIL — varumärke + tes + verifierbart trust */
+/* RAIL — brand + thesis + verifiable trust */
 .ampy-ec__rail { min-width: 0; }
-/* Rail-typografi = 1:1 med Elkollen-herons hero__copy (font/storlek/färg/radavstånd). */
+/* Rail typography = 1:1 with Elkollen hero's hero__copy (font/size/color/line-spacing). */
 .ampy-ec__rail-heading {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: clamp(32px, 4vw, 44px); font-weight: 700; line-height: 1.08;
@@ -201,17 +201,17 @@
   font-size: 18px; font-weight: 400; line-height: 1.55;
   color: var(--text-secondary); margin: 0 0 28px; max-width: 46ch;
 }
-/* Trust-bullets = hero__trust: 15px/500/ikon 20px teal, margin-top 3px. Färgen mjukad en aning
-   mot Elkollens live-rendering (mörk slate, inte ren navy) — ägarjustering, finkalibreras vid behov. */
+/* Trust bullets = hero__trust: 15px/500/icon 20px teal, margin-top 3px. Color softened a touch
+   toward Elkollen's live rendering (dark slate, not pure navy) — owner adjustment, fine-tune when needed. */
 .ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 16px; }
 .ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; line-height: 1.45; font-weight: 500; color: var(--text-primary); }
 .ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 20px; height: 20px; min-width: 20px; margin-top: 3px; color: var(--action-primary); }
 .ampy-ec__rail-bullet-icon svg { width: 20px; height: 20px; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
-/* Tesen är desktop-only (skulle trycka ner första frågan på mobil). */
-/* Credential i rail = ENDAST desktop. På mobil bärs den av .ampy-ec__compact-cred (start + besked).
-   Designad RUTA (ägaren ville ha tillbaka den): subtil bakgrund, padding, rundade hörn. */
+/* The thesis is desktop-only (would push the first question down on mobile). */
+/* Credential in the rail = desktop ONLY. On mobile it is carried by .ampy-ec__compact-cred (start + verdict).
+   Designed BOX (the owner wanted it back): subtle background, padding, rounded corners. */
 .ampy-ec__rail-cred {
   display: none; align-items: flex-start; gap: var(--space-4); margin: var(--space-9) 0 0;
   padding: var(--space-6) var(--space-7); background: var(--bg-subtle); border-radius: var(--radius-md);
@@ -219,18 +219,18 @@
 .ampy-ec__rail-cred-icon { --ec-row-icon-size: 20px; --ec-row-icon-nudge: 1px; color: var(--action-primary-strong); }
 .ampy-ec__rail-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__rail-cred-text { font-size: var(--fs-13); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-2); }
-/* Länken bär SAMMA färg som resten av credential-texten, bara understruken (= läses som länk). */
+/* The link carries the SAME color as the rest of the credential text, just underlined (= reads as a link). */
 .ampy-ec__rail-cred-link { font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-cred-link:hover { color: var(--text-primary); }
 @media (min-width: 1024px) {
   .ampy-ec__rail-cred { display: flex; }
 }
 
-/* Kontakt-CTA i rail (1:1-replika av ampy.se: telefon-länk + gradient-knapp "Kontakta oss").
-   ampy.se:s EXAKTA tokens (färg/storlek/spacing). Visas på desktop alltid; på mobil bara på
-   start + besked (railen ligger överst på varje mobilslide → vill inte tränga ut frågorna). */
+/* Contact CTA in the rail (1:1 replica of ampy.se: phone link + gradient button "Kontakta oss").
+   ampy.se's EXACT tokens (color/size/spacing). Always shown on desktop; on mobile only on
+   start + verdict (the rail sits at the top of every mobile slide → don't want to crowd out the questions). */
 .ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: var(--space-5) 20px; margin: 0; }
-/* BÅDA CTA = gradient-piller, 1:1 med Elkollen-herons .ampy-btn: Outfit 400, #1e1e1e, 8px, gap 20px. */
+/* BOTH CTAs = gradient pills, 1:1 with Elkollen hero's .ampy-btn: Outfit 400, #1e1e1e, 8px, gap 20px. */
 .ampy-ec__rail-phone, .ampy-ec__rail-contact {
   box-sizing: border-box; min-height: 44px;
   display: inline-flex; align-items: center; justify-content: space-between; gap: 20px; text-decoration: none; white-space: nowrap;
@@ -248,23 +248,23 @@
   .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { opacity: 0.92; box-shadow: 0 0 20px 0 rgba(9, 11, 50, 0.10); }
 }
 @media (max-width: 1023px) {
-  /* Bullets + CTA:er bara på start + besked på mobil (railen ligger överst på varje slide).
-     Styrs av JS-satt data-view (render()) — INTE :has() — så huvud-CTA (inkl. tel:-knappen) håller
-     på iOS Safari <15.4 / äldre Android Chrome, den primära mobil-sociala kanalen. */
+  /* Bullets + CTAs only on start + verdict on mobile (the rail sits at the top of every slide).
+     Controlled by the JS-set data-view (render()) — NOT :has() — so the main CTA (incl. the tel: button) holds
+     on iOS Safari <15.4 / older Android Chrome, the primary mobile-social channel. */
   .ampy-ec__rail-actions, .ampy-ec__rail-bullets { display: none; }
   .ampy-ec__shell[data-view="start"] .ampy-ec__rail-bullets,
   .ampy-ec__shell[data-view="result"] .ampy-ec__rail-bullets { display: flex; }
-  /* Mobil: stapla CTA:erna i full bredd, centrerat innehåll, med luft (best practice). Bara start + besked. */
+  /* Mobile: stack the CTAs full width, centered content, with air (best practice). Only start + verdict. */
   .ampy-ec__shell[data-view="start"] .ampy-ec__rail-actions,
   .ampy-ec__shell[data-view="result"] .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 420px; margin-inline: auto; }
   .ampy-ec__shell[data-view="start"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="start"] .ampy-ec__rail-contact,
   .ampy-ec__shell[data-view="result"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="result"] .ampy-ec__rail-contact { width: 100%; justify-content: center; gap: 12px; }
-  /* iPad/tablet (singel-kolumn): kapa besked-/start-CTA + lead-submit så de inte sträcks uppblåst breda.
-     Telefoner (< 440px brett innehåll) påverkas ej → behåller full bredd. */
+  /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch bloated-wide.
+     Phones (< 440px wide content) are unaffected → keep full width. */
   .ampy-ec__cta-primary, .ampy-ec__cta-secondary { max-width: 440px; margin-inline: auto; }
 }
 
-/* Slim mobil-credential (start + besked); dold på desktop där rail-credentialen visas */
+/* Slim mobile credential (start + verdict); hidden on desktop where the rail credential is shown */
 .ampy-ec__compact-cred { display: flex; align-items: flex-start; gap: var(--space-3); margin: var(--space-9) 0 0; padding-top: var(--space-7); border-top: 1px solid var(--border-tertiary); }
 .ampy-ec__compact-cred-icon { --ec-row-icon-size: 16px; --ec-row-icon-nudge: 2px; color: var(--action-primary-strong); }
 .ampy-ec__compact-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
@@ -274,7 +274,7 @@
 .ampy-ec__start .ampy-ec__compact-cred { text-align: left; }
 @media (min-width: 1024px) { .ampy-ec__compact-cred { display: none; } }
 
-/* ---- Start-skärm (slide 1) ---- */
+/* ---- Start screen (slide 1) ---- */
 .ampy-ec__start { align-items: center; text-align: center; justify-content: center; }
 .ampy-ec__crumb--start { justify-content: center; margin-bottom: var(--space-11); }
 .ampy-ec__start-illu { width: 110px; height: 110px; margin: var(--space-5) auto var(--space-9); }
@@ -284,23 +284,23 @@
 .ampy-ec__start-body { font-size: var(--fs-15); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-11); max-width: 40ch; }
 .ampy-ec__start-cta { max-width: 320px; margin-left: auto; margin-right: auto; }
 
-/* ---- Share-rad (ersätter trust-raden i beskedet) ---- */
+/* ---- Share row (replaces the trust row in the verdict) ---- */
 .ampy-ec__share-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); margin: var(--space-5) 0 0; padding-top: var(--space-3); }
 .ampy-ec__share-row .ampy-ec__share-nudge { margin-right: auto; }
 
 .ampy-ec__stage { min-width: 0; }
 
 /* ============================================================================
-   DESKTOP-SKALA (≥1024px) — större typografi (Ampy body-skala 17–18px), generösare
-   kort + mindre kompakt rail. MOBIL (<1024px) är PERFEKT och rörs INTE: varje bump
-   lever bara i denna media query.
+   DESKTOP SCALE (≥1024px) — larger typography (Ampy body scale 17–18px), more generous
+   cards + a less compact rail. MOBILE (<1024px) is PERFECT and is NOT touched: every bump
+   lives only in this media query.
    ============================================================================ */
 @media (min-width: 1024px) {
-  /* Generösare kort (Ampy 2xl-spacing) */
+  /* More generous cards (Ampy 2xl spacing) */
   .ampy-ec__block { padding: var(--space-13) var(--space-13); }
-  /* Rail-typografin är fast (= Elkollen-heron); inga desktop-bumpar som avviker från referensen. */
+  /* Rail typography is fixed (= Elkollen hero); no desktop bumps that deviate from the reference. */
 
-  /* Frågor */
+  /* Questions */
   .ampy-ec__q-title { font-size: clamp(26px, 12px + 1.8vw, 32px); margin-bottom: var(--space-11); }
   .ampy-ec__q-subtitle { font-size: var(--fs-15); }
   .ampy-ec__options { gap: var(--space-6); }
@@ -309,19 +309,19 @@
   .ampy-ec__option-clarifier { font-size: var(--fs-15); }
   .ampy-ec__info-text { font-size: var(--fs-15); }
 
-  /* Start (slide 1) — mer vertikal luft (ägaren: "lite för kompakt vertikalt") */
+  /* Start (slide 1) — more vertical air (the owner: "lite för kompakt vertikalt") */
   .ampy-ec__start { padding-top: var(--space-13); padding-bottom: var(--space-13); }
   .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
   .ampy-ec__start-illu { width: 120px; height: 120px; margin-top: var(--space-9); margin-bottom: var(--space-12); }
   .ampy-ec__start-heading { font-size: clamp(28px, 14px + 2vw, 36px); margin-bottom: var(--space-8); }
   .ampy-ec__start-body { font-size: var(--fs-18); margin-bottom: var(--space-13); }
 
-  /* Besked */
-  .ampy-ec { --rhythm-section: var(--space-13); } /* sektionsrytm växer med desktop-typografin */
+  /* Verdict */
+  .ampy-ec { --rhythm-section: var(--space-13); } /* section rhythm grows with the desktop typography */
   .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; }
   .ampy-ec__finding-text { font-size: var(--fs-18); }
-  .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 20px; } /* radhöjd-ikon + SVG följer textgraden */
-  .ampy-ec__findings { gap: var(--space-7); } /* luften växer med textgraden (mobil 12px → desktop 16px) */
+  .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 20px; } /* line-height icon + SVG follow the text size */
+  .ampy-ec__findings { gap: var(--space-7); } /* the air grows with the text size (mobile 12px → desktop 16px) */
   .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
   .ampy-ec__pill { font-size: var(--fs-18); }
   .ampy-ec__statusrow-axis { font-size: var(--fs-15); }
@@ -329,7 +329,7 @@
 }
 
 /* ============================================================================
-   BLOCK (kortet)
+   BLOCK (the card)
    ============================================================================ */
 .ampy-ec__block {
   padding: var(--block-padding-y) var(--block-padding-x);
@@ -340,16 +340,16 @@
   display: flex; flex-direction: column; gap: 0;
   scroll-margin-top: 15px;
 }
-/* M2: enhetlig korthöjd på frågestegen → ingen hoppig scroll mellan slides.
-   Start- och beskedssteget undantas (de har egen, avsiktligt varierande höjd). */
-/* Start + frågesteg delar samma min-höjd → startvyn är lika stor som frågorna (ingen hoppig expansion). Besked + lead-formulär undantas. */
+/* M2: uniform card height on the question steps → no jumpy scroll between slides.
+   The start and verdict steps are exempt (they have their own, intentionally varying height). */
+/* Start + question steps share the same min-height → the start view is as large as the questions (no jumpy expansion). Verdict + lead form are exempt. */
 .ampy-ec__block:not(.ampy-ec__result):not(.ampy-ec__lead) { min-height: var(--ec-q-minh, 0); }
 .ampy-ec__block[data-dir="fwd"] { animation: ec-in-fwd var(--dur-base) var(--ease-out) both; }
 .ampy-ec__block[data-dir="back"] { animation: ec-in-back var(--dur-base) var(--ease-out) both; }
 @keyframes ec-in-fwd { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 @keyframes ec-in-back { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 @media (max-width: 767px) { .ampy-ec { --ec-q-minh: 600px; } .ampy-ec__block { padding: var(--space-9); } .ampy-ec__crumb { margin-bottom: var(--space-9); } }
-/* Forced-colors (Windows högkontrast): box-shadow-ringar strippas → återinför äkta outline. */
+/* Forced-colors (Windows high contrast): box-shadow rings are stripped → reintroduce a real outline. */
 @media (forced-colors: active) {
   .ampy-ec__option:focus-visible, .ampy-ec__cta-primary:focus-visible, .ampy-ec__cta-secondary:focus-visible,
   .ampy-ec__lead-input:focus, .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
@@ -372,17 +372,17 @@
 .ampy-ec__crumb-back:hover, .ampy-ec__crumb-restart:hover { color: var(--action-primary-strong); }
 .ampy-ec__crumb-back:focus-visible, .ampy-ec__crumb-restart:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 .ampy-ec__crumb-back svg { width: 16px; height: 16px; }
-/* "Börja om" nedtonad (mindre + dovare) — nollställer alla svar, ska inte vara en feltrycks-magnet bredvid "Tillbaka". */
+/* "Börja om" toned down (smaller + dimmer) — it resets all answers, shouldn't be a mis-tap magnet next to "Tillbaka". */
 .ampy-ec__crumb-restart { color: var(--text-secondary); font-size: var(--fs-12); }
 
 /* ============================================================================
-   FRÅGESTEG
+   QUESTION STEP
    ============================================================================ */
 .ampy-ec__q-title {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-title); font-weight: 600;
   line-height: 1.25; color: var(--text-primary); letter-spacing: -0.015em; margin: 0 0 var(--space-9); max-width: 26ch;
 }
-.ampy-ec__q-title:has(+ .ampy-ec__q-subtitle) { margin-bottom: var(--rhythm-label); } /* tät koppling titel→subtitle (token, ej negativ marginal) */
+.ampy-ec__q-title:has(+ .ampy-ec__q-subtitle) { margin-bottom: var(--rhythm-label); } /* tight coupling title→subtitle (token, not a negative margin) */
 .ampy-ec__q-title:focus { outline: none; }
 .ampy-ec__q-subtitle { font-size: var(--fs-13); line-height: 1.45; color: var(--text-secondary); margin: 0 0 var(--space-9); }
 
@@ -401,7 +401,7 @@
 .ampy-ec__option-title { display: block; font-size: var(--fs-15); font-weight: 500; line-height: 1.4; color: var(--text-primary); }
 .ampy-ec__option-clarifier { display: block; margin-top: var(--space-1); font-size: var(--fs-13); font-weight: 400; line-height: 1.45; color: var(--text-secondary); }
 
-/* Multi-select: checkbox-affordans */
+/* Multi-select: checkbox affordance */
 .ampy-ec__option--multi { gap: var(--space-6); align-items: flex-start; }
 .ampy-ec__option--multi .ampy-ec__check { margin-top: 2px; align-self: flex-start; }
 .ampy-ec__check { flex-shrink: 0; width: 22px; height: 22px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); display: inline-flex; align-items: center; justify-content: center; color: var(--text-inverse); transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
@@ -416,7 +416,7 @@
 .ampy-ec__info-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 
 /* ============================================================================
-   BESKED — dual-status = HJÄLTE
+   VERDICT — dual-status = HERO
    ============================================================================ */
 .ampy-ec__result-eyebrow { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 var(--rhythm-label); }
 
@@ -449,7 +449,7 @@
 .ampy-ec__pill[data-level="warning"] { background: var(--pill-warning-bg); color: var(--pill-warning-fg); }
 .ampy-ec__pill[data-level="error"]   { background: var(--pill-error-bg);   color: var(--pill-error-fg); }
 .ampy-ec__pill[data-level="info"]    { background: var(--pill-info-bg);    color: var(--pill-info-fg); }
-.ampy-ec__pill[data-level="neutral"] { border: 1px solid var(--text-tertiary); } /* synlig kant mot tonad zon; "lugn men avsiktlig" */
+.ampy-ec__pill[data-level="neutral"] { border: 1px solid var(--text-tertiary); } /* visible edge against the tinted zone; "calm but deliberate" */
 .ampy-ec__pill-icon { display: inline-flex; }
 .ampy-ec__pill svg { width: 16px; height: 16px; flex-shrink: 0; stroke-width: 2.2; }
 
@@ -457,13 +457,13 @@
 
 @keyframes ec-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-/* FYND */
+/* FINDINGS */
 .ampy-ec__findings-wrap { margin: 0 0 var(--rhythm-section); }
 .ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 var(--rhythm-label); }
 .ampy-ec__findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--rhythm-group); }
 .ampy-ec__finding { display: flex; align-items: flex-start; gap: var(--space-4); animation: ec-rise var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
-/* Ikonen centreras optiskt på FÖRSTA textraden via radhöjd (1.5em = textens line-height),
-   så den linjerar perfekt med texten på både mobil och desktop — ingen manuell pixel-nudge. */
+/* The icon is optically centered on the FIRST text line via line-height (1.5em = the text's line-height),
+   so it aligns perfectly with the text on both mobile and desktop — no manual pixel nudge. */
 .ampy-ec__finding-icon { margin-top: 0; height: 1.5em; font-size: var(--fs-15); display: inline-flex; align-items: center; justify-content: center; }
 .ampy-ec__finding-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__finding--ok .ampy-ec__finding-icon { color: var(--text-success); }
@@ -471,7 +471,7 @@
 .ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--accent-info); }
 .ampy-ec__finding-text { font-size: var(--fs-15); font-weight: 400; line-height: 1.6; color: var(--text-secondary); margin: 0; max-width: 62ch; }
 
-/* FAKTANOTIS — enda amber-accenten (full hairline + ton i brand-amber, ingen sido-stripe) */
+/* FACTNOTE — the only amber accent (full hairline + tint in brand amber, no side stripe) */
 .ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); background: rgba(135, 101, 7, 0.05); border: 1px solid rgba(135, 101, 7, 0.22); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); margin: 0 0 var(--rhythm-section); }
 .ampy-ec__factnote-icon { --ec-row-icon-size: 16px; color: var(--accent-warning); }
 .ampy-ec__factnote-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
@@ -479,14 +479,14 @@
 .ampy-ec__factnote-src-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
 .ampy-ec__factnote-src-link:hover { color: var(--text-primary); }
 
-/* AKUT (röd, tyngst på skärmen, först i DOM) — full röd ram + röd ton, ingen sido-stripe */
+/* AKUT (red, heaviest on screen, first in DOM) — full red border + red tint, no side stripe */
 .ampy-ec__akut { display: flex; align-items: flex-start; gap: var(--space-4); border: 1px solid rgba(122, 22, 35, 0.38); background: rgb(252, 237, 238); border-radius: var(--radius-sm); padding: var(--space-6) var(--space-7); margin: 0 0 var(--rhythm-section); }
 .ampy-ec__akut-icon { color: var(--accent-error); }
 .ampy-ec__akut-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 700; color: var(--accent-error); margin: 0 0 var(--space-2); }
 .ampy-ec__akut-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-primary); margin: 0; max-width: 62ch; }
 
 /* ============================================================================
-   LEAD-FORMULÄR — in-tool capture (öppnas av "Få kostnadsfri rådgivning"). Elkollen-paritet.
+   LEAD FORM — in-tool capture (opened by "Få kostnadsfri rådgivning"). Elkollen parity.
    ============================================================================ */
 .ampy-ec__lead-back { display: inline-flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-7); padding: var(--space-2) 0; min-height: 44px; background: none; border: 0; cursor: pointer; font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); transition: color var(--dur-fast) var(--ease-out); }
 .ampy-ec__lead-back svg { width: 17px; height: 17px; }
@@ -529,7 +529,7 @@
 .ampy-ec__cta-primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .ampy-ec__cta-primary svg { width: 16px; height: 16px; }
 .ampy-ec__cta-primary[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
-/* "Fortsätt" är aria-disabled men KLICKBAR (visar hinten) → dimma den inte, gör den lugnt nedtonad. */
+/* "Fortsätt" is aria-disabled but CLICKABLE (shows the hint) → don't dim it, make it calmly toned down. */
 .ampy-ec__cta-primary--outline[aria-disabled="true"] { opacity: 1; cursor: pointer; color: var(--text-secondary); border-color: var(--border-default); }
 .ampy-ec__cta-primary--solid { background: var(--action-primary-strong); color: var(--text-inverse); border-color: var(--action-primary-strong); }
 .ampy-ec__cta-primary--solid:hover { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); }
@@ -543,7 +543,7 @@
 .ampy-ec__cta-secondary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
 .ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .ampy-ec__cta-secondary svg { width: 16px; height: 16px; }
-/* Ledtext ovanför en cta-link (t.ex. "Din central klarar en laddbox." + klickbart "Räkna ut din besparing"). */
+/* Lead-in text above a cta-link (e.g. "Din central klarar en laddbox." + clickable "Räkna ut din besparing"). */
 .ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-3); max-width: 62ch; }
 .ampy-ec__cta-link {
   background: none; border: 0; padding: var(--space-3) 0; margin: 0 0 var(--space-3); font: inherit; font-family: 'Outfit', system-ui, sans-serif;
@@ -589,7 +589,7 @@
 .ampy-ec__pdf-status { font-size: var(--fs-13); color: var(--text-success); margin: var(--space-3) 0 0; }
 
 /* ============================================================================
-   UTIL + MOBIL
+   UTIL + MOBILE
    ============================================================================ */
 .ampy-ec__sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .ampy-ec[data-booted="true"] .ampy-ec__noscript { display: none; }
