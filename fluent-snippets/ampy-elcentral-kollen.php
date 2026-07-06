@@ -1,0 +1,872 @@
+<?php
+/**
+ * Elcentral-kollen v2.16.5 - Fluent Snippet 2/3 (type: PHP).
+ * -----------------------------------------------------------------------------
+ * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
+ *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
+ * This snippet registers the shortcode: it prints the mount, a crawlable SEO fallback, and the
+ * tool DATA as window.AmpyEC.data (so the JS snippet stays byte-identical to the plugin).
+ * The tool renders its own <h1> in the rail - do NOT add a duplicate heading in Bricks.
+ * Auto-built by _build/build.py - rebuild rather than hand-editing the data below.
+ * -----------------------------------------------------------------------------
+ */
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
+	function ampy_ec_shortcode_render() {
+		$data = <<<'AMPYEC_DATA_EOF'
+{
+  "meta": {
+    "version": "2.16.5",
+    "product_name": "Elcentral-kollen",
+    "page_heading": "Är din elcentral säker och redo?",
+    "page_lead": "Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).",
+    "disclaimer": "Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.",
+    "primary_source": "Elsäkerhetsverket & Skatteverket",
+    "verify_company_url": "https://www.elsakerhetsverket.se/kollaelforetaget/foretagsregister/?foretag=12047521&sok=1",
+    "ampy_offert_url": "https://ampy.se/offert/",
+    "laddbox_calc_url": "https://ampy.se/laddboxkalkylator/",
+    "privacy_policy_url": "https://ampy.se/integritetspolicy/",
+    "pdf_webhook_url": null,
+    "share_card_authority": "Auktoriserat elinstallationsföretag · registrerat hos Elsäkerhetsverket",
+    "share_card_cta": "Gör testet gratis →",
+    "rail": {
+      "credential_link": "Auktoriserat elinstallationsföretag",
+      "credential_rest": ", registrerat hos Elsäkerhetsverket.",
+      "contact": {
+        "phone_label": "010-265 79 79",
+        "phone_url": "tel:+46102657979",
+        "contact_label": "Kontakta oss",
+        "contact_url": "https://ampy.se/offert/"
+      },
+      "bullets": [
+        {
+          "icon": "check",
+          "text": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket"
+        },
+        {
+          "icon": "shield",
+          "text": "Registrerat elinstallationsföretag"
+        },
+        {
+          "icon": "checkCircle",
+          "text": "Helt gratis. Inget mejl, ingen inloggning, ingen hake"
+        }
+      ]
+    },
+    "start": {
+      "heading": "Då sätter vi igång",
+      "body": "Se om din elcentral är säker och vilka åtgärder du kan behöva göra.",
+      "cta": "Starta testet"
+    },
+    "service_pages": {
+      "elbesiktning": "https://ampy.se/elservice/elbesiktning/",
+      "centralbyte": "https://ampy.se/elservice/elcentral/",
+      "jordfelsbrytare": "https://ampy.se/elservice/jordfelsbrytare/",
+      "lastbalansering": "https://ampy.se/elservice/lastbalansering/",
+      "uppsakring": "https://ampy.se/elservice/uppsakring/"
+    },
+    "embed_pages": [
+      "/elservice/elcentral/",
+      "/elbesiktning/",
+      "/jordfelsbrytare/",
+      "/lastbalansering/"
+    ],
+    "lead_form": {
+      "title": "Få kostnadsfri rådgivning",
+      "intro": "Ampys behöriga elektriker hör av sig med ett förslag, oftast inom en arbetsdag.",
+      "back": "Tillbaka till beskedet",
+      "submit": "Skicka förfrågan",
+      "submitting": "Skickar…",
+      "consent": "Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med ett förslag, enligt ",
+      "consent_link": "integritetspolicyn",
+      "error_required": "Fyll i alla fält och godkänn villkoren.",
+      "error_send": "Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.",
+      "success_title": "Tack! Vi hör av oss inom kort.",
+      "success_body": "En behörig elektriker återkommer med ett förslag, oftast inom en arbetsdag.",
+      "success_back": "Tillbaka till beskedet"
+    },
+    "lead_webhook_url": null
+  },
+  "questions": [
+    {
+      "id": "hus_alder",
+      "axis": "safety",
+      "type": "single",
+      "title": "Hur gammalt är huset eller lägenheten?",
+      "note": "Byggåret säger ofta en hel del om hur gammal elen är. Ungefärligt räcker.",
+      "options": [
+        {
+          "id": "fore_1970",
+          "label": "Före 1970"
+        },
+        {
+          "id": "1970_1990",
+          "label": "1970–1990"
+        },
+        {
+          "id": "1990_2010",
+          "label": "1990–2010"
+        },
+        {
+          "id": "efter_2010",
+          "label": "Efter 2010"
+        },
+        {
+          "id": "vet_inte",
+          "label": "Osäker"
+        }
+      ]
+    },
+    {
+      "id": "central_alder",
+      "axis": "safety",
+      "type": "single",
+      "title": "Är elcentralen utbytt eller original?",
+      "subtitle": "Elcentralen byts sällan ut, så många har kvar originalet i decennier.",
+      "note": "Tänk på själva elcentralen (elskåpet), inte huset. Är du inte säker? Välj det alternativ som stämmer bäst.",
+      "options": [
+        {
+          "id": "original",
+          "label": "Lika gammal som huset"
+        },
+        {
+          "id": "recent",
+          "label": "Utbytt de senaste åren"
+        },
+        {
+          "id": "older",
+          "label": "Utbytt, men för länge sedan"
+        },
+        {
+          "id": "vet_inte",
+          "label": "Osäker"
+        }
+      ]
+    },
+    {
+      "id": "sakringstyp",
+      "axis": "safety",
+      "type": "single",
+      "title": "Vilka säkringar har du i centralen?",
+      "note": "Skruvsäkringar tyder ofta på en central som är 30+ år.",
+      "options": [
+        {
+          "id": "skruv",
+          "label": "Skruvsäkringar eller proppar",
+          "clarifier": "Runda säkringar man skruvar i"
+        },
+        {
+          "id": "automat",
+          "label": "Automatsäkringar",
+          "clarifier": "Vippknappar man slår av och på"
+        },
+        {
+          "id": "blandat",
+          "label": "Blandat",
+          "clarifier": "Både runda proppar och vippknappar i samma central"
+        },
+        {
+          "id": "vet_inte",
+          "label": "Osäker"
+        }
+      ]
+    },
+    {
+      "id": "jordfelsbrytare",
+      "axis": "safety",
+      "type": "single",
+      "title": "Finns det en jordfelsbrytare i centralen?",
+      "note": "Jordfelsbrytaren bryter strömmen blixtsnabbt om något går fel, så att du inte får en farlig stöt. Den sitter ofta som en bred knapp märkt Test.",
+      "options": [
+        {
+          "id": "ja",
+          "label": "Ja"
+        },
+        {
+          "id": "nej",
+          "label": "Nej"
+        },
+        {
+          "id": "vet_inte",
+          "label": "Osäker"
+        }
+      ]
+    },
+    {
+      "id": "varningstecken",
+      "axis": "safety",
+      "type": "multi",
+      "title": "Känner du igen något av det här hemma?",
+      "subtitle": "Välj alla som stämmer.",
+      "note": "Värme och missfärgning är klassiska tecken på glappkontakt, en lös anslutning som hettar upp. Inget av detta? Det är ett bra svar.",
+      "options": [
+        {
+          "id": "loser_ut",
+          "label": "Säkringar som löser ut ofta"
+        },
+        {
+          "id": "varma_uttag",
+          "label": "Uttag eller strömbrytare som blir varma"
+        },
+        {
+          "id": "flimrar",
+          "label": "Lampor som flimrar"
+        },
+        {
+          "id": "brand_lukt",
+          "label": "Bränd lukt eller missfärgade uttag"
+        },
+        {
+          "id": "inget",
+          "label": "Inget av detta",
+          "exclusive": true
+        }
+      ]
+    },
+    {
+      "id": "huvudsakring",
+      "axis": "ready",
+      "type": "single",
+      "title": "Hur stor är din huvudsäkring?",
+      "note": "Är du osäker? På din elnätsfaktura hittar du storleken på din huvudsäkring. Vi kan också räkna utan.",
+      "options": [
+        {
+          "id": "16",
+          "label": "16 A"
+        },
+        {
+          "id": "20",
+          "label": "20 A"
+        },
+        {
+          "id": "25",
+          "label": "25 A"
+        },
+        {
+          "id": "35",
+          "label": "35 A eller större"
+        },
+        {
+          "id": "vet_inte",
+          "label": "Osäker"
+        }
+      ]
+    },
+    {
+      "id": "planer",
+      "axis": "ready",
+      "type": "multi",
+      "title": "Planer på att installera nedanstående?",
+      "note": "Det du väljer avgör hur mycket kapacitet, alltså effekt, centralen behöver. Inga planer är ett helt fint svar.",
+      "options": [
+        {
+          "id": "elbil",
+          "label": "Laddbox / Elbilsladdare"
+        },
+        {
+          "id": "varmepump",
+          "label": "Värmepump"
+        },
+        {
+          "id": "solceller",
+          "label": "Solceller eller batterilagring"
+        },
+        {
+          "id": "renovering",
+          "label": "Renoverar kök eller badrum"
+        },
+        {
+          "id": "inget",
+          "label": "Inget planerat",
+          "exclusive": true
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "weights": {
+      "alder": {
+        "fore_1970": 3,
+        "1970_1990": 2,
+        "1990_2010": 1,
+        "efter_2010": 0
+      },
+      "sakringstyp": {
+        "skruv": 2,
+        "blandat": 1,
+        "automat": 0,
+        "vet_inte": 0
+      },
+      "jordfelsbrytare": {
+        "nej": 3,
+        "ja": 0,
+        "vet_inte": 0
+      },
+      "varningstecken": {
+        "loser_ut": 1,
+        "varma_uttag": 1,
+        "flimrar": 1,
+        "brand_lukt": 0,
+        "inget": 0
+      }
+    },
+    "central_age_map": {
+      "recent": "efter_2010",
+      "older": "1990_2010"
+    },
+    "thresholds": {
+      "forhojd": 3,
+      "hog": 6
+    },
+    "floors": {
+      "present_symptom": {
+        "trigger_ids": [
+          "loser_ut",
+          "varma_uttag",
+          "flimrar"
+        ],
+        "min_level": "forhojd"
+      },
+      "escalation": {
+        "trigger_id": "brand_lukt",
+        "min_level": "forhojd",
+        "forces_finding": "akut_kontroll",
+        "overrides_green": true,
+        "floor_only": true
+      }
+    },
+    "uncertainty": {
+      "counts_fields": [
+        "sakringstyp",
+        "jordfelsbrytare",
+        "huvudsakring"
+      ],
+      "min_count": 2
+    },
+    "ready": {
+      "no_plan_state": "ej_bedomd",
+      "rules": [
+        {
+          "plan": "elbil",
+          "huvudsakring": [
+            "25",
+            "35"
+          ],
+          "state": "redo_marginal"
+        },
+        {
+          "plan": "elbil",
+          "huvudsakring": [
+            "20"
+          ],
+          "state": "redo_med_atgard"
+        },
+        {
+          "plan": "elbil",
+          "huvudsakring": [
+            "16"
+          ],
+          "state": "inte_redo"
+        },
+        {
+          "plan": "elbil",
+          "huvudsakring": [
+            "vet_inte"
+          ],
+          "state": "kraver_bedomning"
+        },
+        {
+          "plan": "varmepump",
+          "state": "kraver_bedomning"
+        },
+        {
+          "plan": "solceller",
+          "state": "kraver_bedomning"
+        },
+        {
+          "plan": "renovering",
+          "state": "kraver_bedomning"
+        }
+      ],
+      "pill_levels": {
+        "redo_marginal": "success",
+        "redo_med_atgard": "info",
+        "kraver_bedomning": "info",
+        "inte_redo": "warning",
+        "ej_bedomd": "neutral"
+      }
+    },
+    "cross_axis_rules": [
+      {
+        "if": {
+          "central_age_in": [
+            "fore_1970",
+            "1970_1990"
+          ],
+          "sakringstyp": "skruv",
+          "has_any_plan": true
+        },
+        "then": {
+          "ready_finding": "central_full"
+        }
+      }
+    ]
+  },
+  "ready_states": {
+    "ej_bedomd": {
+      "label": "Inget planerat",
+      "axis_label": "Redo"
+    },
+    "redo_marginal": {
+      "label": "Med marginal",
+      "axis_label": "Redo"
+    },
+    "redo_med_atgard": {
+      "label": "Med lastbalansering",
+      "axis_label": "Redo"
+    },
+    "kraver_bedomning": {
+      "label": "Kräver bedömning",
+      "axis_label": "Redo"
+    },
+    "inte_redo": {
+      "label": "Behöver åtgärd",
+      "axis_label": "Redo"
+    }
+  },
+  "safety_states": {
+    "lag": {
+      "label": "Låg risk",
+      "pill_level": "success",
+      "icon": "check"
+    },
+    "forhojd": {
+      "label": "Förhöjd risk",
+      "pill_level": "warning",
+      "icon": "alert"
+    },
+    "hog": {
+      "label": "Hög risk",
+      "pill_level": "error",
+      "icon": "ban"
+    },
+    "oklart": {
+      "label": "Oklart",
+      "pill_level": "info",
+      "icon": "info"
+    }
+  },
+  "verdict_matrix": {
+    "sr": {
+      "cell": "Säker och redo",
+      "headline": "Din central ser bra ut.",
+      "tone": "calm",
+      "summary": "Inga säkerhetsbrister i dina svar, och centralen har kapacitet för det du planerar.",
+      "cta": {
+        "primary": null,
+        "secondary": null,
+        "link": "laddbox_bridge"
+      },
+      "summary_by_ready": {
+        "ej_bedomd": "Inga säkerhetsbrister i dina svar. Centralen ser trygg ut, och har du inga planer just nu finns inget du behöver göra."
+      },
+      "summary_by_safety": {
+        "oklart": "Vi ser inga tydliga risker, men en del svar var osäkra. Då kan vi inte ge ett helt grönt besked. En kort besiktning ger dig säkerheten."
+      }
+    },
+    "si": {
+      "cell": "Säker, men inte redo än",
+      "headline": "Säker i dag. Redo med en kapacitetsåtgärd.",
+      "headline_by_ready": {
+        "redo_med_atgard": "Säker i dag. Redo för laddbox med lastbalansering.",
+        "inte_redo": "Säker i dag. Din plan behöver en åtgärd först.",
+        "kraver_bedomning": "Säker i dag. Redo-läget avgörs av en kort bedömning."
+      },
+      "tone": "constructive",
+      "summary": "Centralen ser trygg ut. För din plan behöver kapaciteten ses över.",
+      "summary_by_ready": {
+        "kraver_bedomning": "Centralen ser trygg ut. Exakt vad din plan kräver avgörs av en kort bedömning.",
+        "redo_med_atgard": "Centralen ser trygg ut. Laddboxen behöver bara kombineras med lastbalansering, en liten enhet som fördelar strömmen så inget överbelastas."
+      },
+      "cta": {
+        "primary": "radgivning",
+        "secondary": "redo_how",
+        "link": null
+      }
+    },
+    "rs": {
+      "cell": "Redo, men något bör ses över",
+      "headline": "Något i säkerheten bör ses över innan du går vidare.",
+      "headline_by_ready": {
+        "ej_bedomd": "Det finns något i säkerheten värt att kontrollera."
+      },
+      "headline_by_safety": {
+        "hog": "Centralen har flera kända riskfaktorer som bör ses över."
+      },
+      "tone": "serious",
+      "summary": "Centralen klarar din plan. Men något i säkerheten bör kontrolleras först.",
+      "cta": {
+        "primary": "radgivning",
+        "secondary": "centralbyte_how",
+        "link": null
+      },
+      "summary_by_ready": {
+        "ej_bedomd": "Centralen ser ut att klara dagens behov, men något i säkerheten bör kontrolleras innan du går vidare."
+      },
+      "summary_by_safety": {
+        "hog": "Centralen klarar din plan, men har flera riskfaktorer som bör åtgärdas innan du går vidare."
+      }
+    },
+    "rr": {
+      "cell": "Varken säker eller redo",
+      "headline": "Både säkerhet och kapacitet behöver ses över.",
+      "headline_by_safety": {
+        "hog": "Både säkerhet och kapacitet behöver åtgärdas, och säkerheten väger tyngst."
+      },
+      "tone": "serious",
+      "summary": "Ett nytt elskåp kan lösa både säkerheten och kapaciteten på en gång, och är ofta det mest prisvärda steget.",
+      "cta": {
+        "primary": "radgivning",
+        "secondary": "centralbyte_how",
+        "link": null
+      }
+    }
+  },
+  "cta_defs": {
+    "radgivning": {
+      "kind": "primary",
+      "label": "Få kostnadsfri rådgivning",
+      "url": "ampy_offert_url",
+      "opens_form": true
+    },
+    "laddbox_bridge": {
+      "kind": "link",
+      "label": "Räkna ut din besparing",
+      "url": "laddbox_calc_url",
+      "lead": "Din central klarar en laddbox."
+    },
+    "nedsakring_hook": {
+      "kind": "link",
+      "label": "Du kanske kan säkra ned och sänka din nätavgift. Fråga oss.",
+      "url": "ampy_offert_url"
+    },
+    "ring": {
+      "kind": "link",
+      "label": "Ring oss",
+      "url": "tel:+46102657979"
+    },
+    "centralbyte_how": {
+      "kind": "secondary",
+      "label": "Se hur ett centralbyte går till",
+      "url_key": "centralbyte"
+    },
+    "redo_how": {
+      "kind": "secondary",
+      "label": "Så gör vi centralen redo",
+      "url_key": "centralbyte"
+    }
+  },
+  "findings": [
+    {
+      "id": "f_jfb_nej",
+      "rank": 10,
+      "when": {
+        "jordfelsbrytare": "nej"
+      },
+      "icon": "warn",
+      "text": "Ingen jordfelsbrytare: skyddet som bryter strömmen blixtsnabbt om den tar fel väg, till exempel genom en person, saknas. Det krävs i nya installationer och går att komplettera i efterhand. Vi rekommenderar det starkt."
+    },
+    {
+      "id": "f_central_old",
+      "rank": 21,
+      "when": {
+        "central_age_in": [
+          "fore_1970",
+          "1970_1990"
+        ]
+      },
+      "icon": "warn",
+      "text": "Centralen är sannolikt 30 år eller äldre: centraler från den tiden är ofta för klent tilltagna för dagens elbehov och saknar nyare skydd."
+    },
+    {
+      "id": "f_skruv",
+      "rank": 22,
+      "when": {
+        "sakringstyp": "skruv"
+      },
+      "icon": "warn",
+      "text": "Skruvsäkringar: den äldre typen, som vanligtvis sitter i centraler från 1980-talet eller tidigare."
+    },
+    {
+      "id": "f_central_full",
+      "rank": 24,
+      "when": {
+        "cross_axis": "central_full"
+      },
+      "icon": "warn",
+      "text": "Centralen är sannolikt full: det finns inte plats för fler grupper, de separata kretsar som elen delas upp i, och ett byte ger både utrymme och bättre säkerhet på en gång."
+    },
+    {
+      "id": "f_blandat",
+      "rank": 26,
+      "when": {
+        "sakringstyp": "blandat"
+      },
+      "icon": "warn",
+      "text": "Blandade säkringar: en del av centralen är moderniserad, men annat är troligen kvar från en äldre generation."
+    },
+    {
+      "id": "f_varma",
+      "rank": 30,
+      "when": {
+        "varningstecken_has": "varma_uttag"
+      },
+      "icon": "warn",
+      "text": "Varma uttag eller strömbrytare: ett tydligt tecken på glappkontakt, alltså en lös anslutning som hettar upp där strömmen ska passera."
+    },
+    {
+      "id": "f_loser_ut",
+      "rank": 31,
+      "when": {
+        "varningstecken_has": "loser_ut"
+      },
+      "icon": "warn",
+      "text": "Säkringar som löser ut ofta: säkringen gör sitt jobb, men att den behöver göra det ofta tyder på överbelastning eller ett fel i kretsen."
+    },
+    {
+      "id": "f_flimrar",
+      "rank": 32,
+      "when": {
+        "varningstecken_has": "flimrar"
+      },
+      "icon": "warn",
+      "text": "Lampor som flimrar: kan bero på en glappande anslutning någonstans i installationen, men ibland på lampan eller dimmern själv."
+    },
+    {
+      "id": "f_16a_block",
+      "rank": 35,
+      "when": {
+        "ready_state": "inte_redo"
+      },
+      "icon": "warn",
+      "text": "Med 16 A räcker inte huvudsäkringen för en laddbox som den är. Det löses oftast med lastbalansering, en liten enhet som fördelar strömmen så inget överbelastas. Ibland med en uppsäkring, alltså en större huvudsäkring."
+    },
+    {
+      "id": "f_lastbalansering",
+      "rank": 45,
+      "when": {
+        "ready_state": "redo_med_atgard"
+      },
+      "icon": "info",
+      "text": "Med 20 A laddar du elbil bäst med lastbalansering: en liten enhet som fördelar strömmen mellan bilen och hushållet så inget överbelastas. Vanlig och okomplicerad lösning."
+    },
+    {
+      "id": "f_ready_bedomning",
+      "rank": 48,
+      "when": {
+        "ready_state": "kraver_bedomning"
+      },
+      "icon": "info",
+      "text": "Exakt marginal beror på hur mycket el du redan använder, till exempel elvärme eller varmvattenberedare. En kort bedömning på plats räknar ut det åt dig."
+    },
+    {
+      "id": "f_central_okand",
+      "rank": 50,
+      "when": {
+        "central_alder": "vet_inte"
+      },
+      "icon": "info",
+      "text": "Du är osäker på centralens ålder: helt vanligt, och inget vi tolkar som en risk. Det är just en sådan sak en besiktning ger svar på."
+    },
+    {
+      "id": "f_jfb_vetinte",
+      "rank": 51,
+      "when": {
+        "jordfelsbrytare": "vet_inte"
+      },
+      "icon": "info",
+      "text": "Du är osäker på om det finns en jordfelsbrytare: värt att titta efter i centralen, eller att låta en besiktning svara på. Det avgör vi inte på en gissning."
+    },
+    {
+      "id": "f_huvudsakring_vetinte",
+      "rank": 52,
+      "when": {
+        "huvudsakring": "vet_inte"
+      },
+      "icon": "info",
+      "text": "Du är osäker på huvudsäkringens storlek: mycket vanligt, den står på din elnätsfaktura. Vill du veta exakt vad din plan kräver hjälper en kort bedömning till."
+    },
+    {
+      "id": "f_nedsakring",
+      "rank": 55,
+      "when": {
+        "huvudsakring_in": [
+          "25",
+          "35"
+        ],
+        "no_plan": true
+      },
+      "icon": "info",
+      "text": "Du är förhållandevis högt säkrad utan några stora planer: då kan en nedsäkring, att gå ner till en mindre huvudsäkring, sänka den fasta nätavgiften. Hur mycket du sparar beror på ditt elnätsbolag."
+    },
+    {
+      "id": "f_central_recent",
+      "rank": 58,
+      "when": {
+        "central_alder": "recent"
+      },
+      "icon": "ok",
+      "text": "Centralen är utbytt de senaste åren: då har du en modern central med dagens säkerhetsnivå. Bra utgångsläge."
+    },
+    {
+      "id": "f_automat",
+      "rank": 60,
+      "when": {
+        "sakringstyp": "automat"
+      },
+      "icon": "ok",
+      "text": "Du har automatsäkringar: vippknapparna du slår av och på, den moderna och säkra typen. Bra utgångsläge."
+    },
+    {
+      "id": "f_jfb_ja",
+      "rank": 61,
+      "when": {
+        "jordfelsbrytare": "ja"
+      },
+      "icon": "ok",
+      "text": "Jordfelsbrytare finns: det viktigaste personskyddet i en modern central, som bryter strömmen blixtsnabbt vid fel. Det är på plats hos dig."
+    },
+    {
+      "id": "f_redo_marginal",
+      "rank": 62,
+      "when": {
+        "ready_state": "redo_marginal"
+      },
+      "icon": "ok",
+      "text": "Huvudsäkringen räcker med marginal: du kan ladda elbilen samtidigt som hushållet drar ström, utan att det blir trångt om kapaciteten."
+    },
+    {
+      "id": "f_inga_tecken",
+      "rank": 65,
+      "when": {
+        "varningstecken_has": "inget"
+      },
+      "icon": "ok",
+      "text": "Inga varningstecken i vardagen: inga säkringar som löser ut, varma uttag eller flimrande lampor. Bra tecken."
+    },
+    {
+      "id": "f_brand_lukt",
+      "rank": 1,
+      "when": {
+        "varningstecken_has": "brand_lukt"
+      },
+      "icon": "warn",
+      "text": "Bränd lukt eller missfärgade uttag: det enda tecknet i kollen som alltid bör kontrolleras av en elektriker, oavsett resten av resultatet."
+    }
+  ],
+  "akut_notis": {
+    "label": "Kontrollera detta först",
+    "text": "Du svarade att du känt bränd lukt eller sett missfärgade uttag. Det bör alltid kontrolleras av en elektriker, oavsett vad resten av kollen visar."
+  },
+  "facts": {
+    "brand": {
+      "text": "Elsäkerhetsverket registrerade 298 händelser 2018–2022 där elcentralen var orsaken. Villor och radhus är överrepresenterade.",
+      "source_pre": "Elsäkerhetsverket, rapporten ",
+      "source_link": "Elrelaterade bränder i bostäder 2018–2022",
+      "source_url": "https://www.elsakerhetsverket.se/om-oss/publikationer/rapporter/elrelaterade-brander-i-bostader-2018-2022/",
+      "source_post": "."
+    }
+  },
+  "copy": {
+    "findings_head": "Våra fynd",
+    "share_green_marginal": "Min elcentral är säker och redo för elbil. Testa din med Ampys Elcentral-kollen.",
+    "share_green": "Min elcentral fick grönt ljus i Ampys Elcentral-kollen. Testa din.",
+    "share_nudge_green": "Dela ditt gröna besked",
+    "pdf_capture": "Mejla mig rapporten som PDF, med en checklista att ta med när elektrikern kommer.",
+    "pdf_capture_green": "Vill du spara ditt gröna besked? Vi mejlar rapporten som PDF.",
+    "pdf_consent": "Jag godkänner att Ampy mejlar mig rapporten som PDF. Vi sparar din adress bara för det och du kan avsluta när du vill.",
+    "progress": "Fråga {n} av {total}",
+    "multi_aria": "Välj minst ett alternativ för att fortsätta.",
+    "share_neutral": "Jag testade min elcentral med Ampys Elcentral-kollen. Testa din."
+  },
+  "state_schema": {
+    "order": [
+      "hus_alder",
+      "central_alder",
+      "sakringstyp",
+      "jordfelsbrytare",
+      "varningstecken",
+      "huvudsakring",
+      "planer"
+    ],
+    "prefixes": {
+      "hus_alder": "a",
+      "central_alder": "c",
+      "sakringstyp": "s",
+      "jordfelsbrytare": "j",
+      "varningstecken": "w",
+      "huvudsakring": "h",
+      "planer": "p"
+    }
+  }
+}
+AMPYEC_DATA_EOF;
+		ob_start();
+		?>
+		<div class="ampy-ec" lang="sv">
+			<div class="ampy-ec__noscript">
+				<div class="ampy-ec__block">
+					<h1>Är din elcentral säker och redo?</h1>
+					<p><strong>Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).</strong></p>
+					<p>Elcentral-kollen ställer några snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
+					<ol>
+						<li>Hur gammalt är huset eller lägenheten?</li>
+						<li>Är elcentralen utbytt eller original?</li>
+						<li>Vilka säkringar har du i centralen?</li>
+						<li>Finns det en jordfelsbrytare i centralen?</li>
+						<li>Känner du igen något av det här hemma?</li>
+						<li>Hur stor är din huvudsäkring?</li>
+						<li>Planer på att installera nedanstående?</li>
+					</ol>
+					<p>Vill du gå vidare direkt? Läs om våra tjänster:</p>
+					<ul>
+						<li><a href="https://ampy.se/elservice/elbesiktning/">Elbesiktning</a></li>
+						<li><a href="https://ampy.se/elservice/elcentral/">Byta elcentral</a></li>
+						<li><a href="https://ampy.se/elservice/jordfelsbrytare/">Installera jordfelsbrytare</a></li>
+						<li><a href="https://ampy.se/elservice/lastbalansering/">Lastbalansering</a></li>
+						<li><a href="https://ampy.se/elservice/uppsakring/">Uppsäkring (öka huvudsäkringen)</a></li>
+					</ul>
+					<p class="ampy-ec__source-line">Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.</p>
+				</div>
+			</div>
+		</div>
+		<script>window.AmpyEC = window.AmpyEC || {}; window.AmpyEC.data = <?php echo $data; ?>;</script>
+		<?php
+		return ob_get_clean();
+	}
+	add_shortcode( 'elcentralkollen', 'ampy_ec_shortcode_render' );
+}
+
+/**
+ * OPTIONAL dynamic Open Graph tags. DISABLED by default (leave the `return;`), because most Bricks
+ * pages let the SEO plugin (Yoast / RankMath) set social tags - enabling both gives double OG.
+ * To enable: delete the `return;` line and set $og_image to your 1200x630 image URL.
+ */
+if ( ! function_exists( 'ampy_ec_dynamic_og' ) ) {
+	function ampy_ec_dynamic_og() {
+		return; // <- delete this line to enable
+		if ( ! is_page() && ! is_singular() ) { return; }
+		$title    = 'Är din elcentral säker och redo? | Ampy';
+		$desc     = 'Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).';
+		$og_image = '';
+		echo "\n<meta property=\"og:title\" content=\"" . esc_attr( $title ) . "\" />\n";
+		echo "<meta property=\"og:description\" content=\"" . esc_attr( $desc ) . "\" />\n";
+		echo "<meta name=\"twitter:card\" content=\"summary_large_image\" />\n";
+		if ( $og_image ) {
+			echo "<meta property=\"og:image\" content=\"" . esc_url( $og_image ) . "\" />\n";
+			echo "<meta name=\"twitter:image\" content=\"" . esc_url( $og_image ) . "\" />\n";
+		}
+	}
+	add_action( 'wp_head', 'ampy_ec_dynamic_og' );
+}
