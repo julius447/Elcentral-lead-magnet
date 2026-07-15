@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.17.0 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.18.0 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -17,7 +17,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.17.0",
+    "version": "2.18.0",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -34,6 +34,11 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "pre": "Auktoriserat elinstallationsföretag, ",
       "link": "registrerat hos Elsäkerhetsverket",
       "post": "."
+    },
+    "result_readmore": {
+      "pre": "Nyfiken på att läsa mer? ",
+      "label": "Se mer om elcentraler",
+      "url_key": "centralbyte"
     },
     "rail": {
       "credential_link": "Auktoriserat elinstallationsföretag",
@@ -55,9 +60,10 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         },
         {
           "icon": "checkCircle",
-          "text": "Helt gratis. Inget mejl, ingen inloggning, ingen hake"
+          "text": "Ett ärligt besked, byggt på dina egna svar"
         }
       ],
+      "contact_heading": "Hellre prata med en elektriker direkt?",
       "stat": {
         "link": "Elsäkerhetsverket",
         "url": "https://www.elsakerhetsverket.se/om-oss/publikationer/rapporter/elrelaterade-brander-i-bostader-2018-2022/",

@@ -232,10 +232,11 @@
       // BELOW the tool (CSS order), so reparent the real DOM nodes after the stage there — and back
       // into the rail on desktop. Purely structural; the CSS order/visibility rules still apply.
       try {
-        const stat = rail.querySelector('.ampy-ec__rail-stat'), actions = rail.querySelector('.ampy-ec__rail-actions');
+        const stat = rail.querySelector('.ampy-ec__rail-stat'), actions = rail.querySelector('.ampy-ec__rail-actions'), ask = rail.querySelector('.ampy-ec__rail-ask');
         const place = (mobile) => {
-          if (mobile) { if (stat) shell.appendChild(stat); if (actions) shell.appendChild(actions); }
-          else { if (actions) rail.appendChild(actions); if (stat) rail.appendChild(stat); }
+          // Mobile below-tool block order: "Hellre prata…" heading → contact CTAs → stat line.
+          if (mobile) { if (ask) shell.appendChild(ask); if (actions) shell.appendChild(actions); if (stat) shell.appendChild(stat); }
+          else { if (ask) rail.appendChild(ask); if (actions) rail.appendChild(actions); if (stat) rail.appendChild(stat); }
         };
         const mq = window.matchMedia('(max-width: 1023px)');
         let placed = mq.matches; place(placed);
@@ -262,6 +263,8 @@
         });
         aside.appendChild(ul);
       }
+      // Mobile-only "talk to an electrician" heading above the contact CTAs (desktop: hidden via CSS).
+      if (rail.contact_heading) aside.appendChild(el('p', { class: 'ampy-ec__rail-ask' }, rail.contact_heading));
       // Two contact CTAs (1:1 replica of ampy.se: Contact us + phone, gradient pills).
       const contact = rail.contact || {};
       aside.appendChild(el('div', { class: 'ampy-ec__rail-actions' }, [
@@ -384,14 +387,17 @@
       const ctaFrag = this.renderCta(dx);
       const hasAsk = !!ctaFrag.querySelector('.ampy-ec__cta-primary, .ampy-ec__cta-secondary');
       block.appendChild(ctaFrag);
-      // The credential belongs to an ASK — skip it when the green cell renders no block CTA (orphan line).
-      if (hasAsk) block.appendChild(this.renderCtaCred());
-      block.appendChild(this.renderShareRow(dx));
-      // Quiet education path for researchers (rs/rr): a TEXT link as the card's very last line —
-      // buttons stay 1:1 (attention ratio) while "not ready to book yet" gets an assist, not a bounce.
-      if (m.research_link && m.research_link.label) {
-        block.appendChild(el('a', { class: 'ampy-ec__research-link', href: this.resolveCtaUrl(m.research_link), onclick: () => this.track('research_link', { cell: dx.cell }) }, m.research_link.label));
+      // Directly under the booking CTA (owner decision, v2.18): a quiet "read more about elcentraler"
+      // text link — the education path for researchers not ready to book. Replaces the old credential
+      // line here and the old bottom-of-card research link. Only when there is a real ask.
+      const rm = this.data.meta.result_readmore;
+      if (hasAsk && rm && rm.label) {
+        block.appendChild(el('p', { class: 'ampy-ec__readmore' }, [
+          (rm.pre || ''),
+          el('a', { class: 'ampy-ec__readmore-link', href: this.resolveCtaUrl(rm), onclick: () => this.track('research_link', { cell: dx.cell }) }, rm.label)
+        ]));
       }
+      block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
       return block;
     }
@@ -612,9 +618,9 @@
       const anchor = el('span', { class: 'ampy-ec__share-anchor' });
       const menu = el('div', { class: 'ampy-ec__share-menu', role: 'menu', 'aria-label': 'Dela resultatet', hidden: true });
       const enc = encodeURIComponent;
+      // Channels that matter for a Swedish homeowner arriving from Facebook — Facebook + e-post +
+      // copy link. (X/Reddit dropped: negligible for this audience and mixed the icon set.)
       [{ label: 'Facebook', icon: 'facebook', href: 'https://www.facebook.com/sharer/sharer.php?u=' + enc(shareUrl) },
-       { label: 'X', icon: 'xtwitter', href: 'https://twitter.com/intent/tweet?url=' + enc(shareUrl) + '&text=' + enc(shareText) },
-       { label: 'Reddit', icon: 'reddit', href: 'https://www.reddit.com/submit?url=' + enc(shareUrl) + '&title=' + enc(shareText) },
        { label: 'E-post', icon: 'mail', href: 'mailto:?subject=' + enc(shareTitle) + '&body=' + enc(shareText + ' ' + shareUrl) }
       ].forEach(t => menu.appendChild(el('a', { class: 'ampy-ec__share-item', role: 'menuitem', href: t.href, target: '_blank', rel: 'noopener noreferrer', onclick: () => closeMenu() }, [iconSpan(t.icon, 'ampy-ec__share-item-icon'), el('span', {}, t.label)])));
       menu.appendChild(el('button', { class: 'ampy-ec__share-item', type: 'button', role: 'menuitem', onclick: async () => { try { await navigator.clipboard.writeText(shareUrl); flash('Länk kopierad.'); } catch (e) { flash('Kopiera URL:en manuellt.'); } closeMenu(); } }, [iconSpan('link', 'ampy-ec__share-item-icon'), el('span', {}, 'Kopiera länk')]));

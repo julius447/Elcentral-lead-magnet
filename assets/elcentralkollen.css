@@ -189,9 +189,9 @@ html { font-size: 62.5%; }
 /* Trust bullets = hero__trust: 1.5rem/500/icon 2rem teal, margin-top .3rem. Color softened a touch
    toward Elkollen's live rendering (dark slate, not pure navy) — owner adjustment, fine-tune when needed. */
 .ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 2.8rem; display: flex; flex-direction: column; gap: 1.6rem; }
-.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.5rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); }
-.ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2rem; height: 2rem; min-width: 2rem; margin-top: 0.3rem; color: var(--action-primary); }
-.ampy-ec__rail-bullet-icon svg { width: 2rem; height: 2rem; }
+.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.7rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); } /* a notch under the 1.8rem lead → readable hierarchy for a 55-yr-old reader */
+.ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2.2rem; height: 2.2rem; min-width: 2.2rem; margin-top: 0.2rem; color: var(--action-primary); }
+.ampy-ec__rail-bullet-icon svg { width: 2.2rem; height: 2.2rem; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
 /* (The old rail credential box and the slim mobile credential were removed in v2.17 — trust now
@@ -220,38 +220,43 @@ html { font-size: 62.5%; }
 }
 /* Sourced stakes line (rail.stat) — under the contact CTAs on desktop, under the tool on mobile. */
 .ampy-ec__rail-stat { margin: var(--space-7) 0 0; font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
-.ampy-ec__rail-stat-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.ampy-ec__rail-stat-link:hover { color: var(--text-primary); }
+/* Linked but not visually flagged (owner): no underline at rest, subtle affordance on hover only. */
+.ampy-ec__rail-stat-link { color: inherit; text-decoration: none; }
+.ampy-ec__rail-stat-link:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 2px; }
+/* "Hellre prata med en elektriker direkt?" — mobile-only heading above the contact CTAs. */
+.ampy-ec__rail-ask { display: none; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-18); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text-primary); }
 @media (max-width: 1023px) {
-  /* MOBILE ORDER (owner decision): H1 → lead → THE TOOL → stat line → contact CTAs.
-     The rail unwraps (display:contents) so its pieces become shell grid items and can be
-     ordered around the stage; the shell's grid gap gives the rhythm (own margins zeroed).
-     Bullets are desktop-only. H1 + lead show ONLY on the start view (the tool leads on
-     question/result/lead views); stat + CTAs show under the tool on start + result.
-     Controlled by the JS-set data-view — NOT :has() — so it holds on iOS Safari <15.4. */
+  /* MOBILE (owner v2.18): H1 → lead → THE TOOL (tall, the focus) → "Hellre prata…" → contact CTAs →
+     stat line. The contact block shows on EVERY view so the customer is NEVER locked in — they can
+     always scroll down and navigate on. The rail unwraps (display:contents) so its pieces become
+     shell grid items, reordered around the stage. Controlled by JS-set data-view (not :has()). */
+  .ampy-ec__shell { gap: var(--space-7); } /* tighter hero rhythm: heading → lead → tool (owner) */
   .ampy-ec__rail { display: contents; }
   .ampy-ec__rail-heading { order: 1; margin: 0; }
   .ampy-ec__rail-lead { order: 2; margin: 0; }
   .ampy-ec__stage { order: 3; }
-  .ampy-ec__rail-stat { order: 4; }
+  .ampy-ec__rail-ask { order: 4; margin: var(--space-9) auto 0; }
   .ampy-ec__rail-actions { order: 5; }
+  .ampy-ec__rail-stat { order: 6; }
   .ampy-ec__rail-bullets { display: none; }
+  /* H1 + lead only on the start view; the tool leads on question/result/lead. */
   .ampy-ec__shell:not([data-view="start"]) .ampy-ec__rail-heading,
   .ampy-ec__shell:not([data-view="start"]) .ampy-ec__rail-lead { display: none; }
-  .ampy-ec__rail-actions, .ampy-ec__rail-stat { display: none; }
-  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-stat,
-  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-stat { display: block; margin: 0 auto; max-width: 42rem; text-align: center; }
-  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-actions,
-  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 42rem; margin-inline: auto; width: 100%; }
-  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="start"] .ampy-ec__rail-contact,
-  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="result"] .ampy-ec__rail-contact { width: 100%; justify-content: center; gap: 1.2rem; }
+  /* Contact block (ask heading + CTAs + stat): ALWAYS visible — anti-lock-in. */
+  .ampy-ec__rail-ask { display: block; text-align: center; max-width: 42rem; }
+  .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 42rem; margin-inline: auto; width: 100%; }
+  .ampy-ec__rail-stat { display: block; margin: 0 auto; max-width: 42rem; text-align: center; }
+  /* Mobile CTA style = the behörighetskollen pattern: SOLID green "Kontakta oss" + WHITE bordered
+     "Ring 010…" (not the desktop gradient pills). */
+  .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; justify-content: center; gap: 1.2rem; background-image: none; box-shadow: var(--shadow-sm); }
+  .ampy-ec__rail-contact { background: var(--action-primary-strong); color: #fff; }
+  .ampy-ec__rail-contact-icon { color: #fff; }
+  .ampy-ec__rail-phone { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-default); }
+  .ampy-ec__rail-phone-icon { color: var(--action-primary); }
+  .ampy-ec__rail-phone > span:first-child::before { content: "Ring "; } /* mobile-only "Ring" prefix (label span only, not the icon) */
   /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
-     bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin
-     shorthand — the buttons share one center axis with cta-cred + the consent note. */
+     bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin. */
   .ampy-ec__shell .ampy-ec__cta-primary, .ampy-ec__shell .ampy-ec__cta-secondary { max-width: 44rem; margin-inline: auto; }
-  /* Mobile start card hugs its content (no --ec-q-minh dead space) so the stat + contact CTAs
-     reach the fold. Question steps keep the stable height; the nav-scroll keeps transitions calm. */
-  .ampy-ec__shell[data-view="start"] .ampy-ec__block.ampy-ec__start { min-height: 0; }
 }
 
 /* ---- Start screen (slide 1) ---- */
@@ -295,15 +300,20 @@ html { font-size: 62.5%; }
   .ampy-ec__option-clarifier { font-size: var(--fs-15); }
   .ampy-ec__info-text { font-size: var(--fs-15); }
 
-  /* Start (slide 1) — more vertical air (the owner: "lite för kompakt vertikalt") */
-  .ampy-ec__start { padding-top: var(--space-13); padding-bottom: var(--space-13); }
+  /* Start (slide 1) — one cohesive group, lifted into the upper portion (owner: "rubriken/CTA:n kan
+     flyttas upp lite, ingen spacing-logik"). Top-aligned with a generous top pad so the group sits
+     above the midline; even internal rhythm illu→heading→CTA→tid. */
+  .ampy-ec__start { justify-content: flex-start; padding-top: 9rem; padding-bottom: var(--space-13); }
   .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
-  .ampy-ec__start-illu { width: 12rem; height: 12rem; margin-top: var(--space-9); margin-bottom: var(--space-12); }
-  .ampy-ec__start-heading { font-size: clamp(2.8rem, 1.4rem + 2vw, 3.6rem); margin-bottom: var(--space-8); }
+  .ampy-ec__start-illu { width: 12rem; height: 12rem; margin-top: 0; margin-bottom: var(--space-9); }
+  .ampy-ec__start-heading { font-size: clamp(2.8rem, 1.4rem + 2vw, 3.6rem); margin-bottom: var(--space-9); }
+  .ampy-ec__cta-primary.ampy-ec__start-cta { margin-top: 0; margin-bottom: var(--space-7); }
 
   /* Verdict */
   .ampy-ec { --rhythm-section: var(--space-13); } /* section rhythm grows with the desktop typography */
-  .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; }
+  .ampy-ec__dualstatus { margin-bottom: var(--space-11); } /* a touch tighter than the section rhythm (owner) */
+  .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; margin-bottom: var(--space-11); }
+  .ampy-ec__findings-head { margin-bottom: var(--space-8); }
   .ampy-ec__finding-text { font-size: var(--fs-18); }
   .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 2.0rem; } /* line-height icon + SVG follow the text size */
   .ampy-ec__findings { gap: var(--space-7); } /* the air grows with the text size (mobile 1.2rem → desktop 1.6rem) */
@@ -420,11 +430,12 @@ html { font-size: 62.5%; }
 .ampy-ec__dualstatus[data-worst="warning"] .ampy-ec__dualstatus-accent { background: var(--accent-warning); }
 .ampy-ec__dualstatus[data-worst="error"]   .ampy-ec__dualstatus-accent { background: var(--accent-error); }
 .ampy-ec__dualstatus[data-worst="info"]     .ampy-ec__dualstatus-accent { background: var(--accent-info); }
-/* Compact two-up verdict (owner: UX-love on the besked block): the two axes sit SIDE BY SIDE
-   (label over pill) when they fit, and auto-stack on very narrow screens. Halves the block height. */
-.ampy-ec__dualstatus-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(12.6rem, 1fr)); gap: var(--space-5) var(--space-7); flex: 1; min-width: 0; }
-.ampy-ec__statusrow { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); min-width: 0; }
-.ampy-ec__statusrow-axis { font-size: var(--fs-14); font-weight: 500; line-height: 1.3; color: var(--text-secondary); }
+/* Vertical verdict (owner v2.18): two STACKED rows, each "Säkerhet [pill]" / "Redo [pill]" — the
+   axis label on the left, its pill to the right, aligned on a shared left edge. Same on desktop and
+   mobile (the mobile version the owner loved). */
+.ampy-ec__dualstatus-rows { display: flex; flex-direction: column; gap: var(--space-5); flex: 1; min-width: 0; }
+.ampy-ec__statusrow { display: flex; flex-direction: row; align-items: center; gap: var(--space-5); min-width: 0; }
+.ampy-ec__statusrow-axis { flex-shrink: 0; min-width: 9rem; font-size: var(--fs-14); font-weight: 500; line-height: 1.3; color: var(--text-secondary); }
 .ampy-ec__pill {
   display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-full); font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -445,12 +456,12 @@ html { font-size: 62.5%; }
 
 /* FINDINGS */
 .ampy-ec__findings-wrap { margin: 0 0 var(--rhythm-section); }
-.ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 var(--rhythm-label); }
-.ampy-ec__findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--rhythm-group); }
-.ampy-ec__finding { display: flex; align-items: flex-start; gap: var(--space-4); animation: ec-rise var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
-/* The icon is optically centered on the FIRST text line via line-height (1.5em = the text's line-height),
-   so it aligns perfectly with the text on both mobile and desktop — no manual pixel nudge. */
-.ampy-ec__finding-icon { margin-top: 0; height: 1.5em; font-size: var(--fs-15); display: inline-flex; align-items: center; justify-content: center; }
+.ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 var(--space-7); } /* more air heading → first finding (owner) */
+.ampy-ec__findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-6); }
+.ampy-ec__finding { display: flex; align-items: flex-start; gap: var(--space-5); animation: ec-rise var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
+/* The icon box is a fixed square optically centered on the first text line (line-height 1.6), so every
+   finding's icon is the SAME size and sits on the same baseline regardless of text length. */
+.ampy-ec__finding-icon { margin-top: 0; width: var(--ec-row-icon-size); height: 1.6em; font-size: var(--fs-15); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .ampy-ec__finding-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
 .ampy-ec__finding--ok .ampy-ec__finding-icon { color: var(--text-success); }
 .ampy-ec__finding--warn .ampy-ec__finding-icon { color: var(--accent-warning); }
@@ -508,7 +519,16 @@ html { font-size: 62.5%; }
 .ampy-ec__lead-success-icon svg { width: 2.8rem; height: 2.8rem; }
 .ampy-ec__lead-success h2 { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; color: var(--text-primary); }
 .ampy-ec__lead-success p { margin: 0 auto var(--space-7); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
-@media (max-width: 767px) { .ampy-ec__lead-grid { grid-template-columns: 1fr; } }
+@media (max-width: 767px) {
+  .ampy-ec__lead-grid { grid-template-columns: 1fr; }
+  /* Owner: lead title a touch bigger + a touch closer to "Tillbaka till beskedet". */
+  .ampy-ec__lead-back { margin-bottom: var(--space-5); }
+  .ampy-ec__lead-title { font-size: 2.2rem; }
+  /* The tall start card is the focus, but its content should sit in the upper-middle, not dead
+     centre (which left a big empty top). Bias up. */
+  .ampy-ec__start { justify-content: flex-start; padding-top: 7rem; }
+  .ampy-ec__start-illu { margin-top: 0; }
+}
 
 /* ============================================================================
    CTA
@@ -538,15 +558,12 @@ html { font-size: 62.5%; }
 .ampy-ec__cta-secondary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
 .ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .ampy-ec__cta-secondary svg { width: 1.6rem; height: 1.6rem; }
-/* The real credential at the ask moment — quiet line under the primary CTA. */
-.ampy-ec__cta-cred { margin: 0; text-align: center; font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
-.ampy-ec__cta-cred-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.ampy-ec__cta-cred-link:hover { color: var(--text-primary); }
-/* Quiet researcher link — the card's very LAST line (rs/rr): an assist for "not ready to book",
-   never a button competing with the ask. */
-.ampy-ec__research-link { display: inline-block; margin: var(--space-5) 0 0; font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
-.ampy-ec__research-link:hover { color: var(--text-primary); }
-.ampy-ec__research-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+/* "Nyfiken på att läsa mer? Se mer om elcentraler" — quiet read-more line directly under the primary
+   CTA (owner v2.18). Replaces the old credential + bottom-of-card research link. */
+.ampy-ec__readmore { margin: var(--space-6) 0 0; text-align: center; font-size: var(--fs-14); font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
+.ampy-ec__readmore-link { color: var(--action-primary-text); text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__readmore-link:hover { color: var(--action-primary-strong); }
+.ampy-ec__readmore-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 /* Lead-in text above a cta-link (e.g. "Din central klarar en laddbox." + clickable "Räkna ut din besparing"). */
 .ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-3); max-width: 62ch; }
 .ampy-ec__cta-link {
@@ -573,7 +590,8 @@ html { font-size: 62.5%; }
 .ampy-ec__share-item:hover { background: var(--bg-subtle); }
 .ampy-ec__share-item:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
 .ampy-ec__share-item-icon { flex-shrink: 0; width: 1.8rem; height: 1.8rem; color: var(--text-secondary); }
-.ampy-ec__share-status { font-size: var(--fs-12); color: var(--text-success); opacity: 0; transition: opacity 200ms ease; margin-left: var(--space-3); }
+/* Toast is ABSOLUTE (out of flow) so "Länk kopierad." never reflows / shifts the share button. */
+.ampy-ec__share-status { position: absolute; right: calc(100% + var(--space-3)); top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: var(--fs-12); font-weight: 500; color: var(--text-success); opacity: 0; pointer-events: none; transition: opacity 200ms ease; }
 .ampy-ec__share-status[data-visible="true"] { opacity: 1; }
 
 /* PDF-capture */
