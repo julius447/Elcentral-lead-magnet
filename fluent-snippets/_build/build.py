@@ -96,8 +96,8 @@ AMPYEC_DATA_EOF;
 		<div class="ampy-ec" lang="sv">
 			<div class="ampy-ec__noscript">
 				<div class="ampy-ec__block">
-					<h1>Är din elcentral säker och redo?</h1>
-					<p><strong>Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).</strong></p>
+					<h1>Är din elcentral säker?</h1>
+					<p><strong>Ta reda på om din central är säker och anpassad för framtida installationer!</strong></p>
 					<p>Elcentral-kollen ställer några snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
 					<ol>
 						<li>Hur gammalt är huset eller lägenheten?</li>
@@ -106,7 +106,7 @@ AMPYEC_DATA_EOF;
 						<li>Finns det en jordfelsbrytare i centralen?</li>
 						<li>Känner du igen något av det här hemma?</li>
 						<li>Hur stor är din huvudsäkring?</li>
-						<li>Planer på att installera nedanstående?</li>
+						<li>Har du planer på något av det här?</li>
 					</ol>
 					<p>Vill du gå vidare direkt? Läs om våra tjänster:</p>
 					<ul>
@@ -136,8 +136,8 @@ if ( ! function_exists( 'ampy_ec_dynamic_og' ) ) {
 	function ampy_ec_dynamic_og() {
 		return; // <- delete this line to enable
 		if ( ! is_page() && ! is_singular() ) { return; }
-		$title    = 'Är din elcentral säker och redo? | Ampy';
-		$desc     = 'Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).';
+		$title    = 'Är din elcentral säker? | Ampy';
+		$desc     = 'Ta reda på om din central är säker och anpassad för framtida installationer!';
 		$og_image = '';
 		echo "\\n<meta property=\\"og:title\\" content=\\"" . esc_attr( $title ) . "\\" />\\n";
 		echo "<meta property=\\"og:description\\" content=\\"" . esc_attr( $desc ) . "\\" />\\n";

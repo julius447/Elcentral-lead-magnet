@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elcentral-kollen v2.16 — diagnosis engine + wizard (vanilla ES6, no build)
+   Elcentral-kollen v2.17 — diagnosis engine + wizard (vanilla ES6, no build)
      1. DATA   — elcentralkollen-data.json (single source of truth)
      2. ENGINE — pure compute: effective panel age (central_alder, hus_alder
                  as proxy) + fuse type + RCD + symptom floor -> 2x2 cell
@@ -196,20 +196,54 @@
       this.answers[q.id] = cur;
     }
     track(event, params) { try { const dl = (window.dataLayer = window.dataLayer || []); const key = event + ':' + (params && params.step != null ? params.step : ''); if (this._tracked[key]) return; this._tracked[key] = true; dl.push(Object.assign({ event: 'ampy_ec_' + event }, params || {})); } catch (e) {} }
-    advance() { this.dir = 'fwd'; this.leadOpen = false; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
-    openLead() { this.leadOpen = true; try { this.track('lead_form_open', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} this.render(); }
-    closeLead() { this.leadOpen = false; this.render(); }
-    back() { this.dir = 'back'; this.leadOpen = false; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
-    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; this.leadOpen = false; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
+    advance() { this.dir = 'fwd'; this.leadOpen = false; this._navScroll = true; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
+    openLead() { this.leadOpen = true; this._navScroll = true; try { this.track('lead_form_open', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} this.render(); }
+    closeLead() { this.leadOpen = false; this._navScroll = true; this.render(); }
+    back() { this.dir = 'back'; this.leadOpen = false; this._navScroll = true; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
+    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; this.leadOpen = false; this._navScroll = true; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
+    // Every in-widget navigation (answer tap, Fortsätt, Tillbaka, open/close the lead form, Börja om)
+    // scrolls the NEW view's top into view — otherwise a tap at the bottom of a tall step leaves the
+    // next title above the viewport. Guarded: skips when the top is already comfortably visible
+    // (no desktop micro-jumps) and never fires on first paint (no embed hijack).
+    _scrollToStage() {
+      try {
+        // Back to the START view targets the whole tool (mount) — the H1 + lead sit ABOVE the stage
+        // there; scrolling only the stage would strand the page heading off-screen.
+        const target = (this.step <= 0 && !this.leadOpen) ? this.mount : this.stage;
+        const r = target.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        if (r.bottom < 0 || r.top > vh) return;               // tool not in play → leave the page alone
+        if (r.top >= 0 && r.top < vh * 0.4) return;            // top already visible near the top → no jump
+        const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      } catch (e) {}
+    }
 
     buildShell() {
       this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
       this.mount.lang = 'sv'; // Swedish tool — pronounced correctly even if the host page is lang="en" (WCAG 3.1.2)
       const shell = el('div', { class: 'ampy-ec__shell' });
       this.shell = shell;
-      shell.appendChild(this.renderRail());
+      const rail = this.renderRail();
+      shell.appendChild(rail);
       this.stage = el('div', { class: 'ampy-ec__stage' });
       shell.appendChild(this.stage); this.mount.appendChild(shell);
+      // Keyboard/SR order must MATCH the visual order. On mobile the stat + contact CTAs render
+      // BELOW the tool (CSS order), so reparent the real DOM nodes after the stage there — and back
+      // into the rail on desktop. Purely structural; the CSS order/visibility rules still apply.
+      try {
+        const stat = rail.querySelector('.ampy-ec__rail-stat'), actions = rail.querySelector('.ampy-ec__rail-actions');
+        const place = (mobile) => {
+          if (mobile) { if (stat) shell.appendChild(stat); if (actions) shell.appendChild(actions); }
+          else { if (actions) rail.appendChild(actions); if (stat) rail.appendChild(stat); }
+        };
+        const mq = window.matchMedia('(max-width: 1023px)');
+        let placed = mq.matches; place(placed);
+        const sync = () => { if (mq.matches !== placed) { placed = mq.matches; place(placed); } };
+        if (mq.addEventListener) mq.addEventListener('change', sync); else if (mq.addListener) mq.addListener(sync);
+        // Belt & braces: some environments don't fire matchMedia change on resize/emulation.
+        window.addEventListener('resize', () => { clearTimeout(this._mqT); this._mqT = setTimeout(sync, 120); });
+      } catch (e) {}
     }
     renderRail() {
       const m = this.data.meta, rail = m.rail || {};
@@ -234,6 +268,13 @@
         el('a', { class: 'ampy-ec__rail-contact', href: contact.contact_url || m.ampy_offert_url, target: '_blank', rel: 'noopener noreferrer' }, [el('span', {}, (contact.contact_label || 'Kontakta oss')), iconSpan('arrowUpRight', 'ampy-ec__rail-contact-icon')]),
         el('a', { class: 'ampy-ec__rail-phone', href: contact.phone_url || 'tel:+46102657979' }, [el('span', {}, (contact.phone_label || '010-265 79 79')), iconSpan('phoneAmpy', 'ampy-ec__rail-phone-icon')])
       ]));
+      // Sourced stakes line (real Elsäkerhetsverket stat) — under the CTAs on desktop, under the tool on mobile.
+      if (rail.stat && rail.stat.rest) {
+        aside.appendChild(el('p', { class: 'ampy-ec__rail-stat' }, [
+          el('a', { class: 'ampy-ec__rail-stat-link', href: rail.stat.url, target: '_blank', rel: 'noopener noreferrer' }, (rail.stat.link || 'Elsäkerhetsverket')),
+          rail.stat.rest
+        ]));
+      }
       return aside;
     }
 
@@ -254,6 +295,7 @@
       const focusTarget = block.querySelector('[data-focus]');
       // Don't move focus on the first paint (otherwise an embed below the viewport auto-scrolls to the widget).
       if (focusTarget && this._booted) { try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); } }
+      if (this._navScroll) { const nav = this._booted; this._navScroll = false; if (nav) this._scrollToStage(); }
       this._booted = true;
     }
 
@@ -269,8 +311,9 @@
       const block = el('div', { class: 'ampy-ec__block ampy-ec__start' });
       block.appendChild(el('div', { class: 'ampy-ec__start-illu', html: START_ILLU, 'aria-hidden': 'true' }));
       block.appendChild(el('h2', { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
-      if (s.body) block.appendChild(el('p', { class: 'ampy-ec__start-body' }, s.body));
+      // Owner decision: no paragraph — the CTA sits where the body used to be, with a thin time note under it.
       block.appendChild(el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__start-cta', type: 'button', onclick: () => this.advance() }, [(s.cta || 'Starta test'), iconSpan('arrowRight')]));
+      if (s.time_note) block.appendChild(el('p', { class: 'ampy-ec__start-time' }, s.time_note));
       return block;
     }
 
@@ -336,37 +379,31 @@
       const lede = (m.summary_by_safety && m.summary_by_safety[dx.safety.state]) || (m.summary_by_ready && m.summary_by_ready[dx.ready.state]) || m.summary;
       if (lede) block.appendChild(el('p', { class: 'ampy-ec__result-lede' }, lede));
       const findingsEl = this.renderFindings(dx); if (findingsEl) block.appendChild(findingsEl);
-      if (dx.cell === 'rs' || dx.cell === 'rr') block.appendChild(el('div', { class: 'ampy-ec__factnote', role: 'note' }, [iconSpan('info', 'ampy-ec__factnote-icon'), el('div', {}, [
-        el('p', { class: 'ampy-ec__factnote-text' }, data.facts.brand.text),
-        el('p', { class: 'ampy-ec__factnote-src' }, [
-          (data.facts.brand.source_pre || ''),
-          el('a', { class: 'ampy-ec__factnote-src-link', href: data.facts.brand.source_url, target: '_blank', rel: 'noopener noreferrer' }, (data.facts.brand.source_link || '')),
-          (data.facts.brand.source_post || '')
-        ])
-      ])]));
-      block.appendChild(this.renderCta(dx));
+      // The Elsäkerhetsverket factnote moved to the rail (meta.rail.stat, owner decision) — the result
+      // now runs verdict → findings → ONE primary CTA, with the real credential at the ask moment.
+      const ctaFrag = this.renderCta(dx);
+      const hasAsk = !!ctaFrag.querySelector('.ampy-ec__cta-primary, .ampy-ec__cta-secondary');
+      block.appendChild(ctaFrag);
+      // The credential belongs to an ASK — skip it when the green cell renders no block CTA (orphan line).
+      if (hasAsk) block.appendChild(this.renderCtaCred());
+      block.appendChild(this.renderShareRow(dx));
+      // Quiet education path for researchers (rs/rr): a TEXT link as the card's very last line —
+      // buttons stay 1:1 (attention ratio) while "not ready to book yet" gets an assist, not a bounce.
+      if (m.research_link && m.research_link.label) {
+        block.appendChild(el('a', { class: 'ampy-ec__research-link', href: this.resolveCtaUrl(m.research_link), onclick: () => this.track('research_link', { cell: dx.cell }) }, m.research_link.label));
+      }
       block.appendChild(this.renderPdfCapture(dx));
-      // The footer deliberately ends on "Läs mer om elcentral" (secondary CTA). The share row,
-      // the disclaimer paragraph and the slimmed mobile credential are removed (owner decision)
-      // for a compact ending. The disclaimer's meaning is carried by the verdict copy (e.g. "en kort
-      // besiktning ger dig säkerheten") + the crawlable render.php fallback.
       return block;
     }
-    // Slim trust row — shown only on mobile (start + verdict), where the rail credential is hidden.
-    renderCompactCred() {
-      const m = this.data.meta, rail = m.rail || {};
-      return el('div', { class: 'ampy-ec__compact-cred' }, [
-        iconSpan('shield', 'ampy-ec__compact-cred-icon'),
-        el('p', { class: 'ampy-ec__compact-cred-text' }, [
-          el('a', { href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (rail.credential_link || 'Auktoriserat elinstallationsföretag')),
-          (rail.credential_rest || ', registrerat hos Elsäkerhetsverket.')
-        ])
+    // The real credential at the ask moment (under the primary CTA) — trust at the decision point.
+    // Copy lives in the data (meta.cta_cred); the strings below are only fallbacks.
+    renderCtaCred() {
+      const m = this.data.meta, c = m.cta_cred || {};
+      return el('p', { class: 'ampy-ec__cta-cred' }, [
+        (c.pre || 'Auktoriserat elinstallationsföretag, '),
+        el('a', { class: 'ampy-ec__cta-cred-link', href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (c.link || 'registrerat hos Elsäkerhetsverket')),
+        (c.post || '.')
       ]);
-    }
-    selectHeadline(dx, m) {
-      if (m.headline_by_safety && m.headline_by_safety[dx.safety.state]) return m.headline_by_safety[dx.safety.state];
-      if (m.headline_by_ready && m.headline_by_ready[dx.ready.state]) return m.headline_by_ready[dx.ready.state];
-      return m.headline || this.buildSummarySentence(dx);
     }
     buildSummarySentence(dx) {
       const planNoun = { elbil: 'elbil', varmepump: 'värmepump', solceller: 'solceller eller batteri', renovering: 'din renovering' }[dx.ready.plan] || 'dina planer';
@@ -414,7 +451,27 @@
       const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
       wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Våra fynd'));
       const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
-      findings.forEach((f, i) => { const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info'); list.appendChild(el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)])); });
+      const mkItem = (f, i) => { const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info'); return el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)]); };
+      // Cap: show 3 + a quiet expander so the CTA stays a thumb-reach from the verdict. CANDOUR
+      // GUARD: a risk (warn) finding is NEVER behind the tap — the cap extends past the last warn,
+      // so only trailing ok/info rows collapse. Nothing is hidden for good. (≤ cap+1 → show all.)
+      const lastWarn = findings.reduce((acc, f, i) => (f.icon === 'warn' ? i : acc), -1);
+      const cap = Math.max(3, lastWarn + 1);
+      if (findings.length <= cap + 1) {
+        findings.forEach((f, i) => list.appendChild(mkItem(f, i)));
+      } else {
+        findings.slice(0, cap).forEach((f, i) => list.appendChild(mkItem(f, i)));
+        const rest = findings.slice(cap);
+        const more = el('button', { class: 'ampy-ec__findings-more', type: 'button', onclick: () => {
+          // Reveal, then move focus INTO the new content before removing the trigger (keyboard/SR
+          // focus must not drop to <body>).
+          let first = null;
+          rest.forEach((f, i) => { const it = mkItem(f, i); if (!first) { first = it; it.tabIndex = -1; } list.appendChild(it); });
+          more.remove();
+          if (first) { try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); } }
+        } }, 'Visa ' + rest.length + ' fynd till');
+        wrap.appendChild(list); wrap.appendChild(more); return wrap;
+      }
       wrap.appendChild(list); return wrap;
     }
     resolveCtaUrl(def) {
@@ -466,7 +523,8 @@
       const field = (name, label, type, inputmode, ac, extra) => {
         const id = 'ampy-ec-lf-' + name;
         const input = el('input', Object.assign({ class: 'ampy-ec__lead-input', id: id, name: name, type: type, required: true, autocomplete: ac || 'on' }, inputmode ? { inputmode: inputmode } : {}, extra || {}));
-        return { w: el('div', { class: 'ampy-ec__lead-field' }, [el('label', { class: 'ampy-ec__lead-label', for: id }, label), input]), input: input };
+        // All fields are required → a black asterisk after each label (owner decision).
+        return { w: el('div', { class: 'ampy-ec__lead-field' }, [el('label', { class: 'ampy-ec__lead-label', for: id }, [label, el('span', { class: 'ampy-ec__lead-req', 'aria-hidden': 'true' }, '*')]), input]), input: input };
       };
       const namn = field('namn', 'Namn', 'text', null, 'name', { enterkeyhint: 'next', autocapitalize: 'words' }),
             epost = field('epost', 'E-post', 'email', 'email', 'email', { enterkeyhint: 'next', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' }),
@@ -475,21 +533,20 @@
       form.appendChild(el('div', { class: 'ampy-ec__lead-grid' }, [namn.w, epost.w, tel.w, post.w]));
       const honey = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__lead-hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
       form.appendChild(honey);
-      const consentId = 'ampy-ec-lf-consent';
-      const consent = el('input', { type: 'checkbox', id: consentId, class: 'ampy-ec__lead-check', required: true });
-      form.appendChild(el('div', { class: 'ampy-ec__lead-consent' }, [consent, el('label', { for: consentId }, [
-        (f.consent || 'Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med ett förslag, enligt '),
-        el('a', { href: this.data.meta.privacy_policy_url || 'https://ampy.se/integritetspolicy/', target: '_blank', rel: 'noopener noreferrer' }, (f.consent_link || 'integritetspolicyn')), '.'
-      ])]));
       const errorBox = el('p', { class: 'ampy-ec__lead-error', role: 'alert', hidden: true });
       form.appendChild(errorBox);
-      const submit = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__lead-submit', type: 'submit' }, (f.submit || 'Skicka förfrågan'));
+      const submit = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__lead-submit', type: 'submit' }, (f.submit || 'Boka rådgivning'));
       form.appendChild(submit);
+      // Button-press consent (owner decision): no checkbox — the notice sits under the CTA.
+      form.appendChild(el('p', { class: 'ampy-ec__lead-consent-note' }, [
+        (f.consent || 'Genom att trycka på "Boka rådgivning" samtycker jag till att Ampy behandlar mina personuppgifter enligt vår '),
+        el('a', { href: this.data.meta.privacy_policy_url || 'https://ampy.se/integritetspolicy/', target: '_blank', rel: 'noopener noreferrer' }, (f.consent_link || 'integritetspolicy')), '.'
+      ]));
       form.addEventListener('submit', (e) => {
         e.preventDefault(); errorBox.hidden = true;
         if (honey.value) return;
-        if (!namn.input.value.trim() || !epost.input.value.trim() || !tel.input.value.trim() || !post.input.value.trim() || !consent.checked) {
-          errorBox.textContent = f.error_required || 'Fyll i alla fält och godkänn villkoren.'; errorBox.hidden = false; return;
+        if (!namn.input.value.trim() || !epost.input.value.trim() || !tel.input.value.trim() || !post.input.value.trim()) {
+          errorBox.textContent = f.error_required || 'Fyll i alla fält.'; errorBox.hidden = false; return;
         }
         submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
         this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
@@ -503,7 +560,7 @@
           ]));
           const t = block.querySelector('[data-focus]'); if (t) { try { t.focus({ preventScroll: true }); } catch (e2) {} }
         }).catch(() => {
-          submit.disabled = false; submit.textContent = f.submit || 'Skicka förfrågan';
+          submit.disabled = false; submit.textContent = f.submit || 'Boka rådgivning';
           errorBox.textContent = f.error_send || 'Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.'; errorBox.hidden = false;
         });
       });
@@ -578,7 +635,7 @@
       const ctx = canvas.getContext('2d');
       const pal = { success: '#1f8f6b', warning: '#8a6d10', error: '#a32330', info: '#2a4a7a', neutral: '#5a5d7a' };
       const ss = this.data.safety_states[dx.safety.state], rPill = this.data.scoring.ready.pill_levels[dx.ready.state] || 'neutral';
-      const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (rPill === 'warning' ? 'warning' : ss.pill_level);
+      const worst = (dx.safety.state === 'forhojd' || dx.safety.state === 'hog') ? ss.pill_level : (rPill === 'warning' ? 'info' : ss.pill_level); // matches renderDualStatus: capacity-only ≠ amber alarm
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = pal[worst] || pal.neutral; ctx.fillRect(0, 0, 16, H);
       ctx.fillStyle = 'rgba(9,11,50,0.55)'; ctx.font = '600 24px "Plus Jakarta Sans", system-ui, sans-serif'; ctx.fillText('AMPY · ELCENTRAL-KOLLEN', 72, 84);
       if (this.data.meta.share_card_authority) { ctx.fillStyle = 'rgba(9,11,50,0.4)'; ctx.font = '500 20px "Outfit", system-ui, sans-serif'; ctx.fillText(this.data.meta.share_card_authority, 72, 120); }

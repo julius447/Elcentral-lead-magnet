@@ -1,4 +1,4 @@
-/* Elcentral-kollen v2.16.5 - Fluent Snippet 1/3 (type: CSS).
+/* Elcentral-kollen v2.17.0 - Fluent Snippet 1/3 (type: CSS).
    FORMAT-ONLY port of assets/elcentralkollen.css: every rem -> px (1rem = 10px) so it renders
    identically WITHOUT a global html{font-size:62.5%} (dropped; it would resize the whole WP theme).
    @font-face points at the hosted woff2 (swap to the ampy.se Media Library for GDPR - see README).
@@ -143,8 +143,8 @@
 
 /* ============================================================================
    ICON ROW — shared icon→text optical alignment
-   All icon+text rows (finding, factnote, akut, info, rail-cred) share the
-   same mechanic: square icon box + margin-top nudge against the first text line.
+   All icon+text rows (finding, factnote, akut, info) share the same mechanic:
+   square icon box + margin-top nudge against the first text line.
    Size/nudge are controlled by --ec-row-icon-size / --ec-row-icon-nudge (root default
    18px / 2px). Each row type overrides only the values that deviate — previously
    they were hard-coded per class and drifted apart.
@@ -152,9 +152,7 @@
 .ampy-ec__finding-icon,
 .ampy-ec__factnote-icon,
 .ampy-ec__akut-icon,
-.ampy-ec__info-icon,
-.ampy-ec__rail-cred-icon,
-.ampy-ec__compact-cred-icon {
+.ampy-ec__info-icon {
   flex-shrink: 0;
   width: var(--ec-row-icon-size);
   height: var(--ec-row-icon-size);
@@ -209,22 +207,8 @@
 .ampy-ec__rail-bullet-icon svg { width: 20px; height: 20px; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
-/* The thesis is desktop-only (would push the first question down on mobile). */
-/* Credential in the rail = desktop ONLY. On mobile it is carried by .ampy-ec__compact-cred (start + verdict).
-   Designed BOX (the owner wanted it back): subtle background, padding, rounded corners. */
-.ampy-ec__rail-cred {
-  display: none; align-items: flex-start; gap: var(--space-4); margin: var(--space-9) 0 0;
-  padding: var(--space-6) var(--space-7); background: var(--bg-subtle); border-radius: var(--radius-md);
-}
-.ampy-ec__rail-cred-icon { --ec-row-icon-size: 20px; --ec-row-icon-nudge: 1px; color: var(--action-primary-strong); }
-.ampy-ec__rail-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
-.ampy-ec__rail-cred-text { font-size: var(--fs-13); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-2); }
-/* The link carries the SAME color as the rest of the credential text, just underlined (= reads as a link). */
-.ampy-ec__rail-cred-link { font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
-.ampy-ec__rail-cred-link:hover { color: var(--text-primary); }
-@media (min-width: 1024px) {
-  .ampy-ec__rail-cred { display: flex; }
-}
+/* (The old rail credential box and the slim mobile credential were removed in v2.17 — trust now
+   lives in the desktop bullets, the rail stat line, and the cta-cred line at the ask moment.) */
 
 /* Contact CTA in the rail (1:1 replica of ampy.se: phone link + gradient button "Kontakta oss").
    ampy.se's EXACT tokens (color/size/spacing). Always shown on desktop; on mobile only on
@@ -247,32 +231,41 @@
 @media (hover: hover) {
   .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { opacity: 0.92; box-shadow: 0 0 20px 0 rgba(9, 11, 50, 0.10); }
 }
+/* Sourced stakes line (rail.stat) — under the contact CTAs on desktop, under the tool on mobile. */
+.ampy-ec__rail-stat { margin: var(--space-7) 0 0; font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
+.ampy-ec__rail-stat-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__rail-stat-link:hover { color: var(--text-primary); }
 @media (max-width: 1023px) {
-  /* Bullets + CTAs only on start + verdict on mobile (the rail sits at the top of every slide).
-     Controlled by the JS-set data-view (render()) — NOT :has() — so the main CTA (incl. the tel: button) holds
-     on iOS Safari <15.4 / older Android Chrome, the primary mobile-social channel. */
-  .ampy-ec__rail-actions, .ampy-ec__rail-bullets { display: none; }
-  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-bullets,
-  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-bullets { display: flex; }
-  /* Mobile: stack the CTAs full width, centered content, with air (best practice). Only start + verdict. */
+  /* MOBILE ORDER (owner decision): H1 → lead → THE TOOL → stat line → contact CTAs.
+     The rail unwraps (display:contents) so its pieces become shell grid items and can be
+     ordered around the stage; the shell's grid gap gives the rhythm (own margins zeroed).
+     Bullets are desktop-only. H1 + lead show ONLY on the start view (the tool leads on
+     question/result/lead views); stat + CTAs show under the tool on start + result.
+     Controlled by the JS-set data-view — NOT :has() — so it holds on iOS Safari <15.4. */
+  .ampy-ec__rail { display: contents; }
+  .ampy-ec__rail-heading { order: 1; margin: 0; }
+  .ampy-ec__rail-lead { order: 2; margin: 0; }
+  .ampy-ec__stage { order: 3; }
+  .ampy-ec__rail-stat { order: 4; }
+  .ampy-ec__rail-actions { order: 5; }
+  .ampy-ec__rail-bullets { display: none; }
+  .ampy-ec__shell:not([data-view="start"]) .ampy-ec__rail-heading,
+  .ampy-ec__shell:not([data-view="start"]) .ampy-ec__rail-lead { display: none; }
+  .ampy-ec__rail-actions, .ampy-ec__rail-stat { display: none; }
+  .ampy-ec__shell[data-view="start"] .ampy-ec__rail-stat,
+  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-stat { display: block; margin: 0 auto; max-width: 420px; text-align: center; }
   .ampy-ec__shell[data-view="start"] .ampy-ec__rail-actions,
-  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 420px; margin-inline: auto; }
+  .ampy-ec__shell[data-view="result"] .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 420px; margin-inline: auto; width: 100%; }
   .ampy-ec__shell[data-view="start"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="start"] .ampy-ec__rail-contact,
   .ampy-ec__shell[data-view="result"] .ampy-ec__rail-phone, .ampy-ec__shell[data-view="result"] .ampy-ec__rail-contact { width: 100%; justify-content: center; gap: 12px; }
-  /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch bloated-wide.
-     Phones (< 440px wide content) are unaffected → keep full width. */
-  .ampy-ec__cta-primary, .ampy-ec__cta-secondary { max-width: 440px; margin-inline: auto; }
+  /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
+     bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin
+     shorthand — the buttons share one center axis with cta-cred + the consent note. */
+  .ampy-ec__shell .ampy-ec__cta-primary, .ampy-ec__shell .ampy-ec__cta-secondary { max-width: 440px; margin-inline: auto; }
+  /* Mobile start card hugs its content (no --ec-q-minh dead space) so the stat + contact CTAs
+     reach the fold. Question steps keep the stable height; the nav-scroll keeps transitions calm. */
+  .ampy-ec__shell[data-view="start"] .ampy-ec__block.ampy-ec__start { min-height: 0; }
 }
-
-/* Slim mobile credential (start + verdict); hidden on desktop where the rail credential is shown */
-.ampy-ec__compact-cred { display: flex; align-items: flex-start; gap: var(--space-3); margin: var(--space-9) 0 0; padding-top: var(--space-7); border-top: 1px solid var(--border-tertiary); }
-.ampy-ec__compact-cred-icon { --ec-row-icon-size: 16px; --ec-row-icon-nudge: 2px; color: var(--action-primary-strong); }
-.ampy-ec__compact-cred-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
-.ampy-ec__compact-cred-text { font-size: var(--fs-12); line-height: 1.5; color: var(--text-secondary); margin: 0; }
-.ampy-ec__compact-cred-text a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
-.ampy-ec__compact-cred-text a:hover { color: var(--text-primary); }
-.ampy-ec__start .ampy-ec__compact-cred { text-align: left; }
-@media (min-width: 1024px) { .ampy-ec__compact-cred { display: none; } }
 
 /* ---- Start screen (slide 1) ---- */
 .ampy-ec__start { align-items: center; text-align: center; justify-content: center; }
@@ -281,14 +274,20 @@
 .ampy-ec__start-illu svg { width: 100%; height: 100%; display: block; }
 .ampy-ec__start-heading { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-display); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 auto var(--space-5); max-width: 20ch; }
 .ampy-ec__start-heading:focus { outline: none; }
-.ampy-ec__start-body { font-size: var(--fs-15); line-height: 1.5; color: var(--text-secondary); margin: 0 0 var(--space-11); max-width: 40ch; }
-.ampy-ec__start-cta { max-width: 320px; margin-left: auto; margin-right: auto; }
+/* Compound selector: beats .ampy-ec__cta-primary's later same-specificity margin shorthand
+   (the cascade trap documented in CLAUDE.md) — heading → CTA gap actually applies. */
+.ampy-ec__cta-primary.ampy-ec__start-cta { max-width: 320px; margin: var(--space-7) auto var(--space-5); }
+/* Thin time note under the start CTA (owner: "Beräknad tid: 2 minuter") */
+.ampy-ec__start-time { margin: 0; font-size: var(--fs-13); font-weight: 400; color: var(--text-secondary); }
 
 /* ---- Share row (replaces the trust row in the verdict) ---- */
 .ampy-ec__share-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); margin: var(--space-5) 0 0; padding-top: var(--space-3); }
 .ampy-ec__share-row .ampy-ec__share-nudge { margin-right: auto; }
 
-.ampy-ec__stage { min-width: 0; }
+/* Nav-scroll offsets — LAUNCH CONFIG: if the site header is fixed, set --ec-scroll-offset on
+   .ampy-ec in the Bricks page CSS to the header height (e.g. 90px), or the new view tucks under it. */
+.ampy-ec { scroll-margin-top: var(--ec-scroll-offset, 24px); }
+.ampy-ec__stage { min-width: 0; scroll-margin-top: var(--ec-scroll-offset, 24px); }
 
 /* ============================================================================
    DESKTOP SCALE (≥1024px) — larger typography (Ampy body scale 17–18px), more generous
@@ -314,7 +313,6 @@
   .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
   .ampy-ec__start-illu { width: 120px; height: 120px; margin-top: var(--space-9); margin-bottom: var(--space-12); }
   .ampy-ec__start-heading { font-size: clamp(28px, 14px + 2vw, 36px); margin-bottom: var(--space-8); }
-  .ampy-ec__start-body { font-size: var(--fs-18); margin-bottom: var(--space-13); }
 
   /* Verdict */
   .ampy-ec { --rhythm-section: var(--space-13); } /* section rhythm grows with the desktop typography */
@@ -338,7 +336,6 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   display: flex; flex-direction: column; gap: 0;
-  scroll-margin-top: 15px;
 }
 /* M2: uniform card height on the question steps → no jumpy scroll between slides.
    The start and verdict steps are exempt (they have their own, intentionally varying height). */
@@ -436,13 +433,15 @@
 .ampy-ec__dualstatus[data-worst="warning"] .ampy-ec__dualstatus-accent { background: var(--accent-warning); }
 .ampy-ec__dualstatus[data-worst="error"]   .ampy-ec__dualstatus-accent { background: var(--accent-error); }
 .ampy-ec__dualstatus[data-worst="info"]     .ampy-ec__dualstatus-accent { background: var(--accent-info); }
-.ampy-ec__dualstatus-rows { display: flex; flex-direction: column; gap: var(--space-5); flex: 1; min-width: 0; }
-.ampy-ec__statusrow { display: flex; align-items: center; gap: var(--space-5); }
-.ampy-ec__statusrow-axis { flex-shrink: 0; min-width: 95px; font-size: var(--fs-14); font-weight: 500; line-height: 1.3; color: var(--text-secondary); }
+/* Compact two-up verdict (owner: UX-love on the besked block): the two axes sit SIDE BY SIDE
+   (label over pill) when they fit, and auto-stack on very narrow screens. Halves the block height. */
+.ampy-ec__dualstatus-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(126px, 1fr)); gap: var(--space-5) var(--space-7); flex: 1; min-width: 0; }
+.ampy-ec__statusrow { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); min-width: 0; }
+.ampy-ec__statusrow-axis { font-size: var(--fs-14); font-weight: 500; line-height: 1.3; color: var(--text-secondary); }
 .ampy-ec__pill {
   display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-full); font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: clamp(14px, 13px + 0.4vw, 16px); font-weight: 600; letter-spacing: -0.005em; line-height: 1.2; max-width: 100%; white-space: nowrap;
+  font-size: clamp(14px, 13px + 0.4vw, 16px); font-weight: 600; letter-spacing: -0.005em; line-height: 1.2; max-width: 100%;
   background: var(--pill-neutral-bg); color: var(--pill-neutral-fg);
 }
 .ampy-ec__pill[data-level="success"] { background: var(--pill-success-bg); color: var(--pill-success-fg); }
@@ -470,6 +469,10 @@
 .ampy-ec__finding--warn .ampy-ec__finding-icon { color: var(--accent-warning); }
 .ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--accent-info); }
 .ampy-ec__finding-text { font-size: var(--fs-15); font-weight: 400; line-height: 1.6; color: var(--text-secondary); margin: 0; max-width: 62ch; }
+/* Quiet expander when >4 findings — keeps the CTA a thumb-reach from the verdict, hides nothing for good. */
+.ampy-ec__findings-more { display: inline-flex; align-items: center; margin: var(--space-4) 0 0; padding: var(--space-2) 0; min-height: 44px; background: none; border: 0; font: inherit; font-size: var(--fs-14); font-weight: 500; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ampy-ec__findings-more:hover { color: var(--text-primary); }
+.ampy-ec__findings-more:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 
 /* FACTNOTE — the only amber accent (full hairline + tint in brand amber, no side stripe) */
 .ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); background: rgba(135, 101, 7, 0.05); border: 1px solid rgba(135, 101, 7, 0.22); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); margin: 0 0 var(--rhythm-section); }
@@ -495,19 +498,24 @@
 .ampy-ec__lead-title { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-primary); }
 .ampy-ec__lead-title:focus { outline: none; }
 .ampy-ec__lead-intro { margin: 0 0 var(--space-9); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 60ch; }
-.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-9) var(--space-6); margin: 0 0 var(--space-9); }
+.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-9) var(--space-6); margin: 0 0 var(--space-11); }
 .ampy-ec__lead-field { display: flex; flex-direction: column; gap: var(--rhythm-label); }
 .ampy-ec__lead-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 600; color: var(--text-primary); }
 .ampy-ec__lead-input { width: 100%; min-height: 52px; padding: var(--space-4) var(--space-5); font: inherit; font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-16); color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
 .ampy-ec__lead-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
 .ampy-ec__lead-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.ampy-ec__lead-consent { display: flex; align-items: flex-start; gap: var(--space-4); margin: 0 0 var(--space-10); font-size: var(--fs-13); line-height: 1.55; color: var(--text-secondary); }
-.ampy-ec__lead-check { margin-top: 2px; width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--action-primary-strong); cursor: pointer; }
-.ampy-ec__lead-consent a { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
+/* (The consent checkbox was replaced by the button-press consent note in v2.17 — see
+   .ampy-ec__lead-consent-note below.) */
 .ampy-ec__lead-error { margin: var(--space-4) 0 0; font-size: var(--fs-13); font-weight: 500; color: var(--accent-error); }
 .ampy-ec__lead-error[hidden] { display: none; }
 .ampy-ec__lead-submit { width: 100%; margin: var(--space-10) 0 0; min-height: 54px; }
 .ampy-ec__lead-submit:disabled { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); cursor: default; }
+/* Required marker (all fields are required — owner decision) */
+.ampy-ec__lead-req { color: var(--text-primary); margin-left: 2px; }
+/* Button-press consent notice under the CTA (replaces the checkbox — owner decision) */
+.ampy-ec__lead-consent-note { margin: var(--space-5) 0 0; font-size: var(--fs-12); font-weight: 400; line-height: 1.55; color: var(--text-secondary); text-align: center; }
+.ampy-ec__lead-consent-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__lead-consent-note a:hover { color: var(--text-primary); }
 .ampy-ec__lead-success { text-align: center; padding: var(--space-11) var(--space-4); }
 .ampy-ec__lead-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin-bottom: var(--space-6); border-radius: var(--radius-full); background: var(--tint-success); color: var(--text-success); }
 .ampy-ec__lead-success-icon svg { width: 28px; height: 28px; }
@@ -543,6 +551,15 @@
 .ampy-ec__cta-secondary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
 .ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .ampy-ec__cta-secondary svg { width: 16px; height: 16px; }
+/* The real credential at the ask moment — quiet line under the primary CTA. */
+.ampy-ec__cta-cred { margin: 0; text-align: center; font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
+.ampy-ec__cta-cred-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__cta-cred-link:hover { color: var(--text-primary); }
+/* Quiet researcher link — the card's very LAST line (rs/rr): an assist for "not ready to book",
+   never a button competing with the ask. */
+.ampy-ec__research-link { display: inline-block; margin: var(--space-5) 0 0; font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__research-link:hover { color: var(--text-primary); }
+.ampy-ec__research-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 /* Lead-in text above a cta-link (e.g. "Din central klarar en laddbox." + clickable "Räkna ut din besparing"). */
 .ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-3); max-width: 62ch; }
 .ampy-ec__cta-link {
@@ -595,9 +612,13 @@
 .ampy-ec[data-booted="true"] .ampy-ec__noscript { display: none; }
 
 @media (max-width: 520px) {
-  .ampy-ec__statusrow { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-  .ampy-ec__statusrow-axis { min-width: 0; }
-  .ampy-ec__pill { font-size: var(--fs-15); padding: var(--space-2) var(--space-5); gap: var(--space-3); white-space: normal; }
+  /* Narrow phones: the two axes as compact INLINE rows (label · pill) — the two-up grid
+     doesn't fit 2×126px here and stacked label-over-pill wastes height. The axis label gets a
+     shared min-width so both pills start on one left edge. */
+  .ampy-ec__dualstatus-rows { display: flex; flex-direction: column; gap: var(--space-4); }
+  .ampy-ec__statusrow { flex-direction: row; align-items: center; gap: var(--space-4); }
+  .ampy-ec__statusrow-axis { min-width: 80px; }
+  .ampy-ec__pill { font-size: var(--fs-15); padding: var(--space-2) var(--space-5); gap: var(--space-3); }
   .ampy-ec__pill svg { width: 15px; height: 15px; }
   .ampy-ec__dualstatus { padding: var(--space-6) var(--space-6) var(--space-6) var(--space-5); gap: var(--space-4); }
 }

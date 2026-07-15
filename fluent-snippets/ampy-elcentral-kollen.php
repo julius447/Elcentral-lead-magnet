@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.16.5 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.17.0 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -17,10 +17,10 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.16.5",
+    "version": "2.17.0",
     "product_name": "Elcentral-kollen",
-    "page_heading": "Är din elcentral säker och redo?",
-    "page_lead": "Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).",
+    "page_heading": "Är din elcentral säker?",
+    "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
     "disclaimer": "Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.",
     "primary_source": "Elsäkerhetsverket & Skatteverket",
     "verify_company_url": "https://www.elsakerhetsverket.se/kollaelforetaget/foretagsregister/?foretag=12047521&sok=1",
@@ -30,6 +30,11 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
     "pdf_webhook_url": null,
     "share_card_authority": "Auktoriserat elinstallationsföretag · registrerat hos Elsäkerhetsverket",
     "share_card_cta": "Gör testet gratis →",
+    "cta_cred": {
+      "pre": "Auktoriserat elinstallationsföretag, ",
+      "link": "registrerat hos Elsäkerhetsverket",
+      "post": "."
+    },
     "rail": {
       "credential_link": "Auktoriserat elinstallationsföretag",
       "credential_rest": ", registrerat hos Elsäkerhetsverket.",
@@ -52,12 +57,17 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
           "icon": "checkCircle",
           "text": "Helt gratis. Inget mejl, ingen inloggning, ingen hake"
         }
-      ]
+      ],
+      "stat": {
+        "link": "Elsäkerhetsverket",
+        "url": "https://www.elsakerhetsverket.se/om-oss/publikationer/rapporter/elrelaterade-brander-i-bostader-2018-2022/",
+        "rest": " registrerade 298 händelser 2018–2022 där elcentralen var orsaken."
+      }
     },
     "start": {
       "heading": "Då sätter vi igång",
-      "body": "Se om din elcentral är säker och vilka åtgärder du kan behöva göra.",
-      "cta": "Starta testet"
+      "cta": "Starta testet",
+      "time_note": "Beräknad tid: 2 minuter"
     },
     "service_pages": {
       "elbesiktning": "https://ampy.se/elservice/elbesiktning/",
@@ -74,13 +84,13 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
     ],
     "lead_form": {
       "title": "Få kostnadsfri rådgivning",
-      "intro": "Ampys behöriga elektriker hör av sig med ett förslag, oftast inom en arbetsdag.",
+      "intro": "En behörig elektriker går igenom dina svar och återkommer för en rådgivning inom 24 timmar!",
       "back": "Tillbaka till beskedet",
-      "submit": "Skicka förfrågan",
+      "submit": "Boka rådgivning",
       "submitting": "Skickar…",
-      "consent": "Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med ett förslag, enligt ",
-      "consent_link": "integritetspolicyn",
-      "error_required": "Fyll i alla fält och godkänn villkoren.",
+      "consent": "Genom att trycka på \"Boka rådgivning\" samtycker jag till att Ampy behandlar mina personuppgifter enligt vår ",
+      "consent_link": "integritetspolicy",
+      "error_required": "Fyll i alla fält.",
       "error_send": "Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.",
       "success_title": "Tack! Vi hör av oss inom kort.",
       "success_body": "En behörig elektriker återkommer med ett förslag, oftast inom en arbetsdag.",
@@ -257,7 +267,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "id": "planer",
       "axis": "ready",
       "type": "multi",
-      "title": "Planer på att installera nedanstående?",
+      "title": "Har du planer på något av det här?",
       "note": "Det du väljer avgör hur mycket kapacitet, alltså effekt, centralen behöver. Inga planer är ett helt fint svar.",
       "options": [
         {
@@ -491,11 +501,15 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       },
       "cta": {
         "primary": "radgivning",
-        "secondary": "redo_how",
+        "secondary": null,
         "link": null
       }
     },
     "rs": {
+      "research_link": {
+        "label": "Vill du läsa på först? Så går ett centralbyte till.",
+        "url_key": "centralbyte"
+      },
       "cell": "Redo, men något bör ses över",
       "headline": "Något i säkerheten bör ses över innan du går vidare.",
       "headline_by_ready": {
@@ -508,17 +522,21 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "summary": "Centralen klarar din plan. Men något i säkerheten bör kontrolleras först.",
       "cta": {
         "primary": "radgivning",
-        "secondary": "centralbyte_how",
+        "secondary": null,
         "link": null
       },
       "summary_by_ready": {
         "ej_bedomd": "Centralen ser ut att klara dagens behov, men något i säkerheten bör kontrolleras innan du går vidare."
       },
       "summary_by_safety": {
-        "hog": "Centralen klarar din plan, men har flera riskfaktorer som bör åtgärdas innan du går vidare."
+        "hog": "Centralen har flera riskfaktorer som bör åtgärdas. En kort besiktning visar vad som bör göras först."
       }
     },
     "rr": {
+      "research_link": {
+        "label": "Vill du läsa på först? Så går ett centralbyte till.",
+        "url_key": "centralbyte"
+      },
       "cell": "Varken säker eller redo",
       "headline": "Både säkerhet och kapacitet behöver ses över.",
       "headline_by_safety": {
@@ -528,7 +546,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "summary": "Ett nytt elskåp kan lösa både säkerheten och kapaciteten på en gång, och är ofta det mest prisvärda steget.",
       "cta": {
         "primary": "radgivning",
-        "secondary": "centralbyte_how",
+        "secondary": null,
         "link": null
       }
     }
@@ -817,8 +835,8 @@ AMPYEC_DATA_EOF;
 		<div class="ampy-ec" lang="sv">
 			<div class="ampy-ec__noscript">
 				<div class="ampy-ec__block">
-					<h1>Är din elcentral säker och redo?</h1>
-					<p><strong>Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).</strong></p>
+					<h1>Är din elcentral säker?</h1>
+					<p><strong>Ta reda på om din central är säker och anpassad för framtida installationer!</strong></p>
 					<p>Elcentral-kollen ställer några snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
 					<ol>
 						<li>Hur gammalt är huset eller lägenheten?</li>
@@ -827,7 +845,7 @@ AMPYEC_DATA_EOF;
 						<li>Finns det en jordfelsbrytare i centralen?</li>
 						<li>Känner du igen något av det här hemma?</li>
 						<li>Hur stor är din huvudsäkring?</li>
-						<li>Planer på att installera nedanstående?</li>
+						<li>Har du planer på något av det här?</li>
 					</ol>
 					<p>Vill du gå vidare direkt? Läs om våra tjänster:</p>
 					<ul>
@@ -857,8 +875,8 @@ if ( ! function_exists( 'ampy_ec_dynamic_og' ) ) {
 	function ampy_ec_dynamic_og() {
 		return; // <- delete this line to enable
 		if ( ! is_page() && ! is_singular() ) { return; }
-		$title    = 'Är din elcentral säker och redo? | Ampy';
-		$desc     = 'Gör vårt test på under två minuter och få reda på om din central är säker och anpassad för framtida installationer (laddbox, värmepump och solceller).';
+		$title    = 'Är din elcentral säker? | Ampy';
+		$desc     = 'Ta reda på om din central är säker och anpassad för framtida installationer!';
 		$og_image = '';
 		echo "\n<meta property=\"og:title\" content=\"" . esc_attr( $title ) . "\" />\n";
 		echo "<meta property=\"og:description\" content=\"" . esc_attr( $desc ) . "\" />\n";
