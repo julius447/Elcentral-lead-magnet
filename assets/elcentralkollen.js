@@ -401,16 +401,6 @@
       block.appendChild(this.renderPdfCapture(dx));
       return block;
     }
-    // The real credential at the ask moment (under the primary CTA) — trust at the decision point.
-    // Copy lives in the data (meta.cta_cred); the strings below are only fallbacks.
-    renderCtaCred() {
-      const m = this.data.meta, c = m.cta_cred || {};
-      return el('p', { class: 'ampy-ec__cta-cred' }, [
-        (c.pre || 'Auktoriserat elinstallationsföretag, '),
-        el('a', { class: 'ampy-ec__cta-cred-link', href: m.verify_company_url, target: '_blank', rel: 'noopener noreferrer' }, (c.link || 'registrerat hos Elsäkerhetsverket')),
-        (c.post || '.')
-      ]);
-    }
     buildSummarySentence(dx) {
       const planNoun = { elbil: 'elbil', varmepump: 'värmepump', solceller: 'solceller eller batteri', renovering: 'din renovering' }[dx.ready.plan] || 'dina planer';
       const parts = [];

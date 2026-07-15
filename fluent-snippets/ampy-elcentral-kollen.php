@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.18.0 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.18.1 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -17,7 +17,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.18.0",
+    "version": "2.18.1",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -30,11 +30,6 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
     "pdf_webhook_url": null,
     "share_card_authority": "Auktoriserat elinstallationsföretag · registrerat hos Elsäkerhetsverket",
     "share_card_cta": "Gör testet gratis →",
-    "cta_cred": {
-      "pre": "Auktoriserat elinstallationsföretag, ",
-      "link": "registrerat hos Elsäkerhetsverket",
-      "post": "."
-    },
     "result_readmore": {
       "pre": "Nyfiken på att läsa mer? ",
       "label": "Se mer om elcentraler",
@@ -512,10 +507,6 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       }
     },
     "rs": {
-      "research_link": {
-        "label": "Vill du läsa på först? Så går ett centralbyte till.",
-        "url_key": "centralbyte"
-      },
       "cell": "Redo, men något bör ses över",
       "headline": "Något i säkerheten bör ses över innan du går vidare.",
       "headline_by_ready": {
@@ -539,10 +530,6 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       }
     },
     "rr": {
-      "research_link": {
-        "label": "Vill du läsa på först? Så går ett centralbyte till.",
-        "url_key": "centralbyte"
-      },
       "cell": "Varken säker eller redo",
       "headline": "Både säkerhet och kapacitet behöver ses över.",
       "headline_by_safety": {

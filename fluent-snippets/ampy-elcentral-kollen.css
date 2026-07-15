@@ -1,4 +1,4 @@
-/* Elcentral-kollen v2.18.0 - Fluent Snippet 1/3 (type: CSS).
+/* Elcentral-kollen v2.18.1 - Fluent Snippet 1/3 (type: CSS).
    FORMAT-ONLY port of assets/elcentralkollen.css: every rem -> px (1rem = 10px) so it renders
    identically WITHOUT a global html{font-size:62.5%} (dropped; it would resize the whole WP theme).
    @font-face points at the hosted woff2 (swap to the ampy.se Media Library for GDPR - see README).
@@ -207,8 +207,8 @@
 .ampy-ec__rail-bullet-icon svg { width: 22px; height: 22px; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
-/* (The old rail credential box and the slim mobile credential were removed in v2.17 — trust now
-   lives in the desktop bullets, the rail stat line, and the cta-cred line at the ask moment.) */
+/* (The old rail credential box + slim mobile credential were removed in v2.17; the under-CTA
+   credential line was removed in v2.18 — trust now lives in the desktop bullets + the rail stat line.) */
 
 /* Contact CTA in the rail (1:1 replica of ampy.se: phone link + gradient button "Kontakta oss").
    ampy.se's EXACT tokens (color/size/spacing). Always shown on desktop; on mobile only on
@@ -264,7 +264,7 @@
   .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; justify-content: center; gap: 12px; background-image: none; box-shadow: var(--shadow-sm); }
   .ampy-ec__rail-contact { background: var(--action-primary-strong); color: #fff; }
   .ampy-ec__rail-contact-icon { color: #fff; }
-  .ampy-ec__rail-phone { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-default); }
+  .ampy-ec__rail-phone { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-strong, #d3d6e2); box-shadow: var(--shadow-md); } /* deliberate secondary-button edge against the grey page */
   .ampy-ec__rail-phone-icon { color: var(--action-primary); }
   .ampy-ec__rail-phone > span:first-child::before { content: "Ring "; } /* mobile-only "Ring" prefix (label span only, not the icon) */
   /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
@@ -294,47 +294,9 @@
 .ampy-ec { scroll-margin-top: var(--ec-scroll-offset, 24px); }
 .ampy-ec__stage { min-width: 0; scroll-margin-top: var(--ec-scroll-offset, 24px); }
 
-/* ============================================================================
-   DESKTOP SCALE (≥1024px) — larger typography (Ampy body scale 17–18px), more generous
-   cards + a less compact rail. MOBILE (<1024px) is PERFECT and is NOT touched: every bump
-   lives only in this media query.
-   ============================================================================ */
-@media (min-width: 1024px) {
-  /* More generous cards (Ampy 2xl spacing) */
-  .ampy-ec__block { padding: var(--space-13) var(--space-13); }
-  /* Rail typography is fixed (= Elkollen hero); no desktop bumps that deviate from the reference. */
-
-  /* Questions */
-  .ampy-ec__q-title { font-size: clamp(26px, 12px + 1.8vw, 32px); margin-bottom: var(--space-11); }
-  .ampy-ec__q-subtitle { font-size: var(--fs-15); }
-  .ampy-ec__options { gap: var(--space-6); }
-  .ampy-ec__option { min-height: 64px; padding: var(--space-7) var(--space-9); }
-  .ampy-ec__option-title { font-size: var(--fs-18); }
-  .ampy-ec__option-clarifier { font-size: var(--fs-15); }
-  .ampy-ec__info-text { font-size: var(--fs-15); }
-
-  /* Start (slide 1) — one cohesive group, lifted into the upper portion (owner: "rubriken/CTA:n kan
-     flyttas upp lite, ingen spacing-logik"). Top-aligned with a generous top pad so the group sits
-     above the midline; even internal rhythm illu→heading→CTA→tid. */
-  .ampy-ec__start { justify-content: flex-start; padding-top: 90px; padding-bottom: var(--space-13); }
-  .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
-  .ampy-ec__start-illu { width: 120px; height: 120px; margin-top: 0; margin-bottom: var(--space-9); }
-  .ampy-ec__start-heading { font-size: clamp(28px, 14px + 2vw, 36px); margin-bottom: var(--space-9); }
-  .ampy-ec__cta-primary.ampy-ec__start-cta { margin-top: 0; margin-bottom: var(--space-7); }
-
-  /* Verdict */
-  .ampy-ec { --rhythm-section: var(--space-13); } /* section rhythm grows with the desktop typography */
-  .ampy-ec__dualstatus { margin-bottom: var(--space-11); } /* a touch tighter than the section rhythm (owner) */
-  .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; margin-bottom: var(--space-11); }
-  .ampy-ec__findings-head { margin-bottom: var(--space-8); }
-  .ampy-ec__finding-text { font-size: var(--fs-18); }
-  .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 20px; } /* line-height icon + SVG follow the text size */
-  .ampy-ec__findings { gap: var(--space-7); } /* the air grows with the text size (mobile 12px → desktop 16px) */
-  .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
-  .ampy-ec__pill { font-size: var(--fs-18); }
-  .ampy-ec__statusrow-axis { font-size: var(--fs-15); }
-  .ampy-ec__lead-intro { max-width: 52ch; }
-}
+/* NOTE: the DESKTOP SCALE (≥1024px) block lives at the END of this file (just before the
+   reduced-motion block). It MUST come after every base component rule it overrides — media
+   queries add no specificity, so at equal specificity the later source wins. Keep it last. */
 
 /* ============================================================================
    BLOCK (the card)
@@ -537,9 +499,9 @@
   /* Owner: lead title a touch bigger + a touch closer to "Tillbaka till beskedet". */
   .ampy-ec__lead-back { margin-bottom: var(--space-5); }
   .ampy-ec__lead-title { font-size: 22px; }
-  /* The tall start card is the focus, but its content should sit in the upper-middle, not dead
-     centre (which left a big empty top). Bias up. */
-  .ampy-ec__start { justify-content: flex-start; padding-top: 70px; }
+  /* The tall start card is the focus; centre-with-lift so the void splits instead of pooling at the
+     bottom and the group sits a touch above the midline (not crammed to the top). */
+  .ampy-ec__start { justify-content: center; padding-top: 0; padding-bottom: 40px; }
   .ampy-ec__start-illu { margin-top: 0; }
 }
 
@@ -574,7 +536,7 @@
 /* "Nyfiken på att läsa mer? Se mer om elcentraler" — quiet read-more line directly under the primary
    CTA (owner v2.18). Replaces the old credential + bottom-of-card research link. */
 .ampy-ec__readmore { margin: var(--space-6) 0 0; text-align: center; font-size: var(--fs-14); font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
-.ampy-ec__readmore-link { color: var(--action-primary-text); text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__readmore-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
 .ampy-ec__readmore-link:hover { color: var(--action-primary-strong); }
 .ampy-ec__readmore-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 /* Lead-in text above a cta-link (e.g. "Din central klarar en laddbox." + clickable "Räkna ut din besparing"). */
@@ -643,6 +605,47 @@
 @media (max-width: 360px) {
   .ampy-ec__block { padding: var(--space-7); }
   .ampy-ec__options { gap: var(--space-4); }
+}
+
+/* ============================================================================
+   DESKTOP SCALE (≥1024px) — larger typography (Ampy body scale 17–18px), more generous cards.
+   MUST be last: media queries add no specificity, so this has to come AFTER every base rule it
+   overrides (BLOCK/VERDICT/CTA) to win at equal specificity. MOBILE (<1024px) is untouched.
+   ============================================================================ */
+@media (min-width: 1024px) {
+  /* More generous cards (Ampy 2xl spacing) */
+  .ampy-ec__block { padding: var(--space-13) var(--space-13); }
+
+  /* Questions */
+  .ampy-ec__q-title { font-size: clamp(26px, 12px + 1.8vw, 32px); margin-bottom: var(--space-11); }
+  .ampy-ec__q-subtitle { font-size: var(--fs-15); }
+  .ampy-ec__options { gap: var(--space-6); }
+  .ampy-ec__option { min-height: 64px; padding: var(--space-7) var(--space-9); }
+  .ampy-ec__option-title { font-size: var(--fs-18); }
+  .ampy-ec__option-clarifier { font-size: var(--fs-15); }
+  .ampy-ec__info-text { font-size: var(--fs-15); }
+
+  /* Start (slide 1) — centre-with-lift: the group centres inside (height − padding-bottom), so it
+     sits a touch ABOVE the midline (owner: "flytta upp lite"), not crammed to the top edge. Even
+     internal rhythm illu→heading→CTA→tid. */
+  .ampy-ec__start { justify-content: center; padding-top: 0; padding-bottom: var(--space-13); }
+  .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
+  .ampy-ec__start-illu { width: 120px; height: 120px; margin-top: 0; margin-bottom: var(--space-9); }
+  .ampy-ec__start-heading { font-size: clamp(28px, 14px + 2vw, 36px); margin-bottom: var(--space-9); }
+  .ampy-ec__cta-primary.ampy-ec__start-cta { margin-top: 0; margin-bottom: var(--space-7); }
+
+  /* Verdict */
+  .ampy-ec { --rhythm-section: var(--space-13); } /* section rhythm grows with the desktop typography */
+  .ampy-ec__dualstatus { width: fit-content; min-width: 420px; max-width: 100%; margin-bottom: var(--space-11); } /* plaque hugs the rows, not a half-empty band; a touch tighter than section rhythm */
+  .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; margin-bottom: var(--space-11); }
+  .ampy-ec__findings-head { margin-bottom: var(--space-8); }
+  .ampy-ec__finding-text { font-size: var(--fs-18); }
+  .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 20px; } /* line-height icon + SVG follow the text size */
+  .ampy-ec__findings { gap: var(--space-7); } /* the air grows with the text size (mobile 12px → desktop 16px) */
+  .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
+  .ampy-ec__pill { font-size: var(--fs-18); }
+  .ampy-ec__statusrow-axis { font-size: var(--fs-15); }
+  .ampy-ec__lead-intro { max-width: 52ch; }
 }
 
 @media (prefers-reduced-motion: reduce) {
