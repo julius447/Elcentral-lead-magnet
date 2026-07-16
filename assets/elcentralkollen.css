@@ -169,9 +169,8 @@ html { font-size: 62.5%; }
      card height --ec-q-minh). Centered just like on slide 1 AND "fixed" — it does NOT move when a
      multi-select card (Q5/Q7) grows taller, because the rail box keeps its height instead of following the taller card. */
   .ampy-ec__rail { align-self: start; min-height: var(--ec-q-minh); display: flex; flex-direction: column; justify-content: center; padding-top: 0; }
-  /* Verdict/form: the card is much taller → top-align + sticky, no fixed-height centering. */
-  .ampy-ec__shell[data-view="result"] .ampy-ec__rail,
-  .ampy-ec__shell[data-view="lead"] .ampy-ec__rail { min-height: 0; justify-content: flex-start; position: sticky; top: var(--space-9); padding-top: var(--space-3); }
+  /* Verdict/form: SAME geometry as the questions (owner v2.19: the rail must never jump between
+     views) — the content stays centered in the same 56rem box on every slide, incl. the besked. */
 }
 
 /* RAIL — brand + thesis + verifiable trust */
@@ -189,9 +188,9 @@ html { font-size: 62.5%; }
 /* Trust bullets = hero__trust: 1.5rem/500/icon 2rem teal, margin-top .3rem. Color softened a touch
    toward Elkollen's live rendering (dark slate, not pure navy) — owner adjustment, fine-tune when needed. */
 .ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 2.8rem; display: flex; flex-direction: column; gap: 1.6rem; }
-.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.7rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); } /* a notch under the 1.8rem lead → readable hierarchy for a 55-yr-old reader */
-.ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2.2rem; height: 2.2rem; min-width: 2.2rem; margin-top: 0.2rem; color: var(--action-primary); }
-.ampy-ec__rail-bullet-icon svg { width: 2.2rem; height: 2.2rem; }
+.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.7rem; line-height: 1.45; font-weight: 500; color: var(--text-secondary); } /* 1:1 Elkollen hero__trust (v7.3.6): 1.7rem/500/slate */
+.ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 2rem; height: 2rem; min-width: 2rem; margin-top: 0.2rem; color: var(--action-primary); }
+.ampy-ec__rail-bullet-icon svg { width: 2rem; height: 2rem; }
 .ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
 /* (The old rail credential box + slim mobile credential were removed in v2.17; the under-CTA
@@ -219,7 +218,7 @@ html { font-size: 62.5%; }
   .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { opacity: 0.92; box-shadow: 0 0 20px 0 rgba(9, 11, 50, 0.10); }
 }
 /* Sourced stakes line (rail.stat) — under the contact CTAs on desktop, under the tool on mobile. */
-.ampy-ec__rail-stat { margin: var(--space-7) 0 0; font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
+.ampy-ec__rail-stat { margin: var(--space-7) 0 0; font-size: var(--fs-14); font-weight: 450; line-height: 1.6; color: var(--text-secondary); max-width: 46ch; }
 /* Linked but not visually flagged (owner): no underline at rest, subtle affordance on hover only. */
 .ampy-ec__rail-stat-link { color: inherit; text-decoration: none; }
 .ampy-ec__rail-stat-link:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 2px; }
@@ -232,8 +231,9 @@ html { font-size: 62.5%; }
      shell grid items, reordered around the stage. Controlled by JS-set data-view (not :has()). */
   .ampy-ec__shell { gap: var(--space-7); } /* tighter hero rhythm: heading → lead → tool (owner) */
   .ampy-ec__rail { display: contents; }
-  .ampy-ec__rail-heading { order: 1; margin: 0; }
-  .ampy-ec__rail-lead { order: 2; margin: 0; }
+  /* Mobile hero text is CENTERED (owner v2.19), with a touch more air lead → tool. */
+  .ampy-ec__rail-heading { order: 1; margin: 0; text-align: center; }
+  .ampy-ec__rail-lead { order: 2; margin: 0 auto var(--space-4); text-align: center; }
   .ampy-ec__stage { order: 3; }
   .ampy-ec__rail-ask { order: 4; margin: var(--space-9) auto 0; }
   .ampy-ec__rail-actions { order: 5; }
@@ -246,20 +246,19 @@ html { font-size: 62.5%; }
   .ampy-ec__rail-ask { display: block; text-align: center; max-width: 42rem; }
   .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 42rem; margin-inline: auto; width: 100%; }
   .ampy-ec__rail-stat { display: block; margin: 0 auto; max-width: 42rem; text-align: center; }
-  /* Mobile CTA style = the behörighetskollen pattern: SOLID green "Kontakta oss" + WHITE bordered
-     "Ring 010…" (not the desktop gradient pills). */
-  .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; justify-content: center; gap: 1.2rem; background-image: none; box-shadow: var(--shadow-sm); }
-  .ampy-ec__rail-contact { background: var(--action-primary-strong); color: #fff; }
-  .ampy-ec__rail-contact-icon { color: #fff; }
-  .ampy-ec__rail-phone { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-strong, #d3d6e2); box-shadow: var(--shadow-md); } /* deliberate secondary-button edge against the grey page */
-  .ampy-ec__rail-phone-icon { color: var(--action-primary); }
-  .ampy-ec__rail-phone > span:first-child::before { content: "Ring "; } /* mobile-only "Ring" prefix (label span only, not the icon) */
+  /* Mobile contact CTAs = the SAME gradient pills as the desktop rail, 1:1 (owner v2.19), just
+     full-width and stacked. Order flips: after "Hellre prata med en elektriker direkt?" the PHONE
+     comes first, then Kontakta oss (logical for the customer). */
+  .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; }
+  .ampy-ec__rail-phone { order: -1; }
   /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
      bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin. */
   .ampy-ec__shell .ampy-ec__cta-primary, .ampy-ec__shell .ampy-ec__cta-secondary { max-width: 44rem; margin-inline: auto; }
-  /* Reserve = full sticky-bar height (pad 1.4 + button 4.8 + pad 1.4 ≈ 7.6rem) + safe-area, so the
-     share/readmore never rest hidden behind the bar mid-scroll. */
-  .ampy-ec__shell[data-view="result"] .ampy-ec__block.ampy-ec__result { padding-bottom: calc(8rem + env(safe-area-inset-bottom)); }
+  /* Compact card tail (owner v2.19: the void under the share button was way too big). The sticky
+     bar auto-hides as the contact block right below the card enters view, so only a MODEST reserve
+     is needed; the share row also pulls up tight under the readmore. */
+  .ampy-ec__shell[data-view="result"] .ampy-ec__block.ampy-ec__result { padding-bottom: calc(var(--space-9) + env(safe-area-inset-bottom)); }
+  .ampy-ec__share-row { margin-top: var(--space-2); padding-top: 0; }
 }
 
 /* ---- Start screen (slide 1) ---- */
@@ -625,6 +624,10 @@ html { font-size: 62.5%; }
 @media (min-width: 1024px) {
   /* More generous cards (Ampy 2xl spacing) */
   .ampy-ec__block { padding: var(--space-13) var(--space-13); }
+
+  /* Rail = 1:1 Elkollen hero v7.3.6 desktop bump: paragraph 2.0rem/1.6 (H1 keeps its size — our
+     H1 is shorter than Elkollen's so the current size balances; owner v2.19). */
+  .ampy-ec__rail-lead { font-size: 2rem; line-height: 1.6; }
 
   /* Questions */
   .ampy-ec__q-title { font-size: clamp(2.6rem, 1.2rem + 1.8vw, 3.2rem); margin-bottom: var(--space-11); }

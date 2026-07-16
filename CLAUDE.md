@@ -138,11 +138,12 @@ php -l elcentral-kollen.php                 # lint (needs PHP locally / on stagi
 
 - Two-pane grid: left **rail** (brand: H1 + lead + 3 trust bullets + 2 gradient contact CTAs),
   right **stage** (the quiz card). Grid proportions are `44fr / 56fr` to match Elkollen.
-- The rail is **frozen-centered**: top-aligned with `min-height: var(--ec-q-minh)` + flex column +
-  `justify-content: center`, so its content is centered against the *normal* card height and does
-  **not** move when the taller multi-select slides (Q5/Q7) grow. The result/lead views (much taller
-  cards) override to top-align + sticky. Don't revert this to plain `align-items: center` — that
-  reintroduces the shift between slides.
+- The rail is **frozen-centered on EVERY view** (v2.19, owner decision): top-aligned with
+  `min-height: var(--ec-q-minh)` + flex column + `justify-content: center`, so its content is
+  centered against the *normal* card height and does **not** move — not between question slides,
+  and not when entering the (much taller) result/lead views. There is no result/lead override any
+  more; do not reintroduce one (the owner explicitly rejected the rail jumping between Q7 and the
+  besked). Don't revert to plain `align-items: center` either — that reintroduces the shift.
 - Mobile rail visibility is driven by a JS-set `data-view` attribute on `.ampy-ec__shell`
   (`start`/`question`/`result`/`lead`), **not** `:has()`, so the trust bullets + contact CTAs
   survive on older iOS Safari. Keep using `data-view` for view-conditional rail rules.
