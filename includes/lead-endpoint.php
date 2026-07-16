@@ -32,8 +32,18 @@ add_action( 'rest_api_init', function () {
 } );
 
 function ampy_ec_handle_lead( WP_REST_Request $request ) {
-	// 1. Honeypot — bot om något finns i `webbplats`.
+	// 0. Per-IP-throttle — utan denna kan en besökare med giltig nonce mail-bomba admin_email.
+	$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+	$key = 'ampy_ec_rl_' . md5( $ip );
+	$hits = (int) get_transient( $key );
+	if ( $hits >= 5 ) {
+		return new WP_Error( 'ampy_ec_ratelimit', 'För många försök. Vänta en stund och försök igen.', array( 'status' => 429 ) );
+	}
+	set_transient( $key, $hits + 1, 10 * MINUTE_IN_SECONDS );
+
+	// 1. Honeypot — bot om något finns i `webbplats`. Logga tripp server-side så tysta tapp är observerbara.
 	if ( ! empty( $request->get_param( 'webbplats' ) ) ) {
+		error_log( '[Elcentral-kollen] honeypot trip från IP ' . $ip );
 		return new WP_REST_Response( array( 'ok' => true ), 200 ); // låtsas-success
 	}
 

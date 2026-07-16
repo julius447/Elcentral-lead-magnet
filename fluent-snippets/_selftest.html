@@ -21,7 +21,7 @@
   <div class="ampy-ec" lang="sv"></div>
   <script>window.AmpyEC = window.AmpyEC || {}; window.AmpyEC.data = {
   "meta": {
-    "version": "2.19.0",
+    "version": "2.19.1",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -346,9 +346,7 @@
       "escalation": {
         "trigger_id": "brand_lukt",
         "min_level": "forhojd",
-        "forces_finding": "akut_kontroll",
-        "overrides_green": true,
-        "floor_only": true
+        "_docs_note": "Engine reads ONLY trigger_id + min_level. The akut behavior (alert box, Ring-first CTA, green-block) is driven by dx.safety.escalation in the renderer, not by extra flags here."
       }
     },
     "uncertainty": {

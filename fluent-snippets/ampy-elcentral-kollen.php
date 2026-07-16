@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.19.0 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.19.1 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -17,7 +17,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.19.0",
+    "version": "2.19.1",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -342,9 +342,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "escalation": {
         "trigger_id": "brand_lukt",
         "min_level": "forhojd",
-        "forces_finding": "akut_kontroll",
-        "overrides_green": true,
-        "floor_only": true
+        "_docs_note": "Engine reads ONLY trigger_id + min_level. The akut behavior (alert box, Ring-first CTA, green-block) is driven by dx.safety.escalation in the renderer, not by extra flags here."
       }
     },
     "uncertainty": {

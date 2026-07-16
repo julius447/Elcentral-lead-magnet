@@ -71,6 +71,25 @@ JS_HEADER = (
 # ---------- PHP (mount + fallback + data) ----------
 data_raw = SRC_DATA.read_text().strip()
 assert '</' not in data_raw and 'AMPYEC_DATA_EOF' not in data_raw, 'data needs escaping/terminator change'
+assert not re.search(r'<!--|<script', data_raw, re.I), 'data contains a script/comment-open vector'
+
+# The noscript/SEO fallback is GENERATED from the data file (single source of truth) — the earlier
+# frozen literals silently drifted from the live copy across releases.
+import html as _html
+_data_obj = json.loads(data_raw)
+FB_H1 = _html.escape(_data_obj['meta']['page_heading'])
+FB_LEAD = _html.escape(_data_obj['meta']['page_lead'])
+FB_DISCLAIMER = _html.escape(_data_obj['meta']['disclaimer'])
+FB_QUESTIONS = '\n'.join('\t\t\t\t\t\t<li>%s</li>' % _html.escape(q['title']) for q in _data_obj['questions'])
+_svc_labels = {
+    'elbesiktning': 'Elbesiktning', 'centralbyte': 'Byta elcentral',
+    'jordfelsbrytare': 'Installera jordfelsbrytare', 'lastbalansering': 'Lastbalansering',
+    'uppsakring': 'Uppsäkring (öka huvudsäkringen)',
+}
+FB_SERVICES = '\n'.join(
+    '\t\t\t\t\t\t<li><a href="%s">%s</a></li>' % (_html.escape(url), _html.escape(_svc_labels.get(key, key)))
+    for key, url in _data_obj['meta']['service_pages'].items()
+)
 
 PHP = '''<?php
 /**
@@ -96,27 +115,17 @@ AMPYEC_DATA_EOF;
 		<div class="ampy-ec" lang="sv">
 			<div class="ampy-ec__noscript">
 				<div class="ampy-ec__block">
-					<h1>Är din elcentral säker?</h1>
-					<p><strong>Ta reda på om din central är säker och anpassad för framtida installationer!</strong></p>
+					<h1>%(fb_h1)s</h1>
+					<p><strong>%(fb_lead)s</strong></p>
 					<p>Elcentral-kollen ställer några snabba frågor om din elcentral och ger ett besked på två axlar: <strong>Säker?</strong> och <strong>Redo?</strong> Frågorna:</p>
 					<ol>
-						<li>Hur gammalt är huset eller lägenheten?</li>
-						<li>Är elcentralen utbytt eller original?</li>
-						<li>Vilka säkringar har du i centralen?</li>
-						<li>Finns det en jordfelsbrytare i centralen?</li>
-						<li>Känner du igen något av det här hemma?</li>
-						<li>Hur stor är din huvudsäkring?</li>
-						<li>Har du planer på något av det här?</li>
+%(fb_questions)s
 					</ol>
 					<p>Vill du gå vidare direkt? Läs om våra tjänster:</p>
 					<ul>
-						<li><a href="https://ampy.se/elservice/elbesiktning/">Elbesiktning</a></li>
-						<li><a href="https://ampy.se/elservice/elcentral/">Byta elcentral</a></li>
-						<li><a href="https://ampy.se/elservice/jordfelsbrytare/">Installera jordfelsbrytare</a></li>
-						<li><a href="https://ampy.se/elservice/lastbalansering/">Lastbalansering</a></li>
-						<li><a href="https://ampy.se/elservice/uppsakring/">Uppsäkring (öka huvudsäkringen)</a></li>
+%(fb_services)s
 					</ul>
-					<p class="ampy-ec__source-line">Vägledande bedömning baserad på dina svar. Den ersätter inte en besiktning på plats.</p>
+					<p class="ampy-ec__source-line">%(fb_disclaimer)s</p>
 				</div>
 			</div>
 		</div>
@@ -149,7 +158,7 @@ if ( ! function_exists( 'ampy_ec_dynamic_og' ) ) {
 	}
 	add_action( 'wp_head', 'ampy_ec_dynamic_og' );
 }
-''' % {'v': VERSION, 'data': data_raw}
+''' % {'v': VERSION, 'data': data_raw, 'fb_h1': FB_H1, 'fb_lead': FB_LEAD, 'fb_questions': FB_QUESTIONS, 'fb_services': FB_SERVICES, 'fb_disclaimer': FB_DISCLAIMER}
 
 (OUT / 'ampy-elcentral-kollen.php').write_text(PHP)
 

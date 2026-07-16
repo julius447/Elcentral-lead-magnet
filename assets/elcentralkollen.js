@@ -9,6 +9,14 @@
 (function () {
   'use strict';
 
+  // Safari/iOS <14 (old FB/IG webviews) lacks replaceChildren — without this the tool never boots there.
+  if (typeof Element !== 'undefined' && !Element.prototype.replaceChildren) {
+    Element.prototype.replaceChildren = function () {
+      while (this.firstChild) this.removeChild(this.firstChild);
+      for (var i = 0; i < arguments.length; i++) this.appendChild(arguments[i]);
+    };
+  }
+
   const ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
     checkCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
@@ -169,7 +177,7 @@
         const qid = byPrefix[seg[0]]; if (!qid) return;
         const q = this.questions.find(qq => qq.id === qid); if (!q) return;
         const digits = seg.slice(1);
-        if (q.type === 'multi') { out[qid] = digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id); const exq = q.options.find(o => o.exclusive); if (exq && out[qid].includes(exq.id)) out[qid] = [exq.id]; }
+        if (q.type === 'multi') { out[qid] = Array.from(new Set(digits.split('').map(d => q.options[parseInt(d, 10)]).filter(Boolean).map(o => o.id))); const exq = q.options.find(o => o.exclusive); if (exq && out[qid].includes(exq.id)) out[qid] = [exq.id]; } // Set-dedupe: a crafted ?q= with repeated digits must not double-count symptom weights
         else { const idx = parseInt(digits, 10); const o = (digits.length === 1 && idx >= 0 && idx < q.options.length) ? q.options[idx] : null; if (o) out[qid] = o.id; }
       });
       return out;
@@ -185,7 +193,14 @@
       const url = window.location.pathname + '?' + p.toString() + window.location.hash;
       if (push) history.pushState({ step: this.N + 1 }, '', url); else history.replaceState({ step: this.N + 1 }, '', url);
     }
-    bindHistory() { window.addEventListener('popstate', () => { this.leadOpen = false; this.hydrateFromUrl(); this.render(); }); }
+    bindHistory() { window.addEventListener('popstate', () => {
+      this.leadOpen = false;
+      // Back from a fresh verdict pops to the clean URL (no ?q=): reset explicitly — otherwise
+      // hydrateFromUrl no-ops and the view stays frozen on the result (dead back press).
+      if (!new URLSearchParams(window.location.search).has('q')) { this.answers = {}; this.step = (window.history.state && typeof window.history.state.step === 'number') ? window.history.state.step : 0; }
+      else this.hydrateFromUrl();
+      this.render();
+    }); }
 
     answerSingle(q, optionId) { this.answers[q.id] = optionId; this.advance(); }
     toggleMulti(q, optionId) {
@@ -285,6 +300,7 @@
       const noscript = this.mount.querySelector('.ampy-ec__noscript'); if (noscript) noscript.remove();
       if (!this.stage) this.buildShell();
       this._stickyDef = null; // reset each render; renderResult sets it fresh (never reuse a stale def on a non-result view)
+      if (this._closeShareMenu) { try { this._closeShareMenu(); } catch (e) {} this._closeShareMenu = null; } // an open share menu must release its document listeners before the stage is replaced
       // JS-set view state → CSS fallback for :has() (rail bullets + contact CTAs on mobile) on iOS Safari <15.4.
       this.shell.dataset.view = this.step <= 0 ? 'start' : (this.step > this.N ? (this.leadOpen ? 'lead' : 'result') : 'question');
       let block;
@@ -318,7 +334,7 @@
       // filter/contain ancestor of the shortcode mount (common in Bricks) would otherwise trap
       // position:fixed. The wrapper re-establishes the token scope (--bg-primary etc.) + lang="sv".
       if (!this._stickyBar) {
-        const portal = el('div', { class: 'ampy-ec ampy-ec__sticky-portal', lang: 'sv' });
+        const portal = el('div', { class: 'ampy-ec ampy-ec__sticky-portal', lang: 'sv', data: { booted: 'true' } }); // booted flag: a re-scanning boot() must never instantiate a wizard inside the portal
         this._stickyBar = el('div', { class: 'ampy-ec__stickycta', hidden: true });
         portal.appendChild(this._stickyBar);
         (document.body || document.documentElement).appendChild(portal);
@@ -407,8 +423,14 @@
           [check, el('span', { class: 'ampy-ec__option-body' }, [el('span', { class: 'ampy-ec__option-title' }, opt.label), opt.clarifier ? el('span', { class: 'ampy-ec__option-clarifier' }, opt.clarifier) : null])]);
         refs[opt.id] = { btn, check }; group.appendChild(el('li', {}, btn));
       });
-      const hint = el('p', { class: 'ampy-ec__multi-hint', id: 'ampy-ec-multi-hint', role: 'status', 'aria-live': 'polite' }, this.data.copy.multi_aria || 'Välj minst ett alternativ.');
-      const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) { this.advance(); } else { hint.classList.add('is-shown'); const first = group.querySelector('.ampy-ec__option'); if (first) first.focus(); } } }, ['Fortsätt', iconSpan('arrowRight')]);
+      const hintCopy = this.data.copy.multi_aria || 'Välj minst ett alternativ.';
+      const hint = el('p', { class: 'ampy-ec__multi-hint', id: 'ampy-ec-multi-hint', role: 'status', 'aria-live': 'polite' }, hintCopy);
+      const fortsatt = el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--outline', type: 'button', 'aria-describedby': 'ampy-ec-multi-hint', onclick: () => { const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : []; if (cur.length) { this.advance(); } else {
+        hint.classList.add('is-shown');
+        // Re-set the text so the live region actually ANNOUNCES (a class toggle on unchanged text is silent in SRs).
+        hint.textContent = ''; requestAnimationFrame(() => { hint.textContent = hintCopy; });
+        const first = group.querySelector('.ampy-ec__option'); if (first) first.focus();
+      } } }, ['Fortsätt', iconSpan('arrowRight')]);
       const sync = () => {
         const cur = Array.isArray(this.answers[q.id]) ? this.answers[q.id] : [];
         q.options.forEach(opt => { const on = cur.includes(opt.id), r = refs[opt.id]; r.btn.classList.toggle('is-selected', on); r.btn.setAttribute('aria-checked', String(on)); r.check.replaceChildren(); if (on) r.check.appendChild(iconSpan('check')); });
@@ -585,7 +607,9 @@
             tel = field('telefon', 'Telefon', 'tel', 'tel', 'tel', { enterkeyhint: 'next' }),
             post = field('postnummer', 'Postnummer', 'text', 'numeric', 'postal-code', { enterkeyhint: 'done' });
       form.appendChild(el('div', { class: 'ampy-ec__lead-grid' }, [namn.w, epost.w, tel.w, post.w]));
-      const honey = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__lead-hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
+      // Honeypot INPUT NAME is a non-word ("webbplats" invited browser URL-autofill → silent lead drops);
+      // the webhook payload key stays `webbplats` (documented contract).
+      const honey = el('input', { type: 'text', name: 'hp_extra', class: 'ampy-ec__lead-hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
       form.appendChild(honey);
       const errorBox = el('p', { class: 'ampy-ec__lead-error', role: 'alert', hidden: true });
       form.appendChild(errorBox);
@@ -600,7 +624,7 @@
         e.preventDefault(); errorBox.hidden = true;
         if (honey.value) return;
         if (!namn.input.value.trim() || !epost.input.value.trim() || !tel.input.value.trim() || !post.input.value.trim()) {
-          errorBox.textContent = f.error_required || 'Fyll i alla fält.'; errorBox.hidden = false; return;
+          errorBox.hidden = false; errorBox.textContent = ''; requestAnimationFrame(() => { errorBox.textContent = f.error_required || 'Fyll i alla fält.'; }); return; // unhide FIRST, set text next frame → the role=alert reliably announces (VoiceOver/Safari miss text set while display:none)
         }
         submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
         this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
@@ -615,7 +639,7 @@
           const t = block.querySelector('[data-focus]'); if (t) { try { t.focus({ preventScroll: true }); } catch (e2) {} }
         }).catch(() => {
           submit.disabled = false; submit.textContent = f.submit || 'Boka rådgivning';
-          errorBox.textContent = f.error_send || 'Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.'; errorBox.hidden = false;
+          errorBox.hidden = false; errorBox.textContent = ''; requestAnimationFrame(() => { errorBox.textContent = f.error_send || 'Något gick fel. Ring oss på 010-265 79 79 så hjälper vi dig.'; });
         });
       });
       block.appendChild(form);
@@ -627,7 +651,12 @@
       const url = this.data.meta.lead_webhook_url;
       const payload = Object.assign({ cell: dx.cell, vector: this.encodeVector() }, fields);
       if (!url) return new Promise((res) => setTimeout(res, 600)); // no webhook (preview) → simulate success
-      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then(r => { if (!r.ok) throw new Error('bad status'); return r.json().catch(() => ({})); });
+      // 10s timeout: a hung webhook must never leave the form stuck on "Skickar…" — the catch path
+      // shows the "Ring oss" fallback so the lead is never silently lost.
+      const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) };
+      let timer = null;
+      if (typeof AbortController === 'function') { const ac = new AbortController(); opts.signal = ac.signal; timer = setTimeout(() => ac.abort(), 10000); }
+      return fetch(url, opts).then(r => { if (timer) clearTimeout(timer); if (!r.ok) throw new Error('bad status'); return r.json().catch(() => ({})); }).catch(e => { if (timer) clearTimeout(timer); throw e; });
     }
     renderShareRow(dx) {
       const row = el('div', { class: 'ampy-ec__share-row' });
@@ -640,7 +669,7 @@
       const label = (dx.cell === 'sr') ? this.data.copy.pdf_capture_green : this.data.copy.pdf_capture;
       const wrap = el('div', { class: 'ampy-ec__pdf' });
       const status = el('p', { class: 'ampy-ec__pdf-status', role: 'status', 'aria-live': 'polite' });
-      const hp = el('input', { type: 'text', name: 'webbplats', class: 'ampy-ec__hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
+      const hp = el('input', { type: 'text', name: 'hp_extra', class: 'ampy-ec__hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
       const email = el('input', { type: 'email', id: 'ampy-ec-email', class: 'ampy-ec__pdf-input', placeholder: 'din@epost.se', required: true, autocomplete: 'email', inputmode: 'email', enterkeyhint: 'send', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' });
       const consentBox = el('input', { type: 'checkbox', required: true });
       const toggle = el('button', { class: 'ampy-ec__pdf-toggle', type: 'button', 'aria-expanded': 'false' }, [iconSpan('mail'), label]);
@@ -664,20 +693,23 @@
       // A non-green verdict shares a neutral sentence (never the telegraphic buildSummarySentence in public sharing).
       const shareText = (dx.cell === 'sr' && dx.safety.state === 'lag') ? ((dx.ready.state === 'redo_marginal') ? this.data.copy.share_green_marginal : this.data.copy.share_green) : (this.data.copy.share_neutral || this.buildSummarySentence(dx));
       const anchor = el('span', { class: 'ampy-ec__share-anchor' });
-      const menu = el('div', { class: 'ampy-ec__share-menu', role: 'menu', 'aria-label': 'Dela resultatet', hidden: true });
+      // Plain DISCLOSURE (not role=menu): a real menu requires roving arrow-key focus that a simple
+      // list of links doesn't implement — SRs handle button[aria-expanded] + links honestly.
+      const menu = el('div', { class: 'ampy-ec__share-menu', 'aria-label': 'Dela resultatet', hidden: true });
       const enc = encodeURIComponent;
       // Channels that matter for a Swedish homeowner arriving from Facebook — Facebook + e-post +
       // copy link. (X/Reddit dropped: negligible for this audience and mixed the icon set.)
       [{ label: 'Facebook', icon: 'facebook', href: 'https://www.facebook.com/sharer/sharer.php?u=' + enc(shareUrl) },
        { label: 'E-post', icon: 'mail', href: 'mailto:?subject=' + enc(shareTitle) + '&body=' + enc(shareText + ' ' + shareUrl) }
-      ].forEach(t => menu.appendChild(el('a', { class: 'ampy-ec__share-item', role: 'menuitem', href: t.href, target: '_blank', rel: 'noopener noreferrer', onclick: () => closeMenu() }, [iconSpan(t.icon, 'ampy-ec__share-item-icon'), el('span', {}, t.label)])));
-      menu.appendChild(el('button', { class: 'ampy-ec__share-item', type: 'button', role: 'menuitem', onclick: async () => { try { await navigator.clipboard.writeText(shareUrl); flash('Länk kopierad.'); } catch (e) { flash('Kopiera URL:en manuellt.'); } closeMenu(); } }, [iconSpan('link', 'ampy-ec__share-item-icon'), el('span', {}, 'Kopiera länk')]));
-      const flash = (msg) => { status.textContent = msg; status.dataset.visible = 'true'; clearTimeout(this._flashT); this._flashT = setTimeout(() => { status.dataset.visible = 'false'; }, 2400); };
-      const closeMenu = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', onDoc, true); document.removeEventListener('keydown', onKey, true); };
-      const openMenu = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); document.addEventListener('click', onDoc, true); document.addEventListener('keydown', onKey, true); };
+      ].forEach(t => menu.appendChild(el('a', { class: 'ampy-ec__share-item', href: t.href, target: '_blank', rel: 'noopener noreferrer', onclick: () => closeMenu() }, [iconSpan(t.icon, 'ampy-ec__share-item-icon'), el('span', {}, t.label)])));
+      menu.appendChild(el('button', { class: 'ampy-ec__share-item', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(shareUrl); flash('Länk kopierad.'); } catch (e) { flash('Kopiera URL:en manuellt.'); } closeMenu(); } }, [iconSpan('link', 'ampy-ec__share-item-icon'), el('span', {}, 'Kopiera länk')]));
+      const flash = (msg) => { status.textContent = msg; status.dataset.visible = 'true'; clearTimeout(this._flashT); this._flashT = setTimeout(() => { status.dataset.visible = 'false'; setTimeout(() => { status.textContent = ''; }, 250); }, 2400); }; // empty the live region after the fade so SR users never re-encounter a stale toast
+      const closeMenu = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', onDoc, true); document.removeEventListener('keydown', onKey, true); if (this._closeShareMenu === closeMenu) this._closeShareMenu = null; };
+      this._closeShareMenu = null;
+      const openMenu = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); document.addEventListener('click', onDoc, true); document.addEventListener('keydown', onKey, true); this._closeShareMenu = closeMenu; };
       const onDoc = (e) => { if (!anchor.contains(e.target)) closeMenu(); };
       const onKey = (e) => { if (e.key === 'Escape') { closeMenu(); btn.focus(); } };
-      const btn = el('button', { class: 'ampy-ec__share', type: 'button', 'aria-label': 'Dela resultatet', 'aria-haspopup': 'menu', 'aria-expanded': 'false', title: 'Dela resultatet', onclick: async () => {
+      const btn = el('button', { class: 'ampy-ec__share', type: 'button', 'aria-label': 'Dela resultatet', 'aria-expanded': 'false', title: 'Dela resultatet', onclick: async () => {
         const isTouch = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
         if (navigator.share && isTouch) { let file = null; try { file = await this.generateShareImage(dx, shareUrl, shareText); } catch (e) {} try { const payload = { title: shareTitle, text: shareText, url: shareUrl }; if (file && navigator.canShare && navigator.canShare({ files: [file] })) payload.files = [file]; await navigator.share(payload); return; } catch (e) {} }
         if (menu.hidden) openMenu(); else closeMenu();
@@ -715,5 +747,8 @@
   }
   window.AmpyEC = window.AmpyEC || {};
   window.AmpyEC.diagnose = diagnose; window.AmpyEC.computeSafety = computeSafety; window.AmpyEC.computeReady = computeReady; window.AmpyEC.computeCell = computeCell; window.AmpyEC.boot = boot;
-  document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('.ampy-ec').forEach(boot); });
+  // Boot immediately if the DOM is already parsed (WP Rocket delay-JS / Autoptimize defer / late
+  // injection fire the script AFTER DOMContentLoaded — a bare listener would never run).
+  const init = () => { document.querySelectorAll('.ampy-ec').forEach(boot); };
+  if (document.readyState !== 'loading') init(); else document.addEventListener('DOMContentLoaded', init);
 })();

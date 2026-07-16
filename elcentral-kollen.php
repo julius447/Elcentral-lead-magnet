@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.19.0
+ * Version:           2.19.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.19.0' );
+define( 'AMPY_EC_VERSION', '2.19.1' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
@@ -76,11 +76,28 @@ function ampy_ec_strip_internal( $node ) {
 }
 
 /**
+ * Har den aktuella sidan verktyget? Kollar post_content OCH Bricks postmeta
+ * (_bricks_page_content_2) — samma detektering som OG-blocket.
+ */
+function ampy_ec_page_has_tool() {
+	if ( ! is_singular() && ! is_page() ) { return false; }
+	$post = get_post();
+	if ( ! $post ) { return false; }
+	if ( has_shortcode( (string) $post->post_content, 'elcentralkollen' ) ) { return true; }
+	$bricks = get_post_meta( $post->ID, '_bricks_page_content_2', true );
+	return is_string( $bricks ) && strpos( $bricks, 'elcentralkollen' ) !== false;
+}
+
+/**
  * Registrera assets — laddas bara på sidor som har shortcoden (ingen global vikt).
+ * VIKTIGT: style enqueue:as HÄR (före wp_head) när sidan har verktyget — enqueue inne i
+ * shortcode-callbacken körs efter wp_head och skulle skriva CSS:en i FOOTERN → FOUC
+ * (kalla FB-mobilbesökare ser ostylat innehåll under laddningen).
  */
 function ampy_ec_register_assets() {
 	wp_register_style( 'ampy-ec', AMPY_EC_URL . 'assets/elcentralkollen.css', array(), AMPY_EC_VERSION );
 	wp_register_script( 'ampy-ec', AMPY_EC_URL . 'assets/elcentralkollen.js', array(), AMPY_EC_VERSION, true );
+	if ( ampy_ec_page_has_tool() ) { wp_enqueue_style( 'ampy-ec' ); }
 }
 add_action( 'wp_enqueue_scripts', 'ampy_ec_register_assets' );
 
