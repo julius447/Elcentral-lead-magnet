@@ -200,7 +200,7 @@
     }
     track(event, params) { try { const dl = (window.dataLayer = window.dataLayer || []); const key = event + ':' + (params && params.step != null ? params.step : ''); if (this._tracked[key]) return; this._tracked[key] = true; dl.push(Object.assign({ event: 'ampy_ec_' + event }, params || {})); } catch (e) {} }
     advance() { this.dir = 'fwd'; this.leadOpen = false; this._navScroll = true; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
-    openLead() { this.leadOpen = true; this._navScroll = true; try { this.track('lead_form_open', { cell: diagnose(this.answers, this.data).cell }); } catch (e) {} this.render(); }
+    openLead(source) { this.leadOpen = true; this._navScroll = true; try { this.track('lead_form_open', Object.assign({ cell: diagnose(this.answers, this.data).cell }, source ? { cta_source: source } : {})); } catch (e) {} this.render(); }
     closeLead() { this.leadOpen = false; this._navScroll = true; this.render(); }
     back() { this.dir = 'back'; this.leadOpen = false; this._navScroll = true; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
     restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; this.leadOpen = false; this._navScroll = true; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
@@ -243,7 +243,7 @@
         };
         const mq = window.matchMedia('(max-width: 1023px)');
         let placed = mq.matches; place(placed);
-        const sync = () => { if (mq.matches !== placed) { placed = mq.matches; place(placed); } };
+        const sync = () => { if (mq.matches !== placed) { placed = mq.matches; place(placed); } if (this._booted) this.syncStickyCta(); };
         if (mq.addEventListener) mq.addEventListener('change', sync); else if (mq.addListener) mq.addListener(sync);
         // Belt & braces: some environments don't fire matchMedia change on resize/emulation.
         window.addEventListener('resize', () => { clearTimeout(this._mqT); this._mqT = setTimeout(sync, 120); });
@@ -287,6 +287,7 @@
     render() {
       const noscript = this.mount.querySelector('.ampy-ec__noscript'); if (noscript) noscript.remove();
       if (!this.stage) this.buildShell();
+      this._stickyDef = null; // reset each render; renderResult sets it fresh (never reuse a stale def on a non-result view)
       // JS-set view state → CSS fallback for :has() (rail bullets + contact CTAs on mobile) on iOS Safari <15.4.
       this.shell.dataset.view = this.step <= 0 ? 'start' : (this.step > this.N ? (this.leadOpen ? 'lead' : 'result') : 'question');
       let block;
@@ -303,6 +304,48 @@
       if (focusTarget && this._booted) { try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); } }
       if (this._navScroll) { const nav = this._booted; this._navScroll = false; if (nav) this._scrollToStage(); }
       this._booted = true;
+      this.syncStickyCta(); // mobile-only sticky verdict CTA — hide/build/observe from the single render chokepoint
+    }
+    /* ---------------- STICKY VERDICT CTA (mobile only) ---------------- */
+    // What the bar should mirror for this verdict, or null (green no-ask). Matches renderCta()'s branches.
+    stickyCtaDef(dx) {
+      const defs = this.data.cta_defs, cta = this.data.verdict_matrix[dx.cell].cta;
+      const ringSigned = defs.ring && typeof defs.ring.url === 'string' && /^tel:\+?\d{6,}$/.test(defs.ring.url);
+      if (dx.safety.escalation && ringSigned) return { mode: 'tel', label: defs.ring.label, href: defs.ring.url };
+      if (dx.cell === 'sr') return (dx.safety.state === 'oklart' && defs.radgivning && defs.radgivning.opens_form) ? { mode: 'lead', label: defs.radgivning.label } : null;
+      const p = defs[cta.primary];
+      return (p && p.opens_form) ? { mode: 'lead', label: p.label } : null;
+    }
+    _ensureStickyBar() {
+      if (!this._stickyBar) { this._stickyBar = el('div', { class: 'ampy-ec__stickycta', hidden: true }); this.shell.appendChild(this._stickyBar); }
+      return this._stickyBar;
+    }
+    _buildStickyButton(def) {
+      // Never cloneNode the in-card node (onclick is a property, not an attribute) — rebuild identically.
+      if (def.mode === 'tel') return el('a', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', href: def.href }, [iconSpan('phone'), def.label]);
+      return el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid', type: 'button', onclick: () => this.openLead('sticky') }, [def.label, iconSpan('arrowRight')]);
+    }
+    syncStickyCta() {
+      if (this._stickyIO) { this._stickyIO.disconnect(); this._stickyIO = null; } // teardown FIRST → exactly one live observer, leak-free
+      const bar = this._ensureStickyBar();
+      const onMobile = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1023px)').matches;
+      const def = (this.shell && this.shell.dataset.view === 'result') ? this._stickyDef : null;
+      if (!onMobile || !def) { bar.hidden = true; bar.classList.remove('is-visible'); bar.replaceChildren(); return; }
+      bar.replaceChildren(el('div', { class: 'ampy-ec__stickycta-inner' }, [this._buildStickyButton(def)]));
+      bar.hidden = false; bar.classList.remove('is-visible');
+      const askEl = this.stage.querySelector('[data-ec-sticky-src]');
+      const contactEl = this.shell.querySelector('.ampy-ec__rail-actions');
+      if (!('IntersectionObserver' in window)) { bar.classList.add('is-visible'); return; } // graceful fallback: always-on
+      // Show only when BOTH the in-card CTA and the bottom contact block are OUT of view (no twin button, never covers contact).
+      this._stk = { ask: !!askEl, contact: false }; // pessimistic → stays hidden until the observer confirms the CTA is off-screen
+      const update = () => bar.classList.toggle('is-visible', !this._stk.ask && !this._stk.contact);
+      this._stickyIO = new IntersectionObserver((entries) => {
+        for (const e of entries) { if (e.target === askEl) this._stk.ask = e.isIntersecting; else if (e.target === contactEl) this._stk.contact = e.isIntersecting; }
+        update();
+      }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
+      if (askEl) this._stickyIO.observe(askEl);
+      if (contactEl) this._stickyIO.observe(contactEl);
+      update();
     }
 
     renderSteps() {
@@ -402,6 +445,13 @@
       }
       block.appendChild(this.renderShareRow(dx));
       block.appendChild(this.renderPdfCapture(dx));
+      // Mobile sticky CTA (see syncStickyCta): stash what to mirror + tag the in-card source element
+      // as the observer's top sentinel. Normal/AKUT → the primary--solid node; sr-oklart → the secondary.
+      this._stickyDef = this.stickyCtaDef(dx);
+      if (this._stickyDef) {
+        const sel = this._stickyDef.mode === 'tel' ? 'a.ampy-ec__cta-primary--solid[href^="tel:"]' : 'button.ampy-ec__cta-primary--solid, button.ampy-ec__cta-secondary';
+        const src = block.querySelector(sel); if (src) src.dataset.ecStickySrc = '1';
+      }
       return block;
     }
     buildSummarySentence(dx) {

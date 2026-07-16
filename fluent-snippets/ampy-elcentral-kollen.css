@@ -1,4 +1,4 @@
-/* Elcentral-kollen v2.18.2 - Fluent Snippet 1/3 (type: CSS).
+/* Elcentral-kollen v2.18.3 - Fluent Snippet 1/3 (type: CSS).
    FORMAT-ONLY port of assets/elcentralkollen.css: every rem -> px (1rem = 10px) so it renders
    identically WITHOUT a global html{font-size:62.5%} (dropped; it would resize the whole WP theme).
    @font-face points at the hosted woff2 (swap to the ampy.se Media Library for GDPR - see README).
@@ -270,6 +270,8 @@
   /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
      bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin. */
   .ampy-ec__shell .ampy-ec__cta-primary, .ampy-ec__shell .ampy-ec__cta-secondary { max-width: 440px; margin-inline: auto; }
+  /* Reserve room under the verdict card so the share/readmore never rest hidden behind the sticky bar. */
+  .ampy-ec__shell[data-view="result"] .ampy-ec__block.ampy-ec__result { padding-bottom: calc(var(--space-13) + env(safe-area-inset-bottom)); }
 }
 
 /* ---- Start screen (slide 1) ---- */
@@ -539,6 +541,24 @@
 .ampy-ec__readmore-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
 .ampy-ec__readmore-link:hover { color: var(--action-primary-strong); }
 .ampy-ec__readmore-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+
+/* ---- Sticky verdict CTA (mobile only; built + toggled by syncStickyCta in JS) ----
+   A fixed shelf docked to the viewport bottom that mirrors the card's primary ask so it stays a
+   thumb-reach away while reading the besked. Direct child of .ampy-ec__shell (NOT the animated
+   block) so position:fixed is not trapped. Desktop: killed hard. Hidden state stays out of the
+   a11y/tab tree (visibility:hidden + [hidden]). */
+.ampy-ec__stickycta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  padding: var(--space-6) calc(clamp(16px, 4vw, 40px) + env(safe-area-inset-right)) calc(var(--space-6) + env(safe-area-inset-bottom)) calc(clamp(16px, 4vw, 40px) + env(safe-area-inset-left));
+  background: var(--bg-primary); border-top: 1px solid var(--border-default); box-shadow: 0 -8px 28px rgba(11, 13, 42, 0.10);
+  visibility: hidden; opacity: 0; transform: translateY(110%);
+  transition: transform 220ms var(--ease-out), opacity 180ms var(--ease-out), visibility 0s linear 220ms;
+}
+.ampy-ec__stickycta.is-visible { visibility: visible; opacity: 1; transform: none; transition: transform 260ms var(--ease-out), opacity 200ms var(--ease-out), visibility 0s; }
+.ampy-ec__stickycta[hidden] { display: none; }
+.ampy-ec__stickycta-inner { max-width: 440px; margin-inline: auto; }
+.ampy-ec__stickycta .ampy-ec__cta-primary { width: 100%; }
+@media (min-width: 1024px) { .ampy-ec__stickycta { display: none !important; } } /* desktop: never */
 /* Lead-in text above a cta-link (e.g. "Din central klarar en laddbox." + clickable "Räkna ut din besparing"). */
 .ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-3); max-width: 62ch; }
 .ampy-ec__cta-link {
@@ -652,4 +672,5 @@
 @media (prefers-reduced-motion: reduce) {
   .ampy-ec__block, .ampy-ec__dualstatus, .ampy-ec__finding, .ampy-ec__share-menu { animation: none !important; }
   .ampy-ec__steps span, .ampy-ec__option, .ampy-ec__cta-primary { transition: none !important; }
+  .ampy-ec__stickycta { transition: none !important; } /* snap in/out, no slide */
 }
