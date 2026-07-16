@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.18.1 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.18.2 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -17,7 +17,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.18.1",
+    "version": "2.18.2",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -85,7 +85,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
     ],
     "lead_form": {
       "title": "Få kostnadsfri rådgivning",
-      "intro": "En behörig elektriker går igenom dina svar och återkommer för en rådgivning inom 24 timmar!",
+      "intro": "En behörig elektriker går igenom dina svar och återkommer med en rådgivning inom 24 timmar!",
       "back": "Tillbaka till beskedet",
       "submit": "Boka rådgivning",
       "submitting": "Skickar…",
