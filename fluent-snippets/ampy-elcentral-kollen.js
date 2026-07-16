@@ -234,6 +234,16 @@
         if (r.top >= 0 && r.top < vh * 0.4) return;            // top already visible near the top → no jump
         const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        // SETTLE GUARD: smooth scrolling can be cancelled mid-flight (webview rAF throttling, a stray
+        // touch). If the step ended up tucked under the fixed header, snap it into alignment silently.
+        clearTimeout(this._scrollT);
+        this._scrollT = setTimeout(() => {
+          try {
+            const want = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+            const top = target.getBoundingClientRect().top;
+            if (top < want - 8) target.scrollIntoView({ behavior: 'auto', block: 'start' });
+          } catch (e2) {}
+        }, 650);
       } catch (e) {}
     }
 

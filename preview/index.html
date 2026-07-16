@@ -5,13 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Är din elcentral säker? | Elcentral-kollen | Ampy</title>
   <meta name="description" content="Ta reda på om din central är säker och anpassad för framtida installationer. Gratis, utan mejlkrav." />
-  <link rel="stylesheet" href="../assets/elcentralkollen.css?v=2.19.2" />
+  <link rel="stylesheet" href="../assets/elcentralkollen.css?v=2.19.4" />
   <style>
     /* Material-canvas (lugn topp-vinjett). I produktion: sätt sektionens bakgrund i Bricks. */
     html, body { margin: 0; padding: 0; min-height: 100%; }
     body { font-family: 'Outfit', system-ui, sans-serif; background: radial-gradient(130% 90% at 50% -10%, #fbfcff 0%, #f3f5fb 55%, #eceef6 100%) no-repeat fixed; }
-    /* QA-bar — endast preview, skickas ALDRIG till produktion. */
-    .qa-bar { position: sticky; top: 0; z-index: 30; background: rgba(9,11,50,0.96); color: #fff; padding: 0.5rem 1.25rem; font-size: 0.78rem; backdrop-filter: blur(6px); }
+    /* QA-bar — endast preview, skickas ALDRIG till produktion. Flyttad till BOTTEN så
+       header-simuleringen i toppen är sann. */
+    .qa-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(9,11,50,0.96); color: #fff; padding: 0.5rem 1.25rem; font-size: 0.78rem; backdrop-filter: blur(6px); }
+    /* STICKY-HEADER-SIM — endast preview. Speglar riktiga ampy.se-headern (Website-blocks
+       "Ampy Header Redesign": fixed, 66px mobil / 76px ≥1081px, z-index 100) så att
+       nav-scrollens "nästa steg"-linjering kan måttas exakt som kunden ser den. */
+    .hdr-sim { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 66px; background: #fff; box-shadow: 0 1px 0 rgba(9,11,50,0.07), 0 8px 24px rgba(9,11,50,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box; }
+    .hdr-sim__logo { font: 700 20px 'Plus Jakarta Sans', system-ui, sans-serif; color: rgb(9,11,50); letter-spacing: -0.02em; text-decoration: none; }
+    .hdr-sim__logo span { color: rgb(0,169,145); }
+    .hdr-sim__burger { display: flex; flex-direction: column; gap: 5px; padding: 8px; background: none; border: 0; cursor: pointer; }
+    .hdr-sim__burger i { display: block; width: 22px; height: 2px; background: rgb(9,11,50); border-radius: 2px; }
+    .hdr-sim__cta { display: none; font: 500 15px 'Outfit', system-ui, sans-serif; color: #0d0d0d; background: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%); border-radius: 12px; padding: 11px 19px; text-decoration: none; }
+    @media (min-width: 1081px) {
+      .hdr-sim { height: 76px; padding: 0 28px; }
+      .hdr-sim__burger { display: none; }
+      .hdr-sim__cta { display: inline-flex; }
+    }
+    body { padding-top: 66px; }
+    @media (min-width: 1081px) { body { padding-top: 76px; } }
     .qa-bar details { display: inline-block; }
     .qa-bar summary { cursor: pointer; list-style: none; color: rgba(255,255,255,0.7); font-weight: 500; }
     .qa-bar summary::-webkit-details-marker { display: none; }
@@ -23,6 +40,12 @@
   </style>
 </head>
 <body>
+  <!-- Sticky-header-sim (endast preview) — speglar riktiga ampy.se-headern, 66/76px fixed. -->
+  <div class="hdr-sim" aria-hidden="true">
+    <a class="hdr-sim__logo" href="#">amp<span>y</span></a>
+    <button class="hdr-sim__burger" type="button"><i></i><i></i><i></i></button>
+    <a class="hdr-sim__cta" href="#">Kontakta oss</a>
+  </div>
   <div class="qa-bar">
     <details>
       <summary>QA-genvägar (preview only)</summary>
@@ -54,6 +77,6 @@
     </div>
   </main>
 
-  <script src="../assets/elcentralkollen.js?v=2.19.2"></script>
+  <script src="../assets/elcentralkollen.js?v=2.19.4"></script>
 </body>
 </html>

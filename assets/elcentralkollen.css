@@ -227,8 +227,10 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-stat-link { color: inherit; text-decoration: none; }
 .ampy-ec__rail-stat-link:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 2px; }
 /* "Hellre prata med en elektriker direkt?" — mobile-only heading above the contact CTAs. */
-/* 1:1 Elkollen ".hero__foot-ask": Outfit (inherited) 1.5rem/600, ink, centered. */
-.ampy-ec__rail-ask { display: none; font-size: 1.5rem; font-weight: 600; line-height: 1.4; color: var(--text-primary); }
+/* = Elkollen ".hero__foot-ask" AS RENDERED (measured live at 375px: 15px/600 in the system font,
+   ink). Our real Outfit-600 at 15px reads smaller + denser than SF-600, so the OPTICAL match is
+   1.7rem/500 — same perceived size and lightness as the approved Elkollen rendering. */
+.ampy-ec__rail-ask { display: none; font-size: 1.7rem; font-weight: 500; line-height: 1.4; color: var(--text-primary); }
 @media (max-width: 1023px) {
   /* MOBILE (owner v2.18): H1 → lead → THE TOOL (tall, the focus) → "Hellre prata…" → contact CTAs →
      stat line. The contact block shows on EVERY view so the customer is NEVER locked in — they can
@@ -244,11 +246,10 @@ html { font-size: 62.5%; }
   .ampy-ec__rail-actions { order: 5; }
   .ampy-ec__rail-stat { order: 6; }
   .ampy-ec__rail-bullets { display: none; }
-  /* H1 + lead only on the start view; the tool leads on question/result/lead. The H1 stays in the
-     a11y tree via sr-only clipping (a page must not lose its only H1 mid-session); the lead is
-     purely visual → display:none is fine. */
-  .ampy-ec__shell:not([data-view="start"]) .ampy-ec__rail-heading { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-  .ampy-ec__shell:not([data-view="start"]) .ampy-ec__rail-lead { display: none; }
+  /* H1 + lead stay VISIBLE on every view (owner): they sit above the tool, and the nav-scroll
+     aligns the tool's top after each tap — so the tool leads the viewport while the heading
+     remains one scroll-up away ("möjligheten att se ovan"). Also keeps the page's only H1 in
+     the a11y tree at all times. */
   /* Contact block (ask heading + CTAs + stat): ALWAYS visible — anti-lock-in. */
   .ampy-ec__rail-ask { display: block; text-align: center; max-width: 42rem; }
   .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 42rem; margin-inline: auto; width: 100%; }
@@ -285,10 +286,14 @@ html { font-size: 62.5%; }
 .ampy-ec__share-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); margin: var(--space-5) 0 0; padding-top: var(--space-3); }
 .ampy-ec__share-row .ampy-ec__share-nudge { margin-right: auto; }
 
-/* Nav-scroll offsets — LAUNCH CONFIG: if the site header is fixed, set --ec-scroll-offset on
+/* Nav-scroll offsets — calibrated to ampy.se's FIXED header (Website-blocks "Ampy Header Redesign":
+   66px mobile / 76px desktop ≥1081px) + breathing room, so every next step lands just below the
+   bar. Override --ec-scroll-offset on .ampy-ec if the header height ever changes. */
+/* (original note:) if the site header is fixed, set --ec-scroll-offset on
    .ampy-ec in the Bricks page CSS to the header height (e.g. 9rem), or the new view tucks under it. */
-.ampy-ec { scroll-margin-top: var(--ec-scroll-offset, 2.4rem); }
-.ampy-ec__stage { min-width: 0; scroll-margin-top: var(--ec-scroll-offset, 2.4rem); }
+.ampy-ec { --ec-scroll-offset: 7.8rem; scroll-margin-top: var(--ec-scroll-offset); } /* 66px header + 12px air */
+.ampy-ec__stage { min-width: 0; scroll-margin-top: var(--ec-scroll-offset); }
+@media (min-width: 1081px) { .ampy-ec { --ec-scroll-offset: 8.8rem; } } /* 76px header + 12px air */
 
 /* NOTE: the DESKTOP SCALE (≥1024px) block lives at the END of this file (just before the
    reduced-motion block). It MUST come after every base component rule it overrides — media
