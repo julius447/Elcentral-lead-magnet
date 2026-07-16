@@ -50,13 +50,12 @@ html { font-size: 62.5%; }
   --action-primary: rgb(0, 169, 145);
   --action-primary-strong: rgb(0, 122, 105);        /* white-on ≈ 5.3:1 (AA) */
   /* 1:1 from ampy.se (Core Framework, same 1rem=10px root): exact gradient/shadow + fluid tokens */
+  /* CTA tokens = 1:1 with Elkollen hero v7.3.5+ ".hero__btn" (the Picasso recipe) */
   --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
-  --ampy-cta-gradient-blue: linear-gradient(120deg, #b6f2ff 0%, #70becb 100%); /* = Elkollen hero's .ampy-btn--phone */
-  --ampy-cta-shadow: 0 0 16px 0 rgba(241, 241, 241, 0.23);       /* = Elkollen hero's .ampy-btn */
-  --ampy-cta-fs: clamp(1.4rem, calc(0.21vw + 1.33rem), 1.6rem);  /* = Elkollen hero's .ampy-btn font-size (1:1) */
-  --ampy-cta-pad-y: clamp(1.02rem, calc(0.39vw + 0.9rem), 1.4rem); /* = .ampy-btn vertical padding (1:1) */
-  --ampy-cta-pad-x: clamp(2rem, calc(2rem + 0.0044 * (100vw - 380px)), 2.4rem); /* = .ampy-btn horizontal padding (ampy.se token, 1:1) */
-  --ampy-cta-radius: 0.8rem;                                     /* = .ampy-btn 8px (bricks button cascade) */
+  --ampy-cta-gradient-blue: linear-gradient(141deg, #b6f2ff 0%, #5eb1bf 100%); /* = .hero__btn--secondary */
+  --ampy-cta-shadow: 0 0 16px rgba(241, 241, 241, 0.25);          /* = .hero__btn */
+  --ampy-cta-fs: clamp(1.4rem, calc(0.21vw + 1.33rem), 1.6rem);   /* = .hero__btn font-size (1:1) */
+  --ampy-cta-radius: 1.6rem;                                      /* = .hero__btn 16px */
   --action-primary-strong-hover: rgb(0, 108, 93);
   --action-tint: rgb(240, 250, 248);                 /* selected fill, distinct from grey hover */
   --state-success: rgb(57, 194, 129);
@@ -199,23 +198,28 @@ html { font-size: 62.5%; }
 /* Contact CTA in the rail (1:1 replica of ampy.se: phone link + gradient button "Kontakta oss").
    ampy.se's EXACT tokens (color/size/spacing). Always shown on desktop; on mobile only on
    start + verdict (the rail sits at the top of every mobile slide → don't want to crowd out the questions). */
-.ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: var(--space-5) 2rem; margin: 0; }
-/* BOTH CTAs = gradient pills, 1:1 with Elkollen hero's .ampy-btn: Outfit 400, #1e1e1e, 8px, gap 2rem. */
+.ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; margin: 0; }
+/* BOTH CTAs = 1:1 Elkollen hero v7.3.5+ ".hero__btn" (Picasso recipe): 16px radius, Outfit 400,
+   ink #0d0d0d, taller premium body (padding 2rem 2.4rem ≈ 56px), two EQUAL-WIDTH buttons filling
+   the row (flex:1), label left / icon right via space-between, translateY+saturate hover. */
 .ampy-ec__rail-phone, .ampy-ec__rail-contact {
-  box-sizing: border-box; min-height: 4.4rem;
-  display: inline-flex; align-items: center; justify-content: space-between; gap: 2rem; text-decoration: none; white-space: nowrap;
-  font-family: 'Outfit', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 400; line-height: 1.2; color: #1e1e1e;
-  padding: var(--ampy-cta-pad-y) var(--ampy-cta-pad-x); border: 0; border-radius: var(--ampy-cta-radius); box-shadow: var(--ampy-cta-shadow);
-  transition: opacity var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: space-between;
+  flex: 1 1 0;
+  gap: 1.6rem; text-decoration: none; white-space: nowrap; cursor: pointer;
+  font-family: 'Outfit', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 400; line-height: 1; color: #0d0d0d;
+  padding: 2rem 2.4rem; border: 0; border-radius: var(--ampy-cta-radius); box-shadow: var(--ampy-cta-shadow);
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
 }
 .ampy-ec__rail-contact { background-image: var(--ampy-cta-gradient); }
-.ampy-ec__rail-phone { background-image: var(--ampy-cta-gradient-blue); }
-.ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: #1e1e1e; }
-.ampy-ec__rail-contact-icon svg { width: 1.8rem; height: 1.8rem; }
-.ampy-ec__rail-phone-icon svg { width: 1.9rem; height: 2.0rem; }
-.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--ampy-cta-radius); box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9); }
+.ampy-ec__rail-phone { background-image: var(--ampy-cta-gradient-blue); box-shadow: 0 0 16px rgba(241, 241, 241, 0.23); }
+.ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: #0d0d0d; }
+.ampy-ec__rail-contact-icon svg { width: clamp(1.6rem, calc(0.21vw + 1.53rem), 1.8rem); height: clamp(1.6rem, calc(0.21vw + 1.53rem), 1.8rem); }
+.ampy-ec__rail-phone-icon { color: #212121; }
+.ampy-ec__rail-phone-icon svg { width: clamp(1.6rem, calc(0.21vw + 1.53rem), 1.8rem); height: clamp(1.7rem, calc(0.21vw + 1.63rem), 1.9rem); }
+.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 3px solid #00a991; outline-offset: 3px; }
 @media (hover: hover) {
-  .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { opacity: 0.92; box-shadow: 0 0 20px 0 rgba(9, 11, 50, 0.10); }
+  .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(94, 177, 191, 0.28); filter: saturate(1.05); }
 }
 /* Sourced stakes line (rail.stat) — under the contact CTAs on desktop, under the tool on mobile. */
 .ampy-ec__rail-stat { margin: var(--space-7) 0 0; font-size: var(--fs-14); font-weight: 450; line-height: 1.6; color: var(--text-secondary); max-width: 46ch; }
@@ -223,7 +227,8 @@ html { font-size: 62.5%; }
 .ampy-ec__rail-stat-link { color: inherit; text-decoration: none; }
 .ampy-ec__rail-stat-link:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 2px; }
 /* "Hellre prata med en elektriker direkt?" — mobile-only heading above the contact CTAs. */
-.ampy-ec__rail-ask { display: none; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-18); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text-primary); }
+/* 1:1 Elkollen ".hero__foot-ask": Outfit (inherited) 1.5rem/600, ink, centered. */
+.ampy-ec__rail-ask { display: none; font-size: 1.5rem; font-weight: 600; line-height: 1.4; color: var(--text-primary); }
 @media (max-width: 1023px) {
   /* MOBILE (owner v2.18): H1 → lead → THE TOOL (tall, the focus) → "Hellre prata…" → contact CTAs →
      stat line. The contact block shows on EVERY view so the customer is NEVER locked in — they can
@@ -235,7 +240,7 @@ html { font-size: 62.5%; }
   .ampy-ec__rail-heading { order: 1; margin: 0; text-align: center; }
   .ampy-ec__rail-lead { order: 2; margin: 0 auto var(--space-4); text-align: center; }
   .ampy-ec__stage { order: 3; }
-  .ampy-ec__rail-ask { order: 4; margin: var(--space-9) auto 0; }
+  .ampy-ec__rail-ask { order: 4; margin: var(--space-9) auto -0.4rem; } /* -0.4rem: shell gap 1.6 → effective 1.2rem ask→buttons (= Elkollen) */
   .ampy-ec__rail-actions { order: 5; }
   .ampy-ec__rail-stat { order: 6; }
   .ampy-ec__rail-bullets { display: none; }
@@ -248,10 +253,10 @@ html { font-size: 62.5%; }
   .ampy-ec__rail-ask { display: block; text-align: center; max-width: 42rem; }
   .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 42rem; margin-inline: auto; width: 100%; }
   .ampy-ec__rail-stat { display: block; margin: 0 auto; max-width: 42rem; text-align: center; }
-  /* Mobile contact CTAs = the SAME gradient pills as the desktop rail, 1:1 (owner v2.19), just
-     full-width and stacked. Order flips: after "Hellre prata med en elektriker direkt?" the PHONE
-     comes first, then Kontakta oss (logical for the customer). */
-  .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; }
+  /* Mobile contact CTAs = 1:1 Elkollen ".hero__btn" ≤767: full-width stacked, EXTRA tall body
+     (2.2rem), label left / icon right (space-between from the base — NOT centered). Order flips:
+     after "Hellre prata med en elektriker direkt?" the PHONE comes first (owner + Elkollen order). */
+  .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; max-width: 100%; flex: 0 0 auto; padding: 2.2rem 2.4rem; }
   .ampy-ec__rail-phone { order: -1; }
   /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
      bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin. */
