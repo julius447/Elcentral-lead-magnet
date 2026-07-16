@@ -74,6 +74,7 @@ See SPEC §4. Key invariants the engine relies on:
 - **Heading:** add the H1/H2 + lead as separate Bricks elements ABOVE the shortcode (SEO — the tool never carries its own page heading).
 - **Dynamic OG:** neutral/branded only (NOT per-cell). A personal "Säker ✓ / Redo ✗" image can unfurl alarmist in a Facebook group and undermine the honesty moat; the personal card is the canvas share-card instead. Drop `assets/og/elcentral-kollen.png` (1200×630).
 - **Embed presets:** /elservice/elcentral/, /elbesiktning/, /jordfelsbrytare/, /lastbalansering/.
+- **Sticky verdict CTA (mobile, v2.18.3+):** on mobile the besked shows a fixed bottom bar that mirrors the card's primary ask ("Få kostnadsfri rådgivning", or "Ring oss" on the akut verdict; no bar on a fully-green verdict). It is portaled to `document.body` under its own `.ampy-ec` wrapper, so a transformed/`contain`/`filter` ancestor of the shortcode can't trap its `position:fixed` — no action needed. TWO config caveats to verify on staging: (1) the theme's `<meta viewport>` must include `viewport-fit=cover` or the safe-area padding resolves to 0 on notched phones (bar sits under the home indicator); (2) the bar uses `z-index:60` — if the site has a bottom-fixed cookie banner / chat bubble (Intercom/Messenger/Tidio) / promo bar, confirm it doesn't overlap the bar (raise the bar's z-index or offset its `bottom` by that element's height).
 
 ## 7. The lead flow
 **Primary capture = the in-tool form** (added since this doc's first draft). The result/rail CTA

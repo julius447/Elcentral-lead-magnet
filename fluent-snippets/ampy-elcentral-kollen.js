@@ -317,7 +317,15 @@
       return (p && p.opens_form) ? { mode: 'lead', label: p.label } : null;
     }
     _ensureStickyBar() {
-      if (!this._stickyBar) { this._stickyBar = el('div', { class: 'ampy-ec__stickycta', hidden: true }); this.shell.appendChild(this._stickyBar); }
+      // Portal the bar under a fresh .ampy-ec wrapper on <body> — robust by default: a transformed/
+      // filter/contain ancestor of the shortcode mount (common in Bricks) would otherwise trap
+      // position:fixed. The wrapper re-establishes the token scope (--bg-primary etc.) + lang="sv".
+      if (!this._stickyBar) {
+        const portal = el('div', { class: 'ampy-ec ampy-ec__sticky-portal', lang: 'sv' });
+        this._stickyBar = el('div', { class: 'ampy-ec__stickycta', hidden: true });
+        portal.appendChild(this._stickyBar);
+        (document.body || document.documentElement).appendChild(portal);
+      }
       return this._stickyBar;
     }
     _buildStickyButton(def) {
