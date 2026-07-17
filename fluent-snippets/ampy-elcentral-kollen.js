@@ -225,17 +225,45 @@
     // (no desktop micro-jumps) and never fires on first paint (no embed hijack).
     _scrollToStage() {
       try {
-        // Back to the START view targets the whole tool (mount) — the H1 + lead sit ABOVE the stage
-        // there; scrolling only the stage would strand the page heading off-screen.
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const behavior = reduce ? 'auto' : 'smooth';
+        const twoPane = typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 1024px)').matches;
+
+        // DESKTOP QUESTION SLIDE: FIT the whole card below the fixed header, so the bottom (the info
+        // note / "Fortsätt" button) is visible without scrolling. Move the card UP (scroll down) only
+        // when the bottom is cut off, and never push the card top under the header — a card that fits
+        // becomes fully visible; a card taller than the viewport top-aligns (best effort). No jump
+        // when the card is already fully on-screen. (owner: "verktyget flyttas upp lite så att man ser allt".)
+        if (twoPane && this.step > 0 && this.step <= this.N) {
+          const card = this.stage.querySelector('.ampy-ec__block');
+          if (!card) return;
+          const offset = parseFloat(getComputedStyle(this.stage).scrollMarginTop) || 0;
+          const fit = (smooth) => {
+            const cr = card.getBoundingClientRect();
+            const curY = window.scrollY || window.pageYOffset || 0;
+            const margin = 16;
+            let targetY = null;
+            if (cr.top < offset - 2) {
+              targetY = cr.top + curY - offset;                                   // top hidden under header → bring it down
+            } else if (cr.bottom > vh - margin) {
+              const delta = Math.min(cr.bottom - (vh - margin), cr.top - offset); // bottom cut → move card up, capped at top hitting header
+              if (delta > 2) targetY = curY + delta;
+            }
+            if (targetY != null) { targetY = Math.max(0, targetY); if (Math.abs(targetY - curY) > 4) window.scrollTo({ top: targetY, behavior: smooth ? behavior : 'auto' }); }
+          };
+          fit(true);
+          clearTimeout(this._scrollT); this._scrollT = setTimeout(() => { try { fit(false); } catch (e2) {} }, 650); // settle guard vs cancelled smooth scroll
+          return;
+        }
+
+        // MOBILE / start / result / lead: align the tool (or the mount, on the start view where the
+        // H1 + lead sit above it) top just below the header.
         const target = (this.step <= 0 && !this.leadOpen) ? this.mount : this.stage;
         const r = target.getBoundingClientRect();
-        const vh = window.innerHeight || document.documentElement.clientHeight;
         if (r.bottom < 0 || r.top > vh) return;               // tool not in play → leave the page alone
         if (r.top >= 0 && r.top < vh * 0.4) return;            // top already visible near the top → no jump
-        const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-        // SETTLE GUARD: smooth scrolling can be cancelled mid-flight (webview rAF throttling, a stray
-        // touch). If the step ended up tucked under the fixed header, snap it into alignment silently.
+        target.scrollIntoView({ behavior, block: 'start' });
         clearTimeout(this._scrollT);
         this._scrollT = setTimeout(() => {
           try {

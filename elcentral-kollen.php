@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.19.4
+ * Version:           2.19.5
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.19.4' );
+define( 'AMPY_EC_VERSION', '2.19.5' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
