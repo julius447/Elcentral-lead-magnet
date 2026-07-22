@@ -1,0 +1,739 @@
+<?php
+// <Internal Doc Start>
+/*
+*
+* @description: 
+* @tags: 
+* @group: 
+* @name: Ampy - Elcentral-kollen - CSS
+* @type: css
+* @status: published
+* @created_by: 13
+* @created_at: 2026-06-18 08:38:48
+* @updated_at: 2026-07-21 22:59:56
+* @is_valid: 1
+* @updated_by: 13
+* @priority: 10
+* @run_at: wp_head
+* @load_as_file: yes
+* @load_in_block_editor: 
+* @condition: {"status":"no","run_if":"assertive","items":[[]]}
+*/
+?>
+<?php if (!defined("ABSPATH")) { return;} // <Internal Doc End> ?>
+/* ── Root rem base ───────────────────────────────────────────────────────────
+   KEEP THIS. This snippet (with Elkollen's) is what supplies html{font-size:62.5%}
+   on ampy.se. The battery calculator's CSS uses 138 rem values and anchors nothing
+   itself, so removing this line silently rescales that tool site-wide. The tool
+   below is written in px and does not need it; the rest of the site does. */
+html{font-size:62.5%}
+
+/* Elcentral-kollen v2.19.5 - Fluent Snippet 1/3 (type: CSS).
+   FORMAT-ONLY port of assets/elcentralkollen.css: every rem -> px (1rem = 10px) so it renders
+   identically WITHOUT a global html{font-size:62.5%} (dropped; it would resize the whole WP theme).
+   @font-face points at the hosted woff2 (swap to the ampy.se Media Library for GDPR - see README).
+   No design value changed. Auto-built by _build/build.py - edit the sources + rebuild, not this file. */
+/* THEME HARDENING - zero-specificity :where() reset so the WordPress/Bricks theme cannot bleed
+   into the tool. :where() = 0 specificity, so every real design rule below still wins. */
+.ampy-ec { font-size: 16px; line-height: 1.5; text-align: left; -webkit-text-size-adjust: 100%; }
+.ampy-ec :where(h1,h2,h3,h4,p,ul,ol,li,figure,blockquote,fieldset,legend) { margin: 0; padding: 0; border: 0; }
+.ampy-ec :where(ul,ol) { list-style: none; }
+.ampy-ec :where(button) { margin: 0; padding: 0; background: none; border: 0; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
+.ampy-ec :where(a) { color: inherit; text-decoration: none; }
+.ampy-ec :where(img,svg) { display: block; max-width: 100%; }
+.ampy-ec :where(input,textarea,select) { font: inherit; color: inherit; }
+
+/* ============================================================================
+   Elcentral-kollen v3 — design
+   Two-pane shell on desktop (rail + stage), single column on mobile. The verdict:
+   dual-status as the hero (squint test), calm supporting lede. No chevrons
+   (the whole row is the affordance), bar-only progress. Hero type uses clamp()
+   (Ampy design-system canon). GDPR: fonts self-hosted (no Google calls).
+   Tokens: docs/SPEC.md §8 + docs/DESIGN.md. Suite parity: flag shared tokens
+   to Elkollen (rhythm, hero clamp, motion, --action-primary-strong, tints).
+   ============================================================================ */
+/* ── Self-hosted variable fonts (no third-party requests) ────────────────────
+   ampy.se ships these as variable woff2 in /wp-content/uploads/fonts/. One file
+   per family covers the whole weight axis, so the old static latin/latin-ext
+   pairs and the Google Fonts request are both unnecessary. Root-relative URLs
+   resolve the same whether this snippet is inlined or served as a file. */
+@font-face{font-family:'Outfit';src:url('/wp-content/uploads/fonts/Outfit-VariableFont_wght.woff2') format('woff2-variations'),url('/wp-content/uploads/fonts/Outfit-VariableFont_wght.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face{font-family:'Plus Jakarta Sans';src:url('/wp-content/uploads/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2-variations'),url('/wp-content/uploads/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2');font-weight:200 800;font-style:normal;font-display:swap;}
+
+.ampy-ec {
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent; /* no grey iOS tap-blink; we provide our own feedback */
+  overflow-x: hidden; overflow-x: clip; /* overflow guard in unknown WP/Bricks embed; hidden fallback for iOS Safari <16, clip preserves sticky rail on 16+ */
+  --ec-q-minh: 560px; /* M2: stable question height (desktop) → calm, even scroll between steps */
+  --focus-ring: 0 0 0 3px rgba(0, 169, 145, 0.25); /* ONE focus ring for all inputs + buttons */
+  /* Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f5fb;
+  --bg-subtle: #f7f8fc;
+  --bg-surface: rgb(9, 11, 50);
+  --text-primary: rgb(9, 11, 50);
+  --text-secondary: #5a5d7a;
+  --text-tertiary: #8a8da5;
+  --text-inverse: #ffffff;
+  --text-info: rgb(10, 122, 191);
+  --text-success: rgb(15, 110, 86);
+  --action-primary: rgb(0, 169, 145);
+  --action-primary-strong: rgb(0, 122, 105);        /* white-on ≈ 5.3:1 (AA) */
+  /* 1:1 from ampy.se (Core Framework, same 10px=10px root): exact gradient/shadow + fluid tokens */
+  /* CTA tokens = 1:1 with Elkollen hero v7.3.5+ ".hero__btn" (the Picasso recipe) */
+  --ampy-cta-gradient: linear-gradient(120deg, #55ff9a 0%, #5eb1bf 100%);
+  --ampy-cta-gradient-blue: linear-gradient(141deg, #b6f2ff 0%, #5eb1bf 100%); /* = .hero__btn--secondary */
+  --ampy-cta-shadow: 0 0 16px rgba(241, 241, 241, 0.25);          /* = .hero__btn */
+  --ampy-cta-fs: clamp(14px, calc(0.21vw + 13.3px), 16px);   /* = .hero__btn font-size (1:1) */
+  --ampy-cta-radius: 16px;                                      /* = .hero__btn 16px */
+  --action-primary-strong-hover: rgb(0, 108, 93);
+  --action-tint: rgb(240, 250, 248);                 /* selected fill, distinct from grey hover */
+  --state-success: rgb(57, 194, 129);
+  --state-warning: rgb(245, 175, 25);
+  --state-error: rgb(220, 53, 69);
+  --border-default: #e3e5ed;
+  --border-tertiary: #ebedf3;
+  --border-focus: rgb(0, 122, 105);
+
+  /* Pill (dark-on-light, AA ≥6.8:1) */
+  --pill-success-bg: rgb(214, 240, 229);  --pill-success-fg: rgb(6, 71, 55);
+  --pill-warning-bg: rgb(250, 233, 197);  --pill-warning-fg: rgb(92, 64, 5);
+  --pill-error-bg:   rgb(250, 224, 222);  --pill-error-fg:   rgb(124, 32, 32);
+  --pill-info-bg:    rgb(224, 236, 248);  --pill-info-fg:    rgb(17, 82, 135);
+  --pill-neutral-bg: var(--bg-secondary); --pill-neutral-fg: var(--text-primary);
+
+  /* Accent (non-text) */
+  --accent-success: rgb(15, 110, 86);
+  --accent-warning: rgb(135, 101, 7);
+  --accent-error:   rgb(122, 22, 35);
+  --accent-info:    rgb(13, 86, 140);
+  --accent-neutral: var(--text-tertiary);
+
+  /* Verdict-zone tint (whisper-wash, no border/shadow → not a card) */
+  --tint-success: rgb(240, 249, 245);
+  --tint-warning: rgb(252, 247, 234);
+  --tint-error:   rgb(252, 243, 243);
+  --tint-info:    rgb(242, 247, 251);
+  --tint-neutral: rgb(248, 249, 252);
+
+  /* Spacing (10px rem-bas) */
+  --space-1: 4px;  --space-2: 6px;  --space-3: 8px;  --space-4: 10px;
+  --space-5: 12px;  --space-6: 14px;  --space-7: 16px;  --space-8: 18px;
+  --space-9: 20px;  --space-10: 22px; --space-11: 24px; --space-12: 28px; --space-13: 32px;
+  /* Two-level rhythm (R3) */
+  --rhythm-section: var(--space-11);  /* between result sections */
+  --rhythm-group: var(--space-5);     /* within a group */
+  --rhythm-label: var(--space-3);     /* heading → owned content */
+
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(11, 13, 42, 0.04);
+  --shadow-md: 0 8px 28px rgba(11, 13, 42, 0.07);
+  --shadow-lg: 0 14px 32px rgba(11, 13, 42, 0.1);
+
+  --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-15: 15px; --fs-16: 16px; --fs-18: 18px; --fs-20: 20px;
+  /* Hero roles: contained clamp (canon) */
+  --fs-title: clamp(20px, 18px + 0.5vw, 24px);
+  --fs-display: clamp(20px, 17px + 1.0vw, 28px);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-fast: 120ms; --dur-base: 220ms; --dur-reveal: 300ms;
+
+  --block-padding-y: var(--space-11);
+  --block-padding-x: var(--space-11);
+
+  /* Icon row — shared optical alignment (icon → first text line). All icon+text rows
+     inherit these; each row type overrides size/nudge locally when needed (see ICON ROW below). */
+  --ec-row-icon-size: 18px;   /* square icon box (width = height) */
+  --ec-row-icon-nudge: 2px;  /* margin-top: optical centering against the first line */
+
+  display: block;
+  font-family: 'Outfit', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-optical-sizing: auto;
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.ampy-ec *, .ampy-ec *::before, .ampy-ec *::after { box-sizing: border-box; }
+
+/* ============================================================================
+   ICON ROW — shared icon→text optical alignment
+   All icon+text rows (finding, factnote, akut, info) share the same mechanic:
+   square icon box + margin-top nudge against the first text line.
+   Size/nudge are controlled by --ec-row-icon-size / --ec-row-icon-nudge (root default
+   18px / 2px). Each row type overrides only the values that deviate — previously
+   they were hard-coded per class and drifted apart.
+   ============================================================================ */
+.ampy-ec__finding-icon,
+.ampy-ec__factnote-icon,
+.ampy-ec__akut-icon,
+.ampy-ec__info-icon {
+  flex-shrink: 0;
+  width: var(--ec-row-icon-size);
+  height: var(--ec-row-icon-size);
+  margin-top: var(--ec-row-icon-nudge);
+}
+
+/* ============================================================================
+   SHELL — single column (mobile), two-pane (≥1024px)
+   ============================================================================ */
+.ampy-ec__shell {
+  /* Outer gutter removed: flush in the Bricks container. Was max-width:1280px;
+     margin:0 auto. Internal padding kept so the two columns keep their breathing
+     room; the container controls the outer margin now. */
+    max-width: none; /* Ampy container (1280px) — reduces edge whitespace on desktop */
+  margin: 0;
+  min-width: 0;
+  padding: clamp(24px, 4vw, 56px) env(safe-area-inset-right) calc(clamp(24px, 4vw, 56px) + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+  display: grid;
+  gap: var(--space-9);
+}
+
+@media (max-width: 600px) {
+  /* Edge to edge on phones: only the safe-area inset remains. */
+  .ampy-ec__shell {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+@media (min-width: 1024px) {
+  .ampy-ec__shell {
+    /* 1:1 with Elkollen hero's hero__grid proportions (44fr/56fr) → the rail column gets
+       the SAME width as the reference (~490px on desktop) so the copy block wraps identically. */
+    /* The live engine renders ONLY the stage: it still defines renderRail() but
+       never appends it, so the shell has a single child. A hard two-column track
+       squeezes that child into the 44fr column (the "squeezed on desktop" symptom).
+       The split is therefore gated on the rail actually being present: with one
+       child the stage fills the container; restore
+       `shell.appendChild(this.renderRail())` in the engine and the prototype's
+       two-column layout returns on its own, with no CSS change. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: 64px;
+    align-items: start; /* rail top-aligned → stable top position, independent of the card's height */
+  }
+
+  .ampy-ec__shell:has(> .ampy-ec__rail) {
+    grid-template-columns: minmax(0, 44fr) minmax(0, 56fr);
+  }
+  /* Start + questions: rail content vertically CENTERED within a FIXED height (= the normal slide's
+     card height --ec-q-minh). Centered just like on slide 1 AND "fixed" — it does NOT move when a
+     multi-select card (Q5/Q7) grows taller, because the rail box keeps its height instead of following the taller card. */
+  .ampy-ec__rail { align-self: start; min-height: var(--ec-q-minh); display: flex; flex-direction: column; justify-content: center; padding-top: 0; }
+  /* Verdict/form: SAME geometry as the questions (owner v2.19: the rail must never jump between
+     views) — the content stays centered in the same 560px box on every slide, incl. the besked. */
+}
+
+/* RAIL — brand + thesis + verifiable trust */
+.ampy-ec__rail { min-width: 0; }
+/* Rail typography = 1:1 with Elkollen hero's hero__copy (font/size/color/line-spacing). */
+.ampy-ec__rail-heading {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(32px, 4vw, 44px); font-weight: 700; line-height: 1.08;
+  letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 20px;
+}
+.ampy-ec__rail-lead {
+  font-size: 18px; font-weight: 400; line-height: 1.55;
+  color: var(--text-secondary); margin: 0 0 28px; max-width: 46ch;
+}
+/* Trust bullets = hero__trust: 15px/500/icon 20px teal, margin-top 3px. Color softened a touch
+   toward Elkollen's live rendering (dark slate, not pure navy) — owner adjustment, fine-tune when needed. */
+.ampy-ec__rail-bullets { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 16px; }
+.ampy-ec__rail-bullet { display: flex; align-items: flex-start; gap: 12px; font-size: 17px; line-height: 1.45; font-weight: 500; color: var(--text-secondary); } /* 1:1 Elkollen hero__trust (v7.3.6): 17px/500/slate */
+.ampy-ec__rail-bullet-icon { display: inline-flex; flex-shrink: 0; width: 20px; height: 20px; min-width: 20px; margin-top: 2px; color: var(--action-primary); }
+.ampy-ec__rail-bullet-icon svg { width: 20px; height: 20px; }
+.ampy-ec__rail-bullet-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.ampy-ec__rail-bullet-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
+/* (The old rail credential box + slim mobile credential were removed in v2.17; the under-CTA
+   credential line was removed in v2.18 — trust now lives in the desktop bullets + the rail stat line.) */
+
+/* Contact CTA in the rail (1:1 replica of ampy.se: phone link + gradient button "Kontakta oss").
+   ampy.se's EXACT tokens (color/size/spacing). Always shown on desktop; on mobile only on
+   start + verdict (the rail sits at the top of every mobile slide → don't want to crowd out the questions). */
+.ampy-ec__rail-actions { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin: 0; }
+/* BOTH CTAs = 1:1 Elkollen hero v7.3.5+ ".hero__btn" (Picasso recipe): 16px radius, Outfit 400,
+   ink #0d0d0d, taller premium body (padding 20px 24px ≈ 56px), two EQUAL-WIDTH buttons filling
+   the row (flex:1), label left / icon right via space-between, translateY+saturate hover. */
+.ampy-ec__rail-phone, .ampy-ec__rail-contact {
+  box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: space-between;
+  flex: 1 1 0;
+  gap: 16px; text-decoration: none; white-space: nowrap; cursor: pointer;
+  font-family: 'Outfit', system-ui, sans-serif; font-size: var(--ampy-cta-fs); font-weight: 400; line-height: 1; color: #0d0d0d;
+  padding: 20px 24px; border: 0; border-radius: var(--ampy-cta-radius); box-shadow: var(--ampy-cta-shadow);
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}
+.ampy-ec__rail-contact { background-image: var(--ampy-cta-gradient); }
+.ampy-ec__rail-phone { background-image: var(--ampy-cta-gradient-blue); box-shadow: 0 0 16px rgba(241, 241, 241, 0.23); }
+.ampy-ec__rail-contact-icon, .ampy-ec__rail-phone-icon { display: inline-flex; flex-shrink: 0; color: #0d0d0d; }
+.ampy-ec__rail-contact-icon svg { width: clamp(16px, calc(0.21vw + 15.3px), 18px); height: clamp(16px, calc(0.21vw + 15.3px), 18px); }
+.ampy-ec__rail-phone-icon { color: #212121; }
+.ampy-ec__rail-phone-icon svg { width: clamp(16px, calc(0.21vw + 15.3px), 18px); height: clamp(17px, calc(0.21vw + 16.3px), 19px); }
+.ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible { outline: 3px solid #00a991; outline-offset: 3px; }
+@media (hover: hover) {
+  .ampy-ec__rail-phone:hover, .ampy-ec__rail-contact:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(94, 177, 191, 0.28); filter: saturate(1.05); }
+}
+/* Sourced stakes line (rail.stat) — under the contact CTAs on desktop, under the tool on mobile. */
+.ampy-ec__rail-stat { margin: var(--space-7) 0 0; font-size: var(--fs-14); font-weight: 450; line-height: 1.6; color: var(--text-secondary); max-width: 46ch; }
+/* Linked but not visually flagged (owner): no underline at rest, subtle affordance on hover only. */
+.ampy-ec__rail-stat-link { color: inherit; text-decoration: none; }
+.ampy-ec__rail-stat-link:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 2px; }
+/* "Hellre prata med en elektriker direkt?" — mobile-only heading above the contact CTAs. */
+/* = Elkollen ".hero__foot-ask" AS RENDERED (measured live at 375px: 15px/600 in the system font,
+   ink). Our real Outfit-600 at 15px reads smaller + denser than SF-600, so the OPTICAL match is
+   17px/500 — same perceived size and lightness as the approved Elkollen rendering. */
+.ampy-ec__rail-ask { display: none; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--text-primary); }
+@media (max-width: 1023px) {
+  /* MOBILE (owner v2.18): H1 → lead → THE TOOL (tall, the focus) → "Hellre prata…" → contact CTAs →
+     stat line. The contact block shows on EVERY view so the customer is NEVER locked in — they can
+     always scroll down and navigate on. The rail unwraps (display:contents) so its pieces become
+     shell grid items, reordered around the stage. Controlled by JS-set data-view (not :has()). */
+  .ampy-ec__shell { gap: var(--space-7); } /* tighter hero rhythm: heading → lead → tool (owner) */
+  .ampy-ec__rail { display: contents; }
+  /* Mobile hero text is CENTERED (owner v2.19), with a touch more air lead → tool. */
+  .ampy-ec__rail-heading { order: 1; margin: 0; text-align: center; }
+  .ampy-ec__rail-lead { order: 2; margin: 0 auto var(--space-4); text-align: center; }
+  .ampy-ec__stage { order: 3; }
+  .ampy-ec__rail-ask { order: 4; margin: var(--space-9) auto -4px; } /* -4px: shell gap 1.6 → effective 12px ask→buttons (= Elkollen) */
+  .ampy-ec__rail-actions { order: 5; }
+  .ampy-ec__rail-stat { order: 6; }
+  .ampy-ec__rail-bullets { display: none; }
+  /* H1 + lead stay VISIBLE on every view (owner): they sit above the tool, and the nav-scroll
+     aligns the tool's top after each tap — so the tool leads the viewport while the heading
+     remains one scroll-up away ("möjligheten att se ovan"). Also keeps the page's only H1 in
+     the a11y tree at all times. */
+  /* Contact block (ask heading + CTAs + stat): ALWAYS visible — anti-lock-in. */
+  .ampy-ec__rail-ask { display: block; text-align: center; max-width: 420px; }
+  .ampy-ec__rail-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-5); max-width: 420px; margin-inline: auto; width: 100%; }
+  .ampy-ec__rail-stat { display: block; margin: 0 auto; max-width: 420px; text-align: center; }
+  /* Mobile contact CTAs = 1:1 Elkollen ".hero__btn" ≤767: full-width stacked, EXTRA tall body
+     (22px), label left / icon right (space-between from the base — NOT centered). Order flips:
+     after "Hellre prata med en elektriker direkt?" the PHONE comes first (owner + Elkollen order). */
+  .ampy-ec__rail-contact, .ampy-ec__rail-phone { width: 100%; max-width: 100%; flex: 0 0 auto; padding: 22px 24px; }
+  .ampy-ec__rail-phone { order: -1; }
+  /* iPad/tablet (single-column): cap the verdict/start CTA + lead submit so they don't stretch
+     bloated-wide. Shell-scoped (0,2,0) so margin-inline:auto BEATS the later cta-primary margin. */
+  .ampy-ec__shell .ampy-ec__cta-primary:not(.ampy-ec__cta-primary--outline), .ampy-ec__shell .ampy-ec__cta-secondary { max-width: 440px; margin-inline: auto; } /* the Q5/Q7 "Fortsätt" outline button keeps the question column's own width */
+  /* Compact card tail (owner v2.19: the void under the share button was way too big). The sticky
+     bar auto-hides as the contact block right below the card enters view, so only a MODEST reserve
+     is needed; the share row also pulls up tight under the readmore. */
+  .ampy-ec__shell[data-view="result"] .ampy-ec__block.ampy-ec__result { padding-bottom: calc(var(--space-9) + env(safe-area-inset-bottom)); }
+  .ampy-ec__shell .ampy-ec__share-row { margin-top: var(--space-2); padding-top: 0; } /* shell-scoped (0,2,0): beats the later base share-row rule (the cascade-trap class) */
+}
+
+/* ---- Start screen (slide 1) ---- */
+.ampy-ec__start { align-items: center; text-align: center; justify-content: center; }
+.ampy-ec__crumb--start { justify-content: center; margin-bottom: var(--space-11); }
+.ampy-ec__start-illu { width: 110px; height: 110px; margin: var(--space-5) auto var(--space-9); }
+.ampy-ec__start-illu svg { width: 100%; height: 100%; display: block; }
+.ampy-ec__start-heading { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-display); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 auto var(--space-5); max-width: 20ch; }
+.ampy-ec__start-heading:focus { outline: none; }
+/* Compound selector: beats .ampy-ec__cta-primary's later same-specificity margin shorthand
+   (the cascade trap documented in CLAUDE.md) — heading → CTA gap actually applies. */
+.ampy-ec__cta-primary.ampy-ec__start-cta { max-width: 320px; margin: var(--space-7) auto var(--space-5); }
+/* Thin time note under the start CTA (owner: "Beräknad tid: 2 minuter") */
+.ampy-ec__start-time { margin: 0; font-size: var(--fs-13); font-weight: 400; color: var(--text-secondary); }
+
+/* ---- Share row (replaces the trust row in the verdict) ---- */
+.ampy-ec__share-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); margin: var(--space-5) 0 0; padding-top: var(--space-3); }
+.ampy-ec__share-row .ampy-ec__share-nudge { margin-right: auto; }
+
+/* Nav-scroll offsets — calibrated to ampy.se's FIXED header (Website-blocks "Ampy Header Redesign":
+   66px mobile / 76px desktop ≥1081px) + breathing room, so every next step lands just below the
+   bar. Override --ec-scroll-offset on .ampy-ec if the header height ever changes. */
+/* (original note:) if the site header is fixed, set --ec-scroll-offset on
+   .ampy-ec in the Bricks page CSS to the header height (e.g. 90px), or the new view tucks under it. */
+.ampy-ec { --ec-scroll-offset: 78px; scroll-margin-top: var(--ec-scroll-offset); } /* 66px header + 12px air */
+.ampy-ec__stage { min-width: 0; scroll-margin-top: var(--ec-scroll-offset); }
+@media (min-width: 1081px) { .ampy-ec { --ec-scroll-offset: 88px; } } /* 76px header + 12px air */
+
+/* NOTE: the DESKTOP SCALE (≥1024px) block lives at the END of this file (just before the
+   reduced-motion block). It MUST come after every base component rule it overrides — media
+   queries add no specificity, so at equal specificity the later source wins. Keep it last. */
+
+/* ============================================================================
+   BLOCK (the card)
+   ============================================================================ */
+.ampy-ec__block {
+  padding: var(--block-padding-y) var(--block-padding-x);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column; gap: 0;
+}
+/* M2: uniform card height on the question steps → no jumpy scroll between slides.
+   The start and verdict steps are exempt (they have their own, intentionally varying height). */
+/* Start + question steps share the same min-height → the start view is as large as the questions (no jumpy expansion). Verdict + lead form are exempt. */
+.ampy-ec__block:not(.ampy-ec__result):not(.ampy-ec__lead) { min-height: var(--ec-q-minh, 0); }
+.ampy-ec__block[data-dir="fwd"] { animation: ec-in-fwd var(--dur-base) var(--ease-out) both; }
+.ampy-ec__block[data-dir="back"] { animation: ec-in-back var(--dur-base) var(--ease-out) both; }
+@keyframes ec-in-fwd { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+@keyframes ec-in-back { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+@media (max-width: 767px) { .ampy-ec { --ec-q-minh: 600px; } .ampy-ec__block { padding: var(--space-9); } .ampy-ec__crumb { margin-bottom: var(--space-9); } }
+/* Forced-colors (Windows high contrast): box-shadow rings are stripped → reintroduce a real outline. */
+@media (forced-colors: active) {
+  .ampy-ec__option:focus-visible, .ampy-ec__cta-primary:focus-visible, .ampy-ec__cta-secondary:focus-visible,
+  .ampy-ec__lead-input:focus, .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible,
+  .ampy-ec__findings-more:focus-visible, .ampy-ec__readmore-link:focus-visible, .ampy-ec__share:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
+}
+
+/* ============================================================================
+   CRUMB + PROGRESS (bar only; numeral = sr-only)
+   ============================================================================ */
+.ampy-ec__crumb { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); margin: 0 0 var(--space-11); min-height: 32px; }
+.ampy-ec__crumb--result { justify-content: flex-start; gap: var(--space-7); }
+.ampy-ec__crumb-left { display: inline-flex; align-items: center; }
+.ampy-ec__steps { display: inline-flex; gap: var(--space-2); align-items: center; }
+.ampy-ec__steps span { width: 18px; height: 4px; border-radius: var(--radius-full); background: var(--border-default); transition: background var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out); }
+.ampy-ec__steps span.is-done { background: rgb(77, 163, 148); background: color-mix(in srgb, var(--action-primary-strong) 70%, #fff); }
+.ampy-ec__steps span.is-current { background: var(--action-primary-strong); width: 28px; }
+.ampy-ec__crumb-back, .ampy-ec__crumb-restart {
+  display: inline-flex; align-items: center; gap: var(--space-3); background: none; border: 0; padding: var(--space-2) 0; margin: 0; font: inherit;
+  font-size: var(--fs-13); color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-sm); transition: color var(--dur-fast) var(--ease-out); min-height: 44px;
+}
+.ampy-ec__crumb-back:hover, .ampy-ec__crumb-restart:hover { color: var(--action-primary-strong); }
+.ampy-ec__crumb-back:focus-visible, .ampy-ec__crumb-restart:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+.ampy-ec__crumb-back svg { width: 16px; height: 16px; }
+/* "Börja om" toned down (smaller + dimmer) — it resets all answers, shouldn't be a mis-tap magnet next to "Tillbaka". */
+.ampy-ec__crumb-restart { color: var(--text-secondary); font-size: var(--fs-12); }
+
+/* ============================================================================
+   QUESTION STEP
+   ============================================================================ */
+.ampy-ec__q-title {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-title); font-weight: 600;
+  line-height: 1.25; color: var(--text-primary); letter-spacing: -0.015em; margin: 0 0 var(--space-9); max-width: 26ch;
+}
+.ampy-ec__q-title:has(+ .ampy-ec__q-subtitle) { margin-bottom: var(--rhythm-label); } /* tight coupling title→subtitle (token, not a negative margin) */
+.ampy-ec__q-title:focus { outline: none; }
+.ampy-ec__q-subtitle { font-size: var(--fs-13); line-height: 1.45; color: var(--text-secondary); margin: 0 0 var(--space-9); }
+
+.ampy-ec__options { display: flex; flex-direction: column; gap: var(--space-5); list-style: none; padding: 0; margin: 0 0 var(--space-9); }
+.ampy-ec__option {
+  width: 100%; display: flex; align-items: center; gap: var(--space-5); text-align: left;
+  padding: var(--space-6) var(--space-7); font: inherit; background: var(--bg-primary); color: var(--text-primary);
+  border: 1px solid var(--border-default); border-radius: var(--radius-md); cursor: pointer; min-height: 56px;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) { .ampy-ec__option:hover { border-color: var(--action-primary); background: var(--bg-subtle); transform: translateY(-1px); box-shadow: var(--shadow-sm); } }
+.ampy-ec__option:active { transform: scale(0.99); border-color: var(--action-primary); background: var(--action-tint); }
+.ampy-ec__option:focus-visible { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
+.ampy-ec__option.is-selected { border-color: var(--action-primary); background: var(--action-tint); }
+.ampy-ec__option-body { display: block; min-width: 0; flex: 1; }
+.ampy-ec__option-title { display: block; font-size: var(--fs-15); font-weight: 500; line-height: 1.4; color: var(--text-primary); }
+.ampy-ec__option-clarifier { display: block; margin-top: var(--space-1); font-size: var(--fs-13); font-weight: 400; line-height: 1.45; color: var(--text-secondary); }
+
+/* Multi-select: checkbox affordance */
+.ampy-ec__option--multi { gap: var(--space-6); align-items: flex-start; }
+.ampy-ec__option--multi .ampy-ec__check { margin-top: 2px; align-self: flex-start; }
+.ampy-ec__check { flex-shrink: 0; width: 22px; height: 22px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); display: inline-flex; align-items: center; justify-content: center; color: var(--text-inverse); transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.ampy-ec__option--multi.is-selected .ampy-ec__check { background: var(--action-primary); border-color: var(--action-primary); }
+.ampy-ec__check svg { width: 15px; height: 15px; }
+.ampy-ec__multi-foot { display: flex; flex-direction: column; gap: var(--space-3); margin: var(--space-3) 0 var(--space-9); }
+.ampy-ec__multi-hint { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.ampy-ec__multi-hint.is-shown { position: static; width: auto; height: auto; clip: auto; margin: 0 0 var(--space-2); font-size: var(--fs-13); color: var(--text-secondary); }
+
+.ampy-ec__info { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-5) var(--space-6); background: var(--bg-subtle); border: 1px solid var(--border-tertiary); border-radius: var(--radius-md); margin: 0; }
+.ampy-ec__info-icon { --ec-row-icon-size: 16px; color: var(--accent-info); }
+.ampy-ec__info-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
+
+/* ============================================================================
+   VERDICT — dual-status = HERO
+   ============================================================================ */
+.ampy-ec__result-eyebrow { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 var(--rhythm-label); }
+
+.ampy-ec__dualstatus {
+  display: flex; gap: var(--space-6); margin: 0 0 var(--rhythm-section);
+  padding: var(--space-8) var(--space-8) var(--space-8) var(--space-7);
+  border-radius: var(--radius-md);
+  animation: ec-rise var(--dur-reveal) var(--ease-out) both;
+}
+.ampy-ec__dualstatus[data-worst="success"] { background: var(--tint-success); }
+.ampy-ec__dualstatus[data-worst="warning"] { background: var(--tint-warning); }
+.ampy-ec__dualstatus[data-worst="error"]   { background: var(--tint-error); }
+.ampy-ec__dualstatus[data-worst="info"]     { background: var(--tint-info); }
+.ampy-ec__dualstatus[data-worst="neutral"]  { background: var(--tint-neutral); }
+.ampy-ec__dualstatus-accent { width: 4px; border-radius: var(--radius-full); flex-shrink: 0; background: var(--accent-neutral); }
+.ampy-ec__dualstatus[data-worst="success"] .ampy-ec__dualstatus-accent { background: var(--accent-success); }
+.ampy-ec__dualstatus[data-worst="warning"] .ampy-ec__dualstatus-accent { background: var(--accent-warning); }
+.ampy-ec__dualstatus[data-worst="error"]   .ampy-ec__dualstatus-accent { background: var(--accent-error); }
+.ampy-ec__dualstatus[data-worst="info"]     .ampy-ec__dualstatus-accent { background: var(--accent-info); }
+/* Vertical verdict (owner v2.18): two STACKED rows, each "Säkerhet [pill]" / "Redo [pill]" — the
+   axis label on the left, its pill to the right, aligned on a shared left edge. Same on desktop and
+   mobile (the mobile version the owner loved). */
+.ampy-ec__dualstatus-rows { display: flex; flex-direction: column; gap: var(--space-5); flex: 1; min-width: 0; }
+.ampy-ec__statusrow { display: flex; flex-direction: row; align-items: center; gap: var(--space-5); min-width: 0; }
+.ampy-ec__statusrow-axis { flex-shrink: 0; min-width: 90px; font-size: var(--fs-14); font-weight: 500; line-height: 1.3; color: var(--text-secondary); }
+.ampy-ec__pill {
+  display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full); font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(14px, 13px + 0.4vw, 16px); font-weight: 600; letter-spacing: -0.005em; line-height: 1.2; max-width: 100%;
+  background: var(--pill-neutral-bg); color: var(--pill-neutral-fg);
+}
+.ampy-ec__pill[data-level="success"] { background: var(--pill-success-bg); color: var(--pill-success-fg); }
+.ampy-ec__pill[data-level="warning"] { background: var(--pill-warning-bg); color: var(--pill-warning-fg); }
+.ampy-ec__pill[data-level="error"]   { background: var(--pill-error-bg);   color: var(--pill-error-fg); }
+.ampy-ec__pill[data-level="info"]    { background: var(--pill-info-bg);    color: var(--pill-info-fg); }
+.ampy-ec__pill[data-level="neutral"] { border: 1px solid var(--text-tertiary); } /* visible edge against the tinted zone; "calm but deliberate" */
+.ampy-ec__pill-icon { display: inline-flex; }
+.ampy-ec__pill svg { width: 16px; height: 16px; flex-shrink: 0; stroke-width: 2.2; }
+
+.ampy-ec__result-lede { font-size: var(--fs-16); font-weight: 400; line-height: 1.55; color: var(--text-primary); margin: 0 0 var(--rhythm-section); max-width: 58ch; }
+
+@keyframes ec-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* FINDINGS */
+.ampy-ec__findings-wrap { margin: 0 0 var(--rhythm-section); }
+.ampy-ec__findings-head { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-14); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 var(--space-7); } /* more air heading → first finding (owner) */
+.ampy-ec__findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-6); }
+.ampy-ec__finding { display: flex; align-items: flex-start; gap: var(--space-5); animation: ec-rise var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
+/* The icon box is a fixed square optically centered on the first text line (line-height 1.6), so every
+   finding's icon is the SAME size and sits on the same baseline regardless of text length. */
+.ampy-ec__finding-icon { margin-top: 0; width: var(--ec-row-icon-size); height: 1.6em; font-size: var(--fs-15); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ampy-ec__finding-icon svg { width: var(--ec-row-icon-size); height: var(--ec-row-icon-size); }
+.ampy-ec__finding--ok .ampy-ec__finding-icon { color: var(--text-success); }
+.ampy-ec__finding--warn .ampy-ec__finding-icon { color: var(--accent-warning); }
+.ampy-ec__finding--info .ampy-ec__finding-icon { color: var(--accent-info); }
+.ampy-ec__finding-text { font-size: var(--fs-15); font-weight: 400; line-height: 1.6; color: var(--text-secondary); margin: 0; max-width: 62ch; }
+/* Quiet expander when >4 findings — keeps the CTA a thumb-reach from the verdict, hides nothing for good. */
+.ampy-ec__findings-more { display: inline-flex; align-items: center; margin: var(--space-4) 0 0; padding: var(--space-2) 0; min-height: 44px; background: none; border: 0; font: inherit; font-size: var(--fs-14); font-weight: 500; color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ampy-ec__findings-more:hover { color: var(--text-primary); }
+.ampy-ec__findings-more:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+
+/* FACTNOTE — the only amber accent (full hairline + tint in brand amber, no side stripe) */
+.ampy-ec__factnote { display: flex; align-items: flex-start; gap: var(--space-4); background: rgba(135, 101, 7, 0.05); border: 1px solid rgba(135, 101, 7, 0.22); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); margin: 0 0 var(--rhythm-section); }
+.ampy-ec__factnote-icon { --ec-row-icon-size: 16px; color: var(--accent-warning); }
+.ampy-ec__factnote-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 62ch; }
+.ampy-ec__factnote-src { font-size: var(--fs-13); font-weight: 400; line-height: 1.5; color: var(--text-secondary); margin: var(--space-3) 0 0; }
+.ampy-ec__factnote-src-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__factnote-src-link:hover { color: var(--text-primary); }
+
+/* AKUT (red, heaviest on screen, first in DOM) — full red border + red tint, no side stripe */
+.ampy-ec__akut { display: flex; align-items: flex-start; gap: var(--space-4); border: 1px solid rgba(122, 22, 35, 0.38); background: rgb(252, 237, 238); border-radius: var(--radius-sm); padding: var(--space-6) var(--space-7); margin: 0 0 var(--rhythm-section); }
+.ampy-ec__akut-icon { color: var(--accent-error); }
+.ampy-ec__akut-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 700; color: var(--accent-error); margin: 0 0 var(--space-2); }
+.ampy-ec__akut-text { font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-primary); margin: 0; max-width: 62ch; }
+
+/* ============================================================================
+   LEAD FORM — in-tool capture (opened by "Få kostnadsfri rådgivning"). Elkollen parity.
+   ============================================================================ */
+.ampy-ec__lead-back { display: inline-flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-7); padding: var(--space-2) 0; min-height: 44px; background: none; border: 0; cursor: pointer; font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); transition: color var(--dur-fast) var(--ease-out); }
+.ampy-ec__lead-back svg { width: 17px; height: 17px; }
+.ampy-ec__lead-back:hover { color: var(--action-primary-strong); }
+.ampy-ec__lead-back:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+.ampy-ec__lead-title { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-primary); }
+.ampy-ec__lead-title:focus { outline: none; }
+.ampy-ec__lead-intro { margin: 0 0 var(--space-9); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 60ch; }
+.ampy-ec__lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-9) var(--space-6); margin: 0 0 var(--space-11); }
+.ampy-ec__lead-field { display: flex; flex-direction: column; gap: var(--rhythm-label); }
+.ampy-ec__lead-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-13); font-weight: 600; color: var(--text-primary); }
+.ampy-ec__lead-input { width: 100%; min-height: 52px; padding: var(--space-4) var(--space-5); font: inherit; font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-16); color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.ampy-ec__lead-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
+.ampy-ec__lead-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+/* (The consent checkbox was replaced by the button-press consent note in v2.17 — see
+   .ampy-ec__lead-consent-note below.) */
+.ampy-ec__lead-error { margin: var(--space-4) 0 0; font-size: var(--fs-13); font-weight: 500; color: var(--accent-error); }
+.ampy-ec__lead-error[hidden] { display: none; }
+/* Compound selector: beats the later .ampy-ec__cta-primary base declarations (documented cascade trap). */
+.ampy-ec__cta-primary.ampy-ec__lead-submit { width: 100%; min-height: 54px; }
+.ampy-ec__lead-submit:disabled { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); cursor: default; }
+/* Required marker (all fields are required — owner decision) */
+.ampy-ec__lead-req { color: var(--text-primary); margin-left: 2px; }
+/* Button-press consent notice under the CTA (replaces the checkbox — owner decision) */
+.ampy-ec__lead-consent-note { margin: var(--space-5) 0 0; font-size: var(--fs-12); font-weight: 400; line-height: 1.55; color: var(--text-secondary); text-align: center; }
+.ampy-ec__lead-consent-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__lead-consent-note a:hover { color: var(--text-primary); }
+.ampy-ec__lead-success { text-align: center; padding: var(--space-11) var(--space-4); }
+.ampy-ec__lead-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin-bottom: var(--space-6); border-radius: var(--radius-full); background: var(--tint-success); color: var(--text-success); }
+.ampy-ec__lead-success-icon svg { width: 28px; height: 28px; }
+.ampy-ec__lead-success h2 { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; color: var(--text-primary); }
+.ampy-ec__lead-success p { margin: 0 auto var(--space-7); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
+@media (max-width: 767px) {
+  .ampy-ec__lead-grid { grid-template-columns: 1fr; }
+  /* Owner: lead title a touch bigger + a touch closer to "Tillbaka till beskedet". */
+  .ampy-ec__lead-back { margin-bottom: var(--space-5); }
+  .ampy-ec__lead-title { font-size: 22px; }
+  /* The tall start card is the focus; centre-with-lift so the void splits instead of pooling at the
+     bottom and the group sits a touch above the midline (not crammed to the top). */
+  .ampy-ec__start { justify-content: center; padding-top: 0; padding-bottom: 40px; }
+  .ampy-ec__start-illu { margin-top: 0; }
+}
+
+/* ============================================================================
+   CTA
+   ============================================================================ */
+.ampy-ec__cta-primary {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3); width: 100%; padding: var(--space-5); margin: 0 0 var(--space-5);
+  font-family: 'Outfit', system-ui, sans-serif; font-size: var(--fs-15); font-weight: 600; line-height: 1.3; border-radius: var(--radius-md);
+  border: 1px solid var(--border-default); background: var(--bg-primary); color: var(--text-primary); cursor: pointer; text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); min-height: 48px;
+}
+.ampy-ec__cta-primary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
+.ampy-ec__cta-primary:active { transform: scale(0.99); }
+.ampy-ec__cta-primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ampy-ec__cta-primary svg { width: 16px; height: 16px; }
+.ampy-ec__cta-primary[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+/* "Fortsätt" is aria-disabled but CLICKABLE (shows the hint) → don't dim it, make it calmly toned down. */
+.ampy-ec__cta-primary--outline[aria-disabled="true"] { opacity: 1; cursor: pointer; color: var(--text-secondary); border-color: var(--border-default); }
+.ampy-ec__cta-primary--solid { background: var(--action-primary-strong); color: var(--text-inverse); border-color: var(--action-primary-strong); }
+.ampy-ec__cta-primary--solid:hover { background: var(--action-primary-strong-hover); border-color: var(--action-primary-strong-hover); }
+.ampy-ec__cta-primary--outline { background: transparent; }
+
+.ampy-ec__cta-secondary {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3); width: 100%; padding: var(--space-5); margin: 0 0 var(--space-5);
+  font-size: var(--fs-15); font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: transparent; color: var(--text-primary);
+  cursor: pointer; text-decoration: none; transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); min-height: 48px;
+}
+.ampy-ec__cta-secondary:hover { border-color: var(--action-primary); background: var(--bg-subtle); }
+.ampy-ec__cta-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ampy-ec__cta-secondary svg { width: 16px; height: 16px; }
+/* "Nyfiken på att läsa mer? Se mer om elcentraler" — quiet read-more line directly under the primary
+   CTA (owner v2.18). Replaces the old credential + bottom-of-card research link. */
+.ampy-ec__readmore { margin: var(--space-6) 0 0; text-align: center; font-size: var(--fs-14); font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
+.ampy-ec__readmore-link { color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 2px; }
+.ampy-ec__readmore-link:hover { color: var(--action-primary-strong); }
+.ampy-ec__readmore-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+
+/* ---- Sticky verdict CTA (mobile only; built + toggled by syncStickyCta in JS) ----
+   A fixed shelf docked to the viewport bottom that mirrors the card's primary ask so it stays a
+   thumb-reach away while reading the besked. Direct child of .ampy-ec__shell (NOT the animated
+   block) so position:fixed is not trapped. Desktop: killed hard. Hidden state stays out of the
+   a11y/tab tree (visibility:hidden + [hidden]). */
+.ampy-ec__sticky-portal { overflow: visible; } /* the body-portal wrapper contributes nothing to flow + never clips the fixed bar */
+.ampy-ec__stickycta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  padding: var(--space-6) calc(clamp(16px, 4vw, 40px) + env(safe-area-inset-right)) calc(var(--space-6) + env(safe-area-inset-bottom)) calc(clamp(16px, 4vw, 40px) + env(safe-area-inset-left));
+  background: var(--bg-primary); border-top: 1px solid var(--border-default); box-shadow: 0 -8px 28px rgba(11, 13, 42, 0.10);
+  visibility: hidden; opacity: 0; transform: translateY(110%); pointer-events: none;
+  transition: transform 220ms var(--ease-out), opacity 180ms var(--ease-out), visibility 0s linear 220ms;
+}
+.ampy-ec__stickycta.is-visible { visibility: visible; opacity: 1; transform: none; pointer-events: auto; transition: transform 260ms var(--ease-out), opacity 200ms var(--ease-out), visibility 0s; }
+.ampy-ec__stickycta[hidden] { display: none; }
+.ampy-ec__stickycta-inner { max-width: 440px; margin-inline: auto; }
+.ampy-ec__stickycta .ampy-ec__cta-primary { width: 100%; margin: 0; } /* zero the inherited cta margin so the bar is exactly its own height */
+@media (min-width: 1024px) { .ampy-ec__stickycta { display: none !important; } } /* desktop: never */
+/* Lead-in text above a cta-link (e.g. "Din central klarar en laddbox." + clickable "Räkna ut din besparing"). */
+.ampy-ec__cta-lead { font-size: var(--fs-16); font-weight: 400; line-height: 1.5; color: var(--text-primary); margin: 0 0 var(--space-3); max-width: 62ch; }
+.ampy-ec__cta-link {
+  background: none; border: 0; padding: var(--space-3) 0; margin: 0 0 var(--space-3); font: inherit; font-family: 'Outfit', system-ui, sans-serif;
+  font-size: var(--fs-14); font-weight: 500; color: var(--action-primary-strong); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+  cursor: pointer; transition: color var(--dur-fast) var(--ease-out); min-height: 44px; display: inline-flex; align-items: center; gap: var(--space-3);
+}
+.ampy-ec__cta-link:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
+.ampy-ec__cta-link:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; border-radius: var(--radius-sm); }
+.ampy-ec__cta-link svg { width: 15px; height: 15px; }
+
+.ampy-ec__share-nudge { font-size: var(--fs-12); font-weight: 500; color: var(--text-success); white-space: nowrap; }
+
+/* Share */
+.ampy-ec__share-anchor { position: relative; display: inline-flex; align-items: center; }
+.ampy-ec__share { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; color: var(--text-secondary); border-radius: var(--radius-sm); transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+.ampy-ec__share:hover { color: var(--text-primary); background: var(--bg-subtle); }
+.ampy-ec__share:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+.ampy-ec__share svg { width: 18px; height: 18px; }
+.ampy-ec__share-menu { position: absolute; right: 0; bottom: calc(100% + var(--space-2)); z-index: 20; min-width: 170px; padding: var(--space-2); background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 2px; animation: ec-pop 140ms var(--ease-out) both; }
+.ampy-ec__share-menu[hidden] { display: none; }
+@keyframes ec-pop { from { opacity: 0; transform: translateY(4px) scale(0.98); } to { opacity: 1; transform: none; } }
+.ampy-ec__share-item { display: flex; align-items: center; gap: var(--space-4); width: 100%; padding: var(--space-3) var(--space-4); background: none; border: 0; border-radius: var(--radius-sm); font-size: var(--fs-14); font-weight: 500; color: var(--text-primary); text-decoration: none; text-align: left; cursor: pointer; transition: background var(--dur-fast) var(--ease-out); min-height: 44px; }
+.ampy-ec__share-item:hover { background: var(--bg-subtle); }
+.ampy-ec__share-item:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+.ampy-ec__share-item-icon { flex-shrink: 0; width: 18px; height: 18px; color: var(--text-secondary); }
+/* Toast is ABSOLUTE (out of flow) so "Länk kopierad." never reflows / shifts the share button. */
+.ampy-ec__share-status { position: absolute; right: calc(100% + var(--space-3)); top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: var(--fs-12); font-weight: 500; color: var(--text-success); background: var(--bg-primary); padding: 2px 6px; border-radius: var(--radius-sm); opacity: 0; pointer-events: none; transition: opacity 200ms ease; } /* bg masks the green-verdict share nudge instead of colliding with it */
+.ampy-ec__share-status[data-visible="true"] { opacity: 1; }
+
+/* PDF-capture */
+.ampy-ec__pdf { margin: var(--space-9) 0 0; padding-top: var(--space-7); border-top: 1px solid var(--border-tertiary); }
+.ampy-ec__pdf-toggle { display: inline-flex; align-items: center; gap: var(--space-3); background: none; border: 0; padding: var(--space-2) 0; font: inherit; font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); cursor: pointer; min-height: 44px; }
+.ampy-ec__pdf-toggle:hover { color: var(--action-primary-strong); }
+.ampy-ec__pdf-toggle svg { width: 16px; height: 16px; }
+.ampy-ec__pdf-form { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); }
+.ampy-ec__pdf-form[hidden] { display: none; }
+.ampy-ec__pdf-flabel { font-size: var(--fs-13); font-weight: 500; color: var(--text-secondary); }
+.ampy-ec__pdf-input { width: 100%; font: inherit; font-size: var(--fs-16); padding: var(--space-5); border: 1px solid var(--border-default); border-radius: var(--radius-md); min-height: 44px; }
+.ampy-ec__pdf-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--focus-ring); }
+.ampy-ec__pdf-consent { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--fs-12); color: var(--text-secondary); line-height: 1.5; }
+.ampy-ec__pdf-consent input { margin-top: 3px; flex-shrink: 0; }
+.ampy-ec__pdf-consent a { color: var(--action-primary-strong); text-decoration: underline; }
+.ampy-ec__hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.ampy-ec__pdf-status { font-size: var(--fs-13); color: var(--text-success); margin: var(--space-3) 0 0; }
+
+/* ============================================================================
+   UTIL + MOBILE
+   ============================================================================ */
+.ampy-ec__sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.ampy-ec[data-booted="true"] .ampy-ec__noscript { display: none; }
+
+@media (max-width: 520px) {
+  /* Narrow phones: the two axes as compact INLINE rows (label · pill) — the two-up grid
+     doesn't fit 2×126px here and stacked label-over-pill wastes height. The axis label gets a
+     shared min-width so both pills start on one left edge. */
+  .ampy-ec__dualstatus-rows { display: flex; flex-direction: column; gap: var(--space-4); }
+  .ampy-ec__statusrow { flex-direction: row; align-items: center; gap: var(--space-4); }
+  .ampy-ec__statusrow-axis { min-width: 70px; }
+  /* Smaller pill type + nowrap so the longest label ("Kräver bedömning") ALWAYS stays on one row. */
+  .ampy-ec__pill { font-size: var(--fs-14); padding: var(--space-2) var(--space-5); gap: var(--space-2); white-space: nowrap; }
+  .ampy-ec__pill svg { width: 14px; height: 14px; }
+  .ampy-ec__dualstatus { padding: var(--space-6) var(--space-6) var(--space-6) var(--space-5); gap: var(--space-4); }
+}
+@media (max-width: 360px) {
+  .ampy-ec__block { padding: var(--space-7); }
+  .ampy-ec__options { gap: var(--space-4); }
+  /* Sub-360 phones: the nowrap pill ("Med lastbalansering") would overflow — let the pill drop
+     under its label instead, on its own full row. */
+  .ampy-ec__statusrow { flex-wrap: wrap; }
+  .ampy-ec__statusrow-axis { min-width: auto; }
+  .ampy-ec__pill { font-size: var(--fs-13); padding-inline: var(--space-4); }
+}
+
+/* ============================================================================
+   DESKTOP SCALE (≥1024px) — larger typography (Ampy body scale 17–18px), more generous cards.
+   MUST be last: media queries add no specificity, so this has to come AFTER every base rule it
+   overrides (BLOCK/VERDICT/CTA) to win at equal specificity. MOBILE (<1024px) is untouched.
+   ============================================================================ */
+@media (min-width: 1024px) {
+  /* More generous cards (Ampy 2xl spacing) */
+  .ampy-ec__block { padding: var(--space-13) var(--space-13); }
+
+  /* Rail = 1:1 Elkollen hero v7.3.6 desktop bump: paragraph 20px/1.6 (H1 keeps its size — our
+     H1 is shorter than Elkollen's so the current size balances; owner v2.19). */
+  .ampy-ec__rail-lead { font-size: 20px; line-height: 1.6; }
+
+  /* Questions */
+  .ampy-ec__q-title { font-size: clamp(26px, 12px + 1.8vw, 32px); margin-bottom: var(--space-11); }
+  .ampy-ec__q-subtitle { font-size: var(--fs-15); }
+  .ampy-ec__options { gap: var(--space-6); }
+  .ampy-ec__option { min-height: 64px; padding: var(--space-7) var(--space-9); }
+  .ampy-ec__option-title { font-size: var(--fs-18); }
+  .ampy-ec__option-clarifier { font-size: var(--fs-15); }
+  .ampy-ec__info-text { font-size: var(--fs-15); }
+
+  /* Start (slide 1) — centre-with-lift: the group centres inside (height − padding-bottom), so it
+     sits a touch ABOVE the midline (owner: "flytta upp lite"), not crammed to the top edge. Even
+     internal rhythm illu→heading→CTA→tid. */
+  .ampy-ec__start { justify-content: center; padding-top: 0; padding-bottom: var(--space-13); }
+  .ampy-ec__start .ampy-ec__crumb--start { margin-bottom: var(--space-12); }
+  .ampy-ec__start-illu { width: 120px; height: 120px; margin-top: 0; margin-bottom: var(--space-9); }
+  .ampy-ec__start-heading { font-size: clamp(28px, 14px + 2vw, 36px); margin-bottom: var(--space-9); }
+  .ampy-ec__cta-primary.ampy-ec__start-cta { margin-top: 0; margin-bottom: var(--space-7); }
+
+  /* Verdict */
+  .ampy-ec { --rhythm-section: var(--space-13); } /* section rhythm grows with the desktop typography */
+  .ampy-ec__dualstatus { width: fit-content; min-width: 420px; max-width: 100%; margin-bottom: var(--space-11); } /* plaque hugs the rows, not a half-empty band; a touch tighter than section rhythm */
+  .ampy-ec__result-lede { font-size: var(--fs-18); max-width: 54ch; margin-bottom: var(--space-11); }
+  .ampy-ec__findings-head { margin-bottom: var(--space-8); }
+  .ampy-ec__finding-text { font-size: var(--fs-18); }
+  .ampy-ec__finding-icon { font-size: var(--fs-18); --ec-row-icon-size: 20px; } /* line-height icon + SVG follow the text size */
+  .ampy-ec__findings { gap: var(--space-7); } /* the air grows with the text size (mobile 12px → desktop 16px) */
+  .ampy-ec__factnote-text, .ampy-ec__akut-text { font-size: var(--fs-15); }
+  .ampy-ec__pill { font-size: var(--fs-18); }
+  .ampy-ec__statusrow-axis { font-size: var(--fs-15); }
+  .ampy-ec__lead-intro { max-width: 52ch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ampy-ec__block, .ampy-ec__dualstatus, .ampy-ec__finding, .ampy-ec__share-menu { animation: none !important; }
+  .ampy-ec__steps span, .ampy-ec__option, .ampy-ec__cta-primary { transition: none !important; }
+  .ampy-ec__stickycta { transition: none !important; } /* snap in/out, no slide */
+}
