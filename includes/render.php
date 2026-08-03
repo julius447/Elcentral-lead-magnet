@@ -12,7 +12,26 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-function ampy_ec_render_mount( $data ) {
+function ampy_ec_render_mount( $data, $layout = 'hero', $placement = '' ) {
+	$is_block = ( 'block' === $layout );
+
+	// BLOCK MODE: the tool is a SECTION of a landing page that already ranks and already owns its
+	// H1 + its service links. Printing the full crawlable fallback here would duplicate that page's
+	// own content inside itself, so block mode emits ONE sentence instead. The complete SEO fallback
+	// stays on the standalone /elcentralkollen/ page, which is what it was built for.
+	if ( $is_block ) {
+		$note = isset( $data['meta']['block']['noscript_note'] ) ? $data['meta']['block']['noscript_note'] : '';
+		ob_start();
+		?>
+		<div class="ampy-ec" lang="sv" data-layout="block"<?php echo $placement ? ' data-placement="' . esc_attr( $placement ) . '"' : ''; ?> data-data-url="<?php echo esc_url( AMPY_EC_URL . 'data/elcentralkollen-data.json' ); ?>">
+			<div class="ampy-ec__noscript">
+				<div class="ampy-ec__block"><p><?php echo esc_html( $note ); ?></p></div>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
 	$heading  = isset( $data['meta']['page_heading'] ) ? $data['meta']['page_heading'] : 'Är din elcentral säker och redo?';
 	$lead     = isset( $data['meta']['page_lead'] ) ? $data['meta']['page_lead'] : '';
 	$disc     = isset( $data['meta']['disclaimer'] ) ? $data['meta']['disclaimer'] : '';

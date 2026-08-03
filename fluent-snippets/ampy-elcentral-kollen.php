@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.19.5 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.20.2 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -13,11 +13,24 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
-	function ampy_ec_shortcode_render() {
+	function ampy_ec_shortcode_render( $atts = array() ) {
+		$atts = shortcode_atts( array( 'layout' => 'hero', 'placement' => '' ), $atts, 'elcentralkollen' );
+		$is_block  = ( 'block' === $atts['layout'] );
+		$placement = sanitize_key( $atts['placement'] );
+
+		// ETT verktyg per sida (dubbla mounts = dubbla formulär-id:n + dubbla dataLayer-events).
+		static $rendered = false;
+		if ( $rendered ) {
+			return current_user_can( 'edit_posts' )
+				? '<p><strong>Elcentral-kollen:</strong> verktyget finns redan på den har sidan. Anvand bara EN [elcentralkollen] per sida.</p>'
+				: '<!-- elcentralkollen: redan renderad -->';
+		}
+		$rendered = true;
+
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.19.5",
+    "version": "2.20.2",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -34,6 +47,14 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "pre": "Nyfiken på att läsa mer? ",
       "label": "Se mer om elcentraler",
       "url_key": "centralbyte"
+    },
+    "block": {
+      "_note": "Copy + toggles for BLOCK mode only ([elcentralkollen layout=\"block\"] on a landing page). The standalone page at /elcentralkollen/ never reads these. The tool card itself (start/questions/besked/lead form) is IDENTICAL in both modes — owner directive.",
+      "eyebrow": "Elcentral-kollen",
+      "heading": "Behöver din elcentral bytas?",
+      "lead": "Ett byte är inte alltid svaret. Svara på sju frågor om din egen central, så får du ett besked på två punkter: är den säker i dag, och klarar den det du planerar?",
+      "meta_line": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket. Beskedet bygger på dina egna svar och du får det direkt, utan att lämna e-post.",
+      "noscript_note": "Elcentral-kollen: svara på sju frågor om din elcentral och få ett besked på två punkter, säker i dag och redo för det du planerar. Verktyget kräver JavaScript."
     },
     "rail": {
       "credential_link": "Auktoriserat elinstallationsföretag",
@@ -822,6 +843,21 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 }
 AMPYEC_DATA_EOF;
 		ob_start();
+
+		// BLOCK MODE ([elcentralkollen layout="block"]): the tool is a SECTION of a landing page that
+		// already owns its H1 and its service links, so the full crawlable fallback (which would
+		// duplicate that page's content inside itself) is replaced by one sentence.
+		if ( $is_block ) {
+			?>
+			<div class="ampy-ec" lang="sv" data-layout="block"<?php echo $placement ? ' data-placement="' . esc_attr( $placement ) . '"' : ''; ?>>
+				<div class="ampy-ec__noscript">
+					<div class="ampy-ec__block"><p>Elcentral-kollen: svara på sju frågor om din elcentral och få ett besked på två punkter, säker i dag och redo för det du planerar. Verktyget kräver JavaScript.</p></div>
+				</div>
+			</div>
+			<script>window.AmpyEC = window.AmpyEC || {}; window.AmpyEC.data = <?php echo $data; ?>;</script>
+			<?php
+			return ob_get_clean();
+		}
 		?>
 		<div class="ampy-ec" lang="sv">
 			<div class="ampy-ec__noscript">

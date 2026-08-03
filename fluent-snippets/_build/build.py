@@ -80,6 +80,7 @@ _data_obj = json.loads(data_raw)
 FB_H1 = _html.escape(_data_obj['meta']['page_heading'])
 FB_LEAD = _html.escape(_data_obj['meta']['page_lead'])
 FB_DISCLAIMER = _html.escape(_data_obj['meta']['disclaimer'])
+FB_BLOCK_NOTE = _html.escape(_data_obj['meta'].get('block', {}).get('noscript_note', ''))
 FB_QUESTIONS = '\n'.join('\t\t\t\t\t\t<li>%s</li>' % _html.escape(q['title']) for q in _data_obj['questions'])
 _svc_labels = {
     'elbesiktning': 'Elbesiktning', 'centralbyte': 'Byta elcentral',
@@ -106,11 +107,39 @@ PHP = '''<?php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
-	function ampy_ec_shortcode_render() {
+	function ampy_ec_shortcode_render( $atts = array() ) {
+		$atts = shortcode_atts( array( 'layout' => 'hero', 'placement' => '' ), $atts, 'elcentralkollen' );
+		$is_block  = ( 'block' === $atts['layout'] );
+		$placement = sanitize_key( $atts['placement'] );
+
+		// ETT verktyg per sida (dubbla mounts = dubbla formulär-id:n + dubbla dataLayer-events).
+		static $rendered = false;
+		if ( $rendered ) {
+			return current_user_can( 'edit_posts' )
+				? '<p><strong>Elcentral-kollen:</strong> verktyget finns redan på den har sidan. Anvand bara EN [elcentralkollen] per sida.</p>'
+				: '<!-- elcentralkollen: redan renderad -->';
+		}
+		$rendered = true;
+
 		$data = <<<'AMPYEC_DATA_EOF'
 %(data)s
 AMPYEC_DATA_EOF;
 		ob_start();
+
+		// BLOCK MODE ([elcentralkollen layout="block"]): the tool is a SECTION of a landing page that
+		// already owns its H1 and its service links, so the full crawlable fallback (which would
+		// duplicate that page's content inside itself) is replaced by one sentence.
+		if ( $is_block ) {
+			?>
+			<div class="ampy-ec" lang="sv" data-layout="block"<?php echo $placement ? ' data-placement="' . esc_attr( $placement ) . '"' : ''; ?>>
+				<div class="ampy-ec__noscript">
+					<div class="ampy-ec__block"><p>%(fb_block_note)s</p></div>
+				</div>
+			</div>
+			<script>window.AmpyEC = window.AmpyEC || {}; window.AmpyEC.data = <?php echo $data; ?>;</script>
+			<?php
+			return ob_get_clean();
+		}
 		?>
 		<div class="ampy-ec" lang="sv">
 			<div class="ampy-ec__noscript">
@@ -158,7 +187,7 @@ if ( ! function_exists( 'ampy_ec_dynamic_og' ) ) {
 	}
 	add_action( 'wp_head', 'ampy_ec_dynamic_og' );
 }
-''' % {'v': VERSION, 'data': data_raw, 'fb_h1': FB_H1, 'fb_lead': FB_LEAD, 'fb_questions': FB_QUESTIONS, 'fb_services': FB_SERVICES, 'fb_disclaimer': FB_DISCLAIMER}
+''' % {'v': VERSION, 'data': data_raw, 'fb_h1': FB_H1, 'fb_lead': FB_LEAD, 'fb_questions': FB_QUESTIONS, 'fb_services': FB_SERVICES, 'fb_disclaimer': FB_DISCLAIMER, 'fb_block_note': FB_BLOCK_NOTE}
 
 (OUT / 'ampy-elcentral-kollen.php').write_text(PHP)
 

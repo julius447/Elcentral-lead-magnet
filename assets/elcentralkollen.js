@@ -157,7 +157,15 @@
       this.N = this.questions.length;            // number of questions (7)
       this.answers = {}; this.step = 0;          // 0 = start, 1..N = questions, N+1 = verdict
       this.dir = 'fwd'; this._flashT = null; this.stage = null; this._booted = false; this._tracked = {}; this.leadOpen = false;
-      this.hydrateFromUrl(); this.bindHistory();
+      // LAYOUT MODE. 'hero' (default) = the standalone page at /elcentralkollen/ — unchanged forever.
+      // 'block' = embedded as a section of a landing page ([elcentralkollen layout="block"]): the tool
+      // CARD is identical, but the surrounding brand chrome, the URL state, the share row and the
+      // mobile sticky bar all belong to the page, not to us. Read from the mount, never guessed.
+      this.layout = (mount.dataset && mount.dataset.layout === 'block') ? 'block' : 'hero';
+      this.isBlock = this.layout === 'block';
+      this.placement = (mount.dataset && mount.dataset.placement) || null;
+      // In block mode the tool must NOT own the URL: a landing page has its own history/canonical.
+      if (!this.isBlock) { this.hydrateFromUrl(); this.bindHistory(); }
     }
 
     encodeVector() {
@@ -189,6 +197,7 @@
       if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => { const v = this.answers[q.id]; return q.type === 'multi' ? (Array.isArray(v) && v.length > 0) : v != null; }); this.step = complete ? (this.N + 1) : 0; }
     }
     writeResultUrl(push) {
+      if (this.isBlock) return; // block mode: the landing page owns its URL + canonical, we never touch it
       const p = new URLSearchParams(window.location.search); p.set('q', this.encodeVector());
       const url = window.location.pathname + '?' + p.toString() + window.location.hash;
       if (push) history.pushState({ step: this.N + 1 }, '', url); else history.replaceState({ step: this.N + 1 }, '', url);
@@ -210,7 +219,14 @@
       else { cur = cur.filter(id => { const o = q.options.find(oo => oo.id === id); return !(o && o.exclusive); }); cur = cur.includes(optionId) ? cur.filter(id => id !== optionId) : cur.concat(optionId); }
       this.answers[q.id] = cur;
     }
-    track(event, params) { try { const dl = (window.dataLayer = window.dataLayer || []); const key = event + ':' + (params && params.step != null ? params.step : ''); if (this._tracked[key]) return; this._tracked[key] = true; dl.push(Object.assign({ event: 'ampy_ec_' + event }, params || {})); } catch (e) {} }
+    // Every event carries WHERE it happened: ec_surface 'block'|'standalone' (+ ec_placement) so the
+    // landing-page block and the standalone magnet are separable in GA4 without renaming any event.
+    surfaceParams() { return Object.assign({ ec_surface: this.isBlock ? 'block' : 'standalone' }, this.placement ? { ec_placement: this.placement } : {}); }
+    // Heading level INSIDE the card. Hero mode: the rail owns the h1, the card's own titles are h2.
+    // Block mode: the section header is the h2, so the card's titles demote to h3 — one clean outline
+    // on a landing page that already owns its h1.
+    hTag() { return this.isBlock ? 'h3' : 'h2'; }
+    track(event, params) { try { const dl = (window.dataLayer = window.dataLayer || []); const key = event + ':' + (params && params.step != null ? params.step : ''); if (this._tracked[key]) return; this._tracked[key] = true; dl.push(Object.assign({ event: 'ampy_ec_' + event }, this.surfaceParams(), params || {})); } catch (e) {} }
     advance() { this.dir = 'fwd'; this.leadOpen = false; this._navScroll = true; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
     openLead(source) { this.leadOpen = true; this._navScroll = true; try { this.track('lead_form_open', Object.assign({ cell: diagnose(this.answers, this.data).cell }, source ? { cta_source: source } : {})); } catch (e) {} this.render(); }
     closeLead() { this.leadOpen = false; this._navScroll = true; this.render(); }
@@ -226,6 +242,42 @@
         const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const behavior = reduce ? 'auto' : 'smooth';
         const twoPane = typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 1024px)').matches;
+
+        // BLOCK MODE: the tool is ONE section of a long landing page, so it may never yank the page.
+        // (1) the start view never scrolls at all (the visitor is reading the page, not the tool);
+        // (2) every other view uses the FIT algorithm at ALL widths — never scrollIntoView('start'),
+        //     which would drag the page to the block from anywhere;
+        // (3) if the card is entirely out of view the visitor has moved on — do nothing.
+        if (this.isBlock) {
+          if (this.step <= 0 && !this.leadOpen) return;
+          const card = this.stage.querySelector('.ampy-ec__block');
+          if (!card) return;
+          const cr0 = card.getBoundingClientRect();
+          // Only adjust when the card is MEANINGFULLY on screen. A card that is 90% scrolled past is
+          // someone reading further down the page — moving it under them would be a page hijack.
+          const visible = Math.min(cr0.bottom, vh) - Math.max(cr0.top, 0);
+          if (visible < Math.min(240, cr0.height * 0.35)) return;
+          const offset = parseFloat(getComputedStyle(this.stage).scrollMarginTop) || 0;
+          this._scrollAborted = false;
+          const abort = () => { this._scrollAborted = true; };
+          ['wheel', 'touchmove', 'keydown'].forEach(ev => window.addEventListener(ev, abort, { once: true, passive: true }));
+          const fitBlock = (smooth) => {
+            const cr = card.getBoundingClientRect();
+            const curY = window.scrollY || window.pageYOffset || 0;
+            const margin = 16;
+            let targetY = null;
+            if (cr.top < offset - 2) targetY = cr.top + curY - offset;                                  // top under the header → bring it down
+            else if (cr.bottom > vh - margin) {                                                          // bottom cut → lift, never past the header
+              const delta = Math.min(cr.bottom - (vh - margin), cr.top - offset);
+              if (delta > 2) targetY = curY + delta;
+            }
+            if (targetY != null) { targetY = Math.max(0, targetY); if (Math.abs(targetY - curY) > 4) window.scrollTo({ top: targetY, behavior: smooth ? behavior : 'auto' }); }
+          };
+          fitBlock(true);
+          clearTimeout(this._scrollT);
+          this._scrollT = setTimeout(() => { try { if (!this._scrollAborted) fitBlock(false); } catch (e2) {} }, 650); // settle guard, but never fight a user who scrolled
+          return;
+        }
 
         // DESKTOP QUESTION SLIDE: FIT the whole card below the fixed header, so the bottom (the info
         // note / "Fortsätt" button) is visible without scrolling. Move the card UP (scroll down) only
@@ -272,11 +324,44 @@
       } catch (e) {}
     }
 
+    // BLOCK MODE header: the section framing that replaces the standalone brand rail. Never an <h1>
+    // (the host landing page owns its H1); eyebrow → H2 → lead → one quiet meta line.
+    renderBlockHead() {
+      const b = (this.data.meta && this.data.meta.block) || {};
+      const head = el('header', { class: 'ampy-ec__blockhead' });
+      if (b.eyebrow) head.appendChild(el('p', { class: 'ampy-ec__blockhead-eyebrow' }, b.eyebrow));
+      head.appendChild(el('h2', { class: 'ampy-ec__blockhead-title' }, b.heading || this.data.meta.page_heading));
+      if (b.lead) head.appendChild(el('p', { class: 'ampy-ec__blockhead-lead' }, b.lead));
+      if (b.meta_line) head.appendChild(el('p', { class: 'ampy-ec__blockhead-meta' }, b.meta_line));
+      return head;
+    }
+    // The sourced Elsäkerhetsverket stat, re-homed as the ground line UNDER the card in block mode
+    // (in hero mode it lives in the rail). Same string, same source link, one instance either way.
+    renderBlockStat() {
+      const st = (this.data.meta.rail || {}).stat;
+      if (!st || !st.rest) return null;
+      return el('p', { class: 'ampy-ec__blockstat' }, [
+        el('a', { class: 'ampy-ec__blockstat-link', href: st.url, target: '_blank', rel: 'noopener noreferrer' }, (st.link || 'Elsäkerhetsverket')),
+        st.rest
+      ]);
+    }
+
     buildShell() {
       this.mount.replaceChildren(); this.mount.dataset.booted = 'true';
       this.mount.lang = 'sv'; // Swedish tool — pronounced correctly even if the host page is lang="en" (WCAG 3.1.2)
       const shell = el('div', { class: 'ampy-ec__shell' });
       this.shell = shell;
+      // BLOCK MODE: single column — section header, the untouched tool card, the stat as ground line.
+      // No rail, so no brand H1, no trust bullets, no contact CTAs, no "Hellre prata…" heading: the
+      // host page already carries all of that (owner directive + it would be a 4th competing ask).
+      if (this.isBlock) {
+        shell.appendChild(this.renderBlockHead());
+        this.stage = el('div', { class: 'ampy-ec__stage' });
+        shell.appendChild(this.stage);
+        const stat = this.renderBlockStat(); if (stat) shell.appendChild(stat);
+        this.mount.appendChild(shell);
+        return;
+      }
       const rail = this.renderRail();
       shell.appendChild(rail);
       this.stage = el('div', { class: 'ampy-ec__stage' });
@@ -386,6 +471,9 @@
     }
     syncStickyCta() {
       if (this._stickyIO) { this._stickyIO.disconnect(); this._stickyIO = null; } // teardown FIRST → exactly one live observer, leak-free
+      // BLOCK MODE: no body-portalled fixed bar. On a long landing page it would hover over the
+      // page's OWN sections (and its sentinel, the rail contact block, does not exist here).
+      if (this.isBlock) { if (this._stickyBar) { this._stickyBar.hidden = true; this._stickyBar.classList.remove('is-visible'); this._stickyBar.replaceChildren(); } return; }
       const bar = this._ensureStickyBar();
       const onMobile = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1023px)').matches;
       const def = (this.shell && this.shell.dataset.view === 'result') ? this._stickyDef : null;
@@ -418,7 +506,7 @@
       const s = this.data.meta.start || {};
       const block = el('div', { class: 'ampy-ec__block ampy-ec__start' });
       block.appendChild(el('div', { class: 'ampy-ec__start-illu', html: START_ILLU, 'aria-hidden': 'true' }));
-      block.appendChild(el('h2', { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
+      block.appendChild(el(this.hTag(), { class: 'ampy-ec__start-heading', tabindex: '-1', 'data-focus': 'true' }, s.heading || 'Då sätter vi igång'));
       // Owner decision: no paragraph — the CTA sits where the body used to be, with a thin time note under it.
       block.appendChild(el('button', { class: 'ampy-ec__cta-primary ampy-ec__cta-primary--solid ampy-ec__start-cta', type: 'button', onclick: () => this.advance() }, [(s.cta || 'Starta test'), iconSpan('arrowRight')]));
       if (s.time_note) block.appendChild(el('p', { class: 'ampy-ec__start-time' }, s.time_note));
@@ -436,7 +524,7 @@
       crumb.appendChild(el('button', { class: 'ampy-ec__crumb-back', type: 'button', 'aria-label': (this.step === 1 ? 'Tillbaka till start' : 'Tillbaka till föregående fråga'), onclick: () => this.back() }, [iconSpan('arrowLeft'), 'Tillbaka']));
       block.appendChild(crumb);
 
-      block.appendChild(el('h2', { class: 'ampy-ec__q-title', id: 'ampy-ec-q', tabindex: '-1', 'data-focus': 'true' }, q.title));
+      block.appendChild(el(this.hTag(), { class: 'ampy-ec__q-title', id: 'ampy-ec-q', tabindex: '-1', 'data-focus': 'true' }, q.title));
       if (q.subtitle) block.appendChild(el('p', { class: 'ampy-ec__q-subtitle' }, q.subtitle));
       block.appendChild(q.type === 'multi' ? this.renderMultiOptions(q) : this.renderSingleOptions(q));
       block.appendChild(el('div', { class: 'ampy-ec__info', role: 'note' }, [iconSpan('info', 'ampy-ec__info-icon'), el('p', { class: 'ampy-ec__info-text' }, q.note)]));
@@ -487,7 +575,7 @@
         el('button', { class: 'ampy-ec__crumb-restart', type: 'button', onclick: () => this.restart() }, 'Börja om')
       ]));
       if (dx.safety.escalation) block.appendChild(el('div', { class: 'ampy-ec__akut', role: 'alert' }, [iconSpan('alert', 'ampy-ec__akut-icon'), el('div', {}, [el('p', { class: 'ampy-ec__akut-label' }, data.akut_notis.label), el('p', { class: 'ampy-ec__akut-text' }, data.akut_notis.text)])]));
-      block.appendChild(el('h2', { class: 'ampy-ec__sr', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.buildSummarySentence(dx)));
+      block.appendChild(el(this.hTag(), { class: 'ampy-ec__sr', id: 'ampy-ec-result-h', tabindex: '-1', 'data-focus': 'true' }, this.buildSummarySentence(dx)));
       block.appendChild(el('p', { class: 'ampy-ec__result-eyebrow' }, 'Ditt besked'));
       block.appendChild(this.renderDualStatus(dx));
       const lede = (m.summary_by_safety && m.summary_by_safety[dx.safety.state]) || (m.summary_by_ready && m.summary_by_ready[dx.ready.state]) || m.summary;
@@ -501,14 +589,16 @@
       // Directly under the booking CTA (owner decision, v2.18): a quiet "read more about elcentraler"
       // text link — the education path for researchers not ready to book. Replaces the old credential
       // line here and the old bottom-of-card research link. Only when there is a real ask.
-      const rm = this.data.meta.result_readmore;
+      // Suppressed in block mode: on the elcentral landing page this link points at the page it is
+      // printed on (a self-link). Owner directive — remove it there. Standalone keeps it.
+      const rm = this.isBlock ? null : this.data.meta.result_readmore;
       if (hasAsk && rm && rm.label) {
         block.appendChild(el('p', { class: 'ampy-ec__readmore' }, [
           (rm.pre || ''),
           el('a', { class: 'ampy-ec__readmore-link', href: this.resolveCtaUrl(rm), onclick: () => this.track('research_link', { cell: dx.cell }) }, rm.label)
         ]));
       }
-      block.appendChild(this.renderShareRow(dx));
+      if (!this.isBlock) block.appendChild(this.renderShareRow(dx)); // sharing belongs to the standalone magnet, not to a section of a service page
       block.appendChild(this.renderPdfCapture(dx));
       // Mobile sticky CTA (see syncStickyCta): stash what to mirror + tag the in-card source element
       // as the observer's top sentinel. Normal/AKUT → the primary--solid node; sr-oklart → the secondary.
@@ -631,7 +721,7 @@
       const dx = diagnose(this.answers, this.data), f = this.data.meta.lead_form || {};
       const block = el('div', { class: 'ampy-ec__block ampy-ec__lead', role: 'region', 'aria-labelledby': 'ampy-ec-lead-h' });
       block.appendChild(el('button', { class: 'ampy-ec__lead-back', type: 'button', onclick: () => this.closeLead() }, [iconSpan('arrowLeft'), (f.back || 'Tillbaka till beskedet')]));
-      block.appendChild(el('h2', { class: 'ampy-ec__lead-title', id: 'ampy-ec-lead-h', tabindex: '-1', 'data-focus': 'true' }, (f.title || 'Få kostnadsfri rådgivning')));
+      block.appendChild(el(this.hTag(), { class: 'ampy-ec__lead-title', id: 'ampy-ec-lead-h', tabindex: '-1', 'data-focus': 'true' }, (f.title || 'Få kostnadsfri rådgivning')));
       block.appendChild(el('p', { class: 'ampy-ec__lead-intro' }, (f.intro || 'Ampys behöriga elektriker hör av sig med ett förslag, oftast inom en arbetsdag.')));
       const form = el('form', { class: 'ampy-ec__lead-form', novalidate: 'true' });
       const field = (name, label, type, inputmode, ac, extra) => {
@@ -667,10 +757,10 @@
         submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
         this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
           // The conversion is pushed outside the track() dedupe (lead_submitted has no step → otherwise the 2nd submit is lost).
-          try { (window.dataLayer = window.dataLayer || []).push({ event: 'ampy_ec_lead_submitted', cell: dx.cell }); } catch (e3) {}
+          try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'ampy_ec_lead_submitted', cell: dx.cell }, this.surfaceParams())); } catch (e3) {}
           block.replaceChildren(el('div', { class: 'ampy-ec__lead-success', tabindex: '-1', 'data-focus': 'true' }, [
             iconSpan('check', 'ampy-ec__lead-success-icon'),
-            el('h2', {}, (f.success_title || 'Tack! Vi hör av oss inom kort.')),
+            el(this.hTag(), {}, (f.success_title || 'Tack! Vi hör av oss inom kort.')),
             el('p', {}, (f.success_body || 'En behörig elektriker återkommer med ett förslag, oftast inom en arbetsdag.')),
             el('button', { class: 'ampy-ec__lead-back', type: 'button', onclick: () => this.closeLead() }, [iconSpan('arrowLeft'), (f.success_back || 'Tillbaka till beskedet')])
           ]));

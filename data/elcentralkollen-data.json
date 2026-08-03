@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "2.19.5",
+    "version": "2.20.2",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -17,6 +17,14 @@
       "pre": "Nyfiken på att läsa mer? ",
       "label": "Se mer om elcentraler",
       "url_key": "centralbyte"
+    },
+    "block": {
+      "_note": "Copy + toggles for BLOCK mode only ([elcentralkollen layout=\"block\"] on a landing page). The standalone page at /elcentralkollen/ never reads these. The tool card itself (start/questions/besked/lead form) is IDENTICAL in both modes — owner directive.",
+      "eyebrow": "Elcentral-kollen",
+      "heading": "Behöver din elcentral bytas?",
+      "lead": "Ett byte är inte alltid svaret. Svara på sju frågor om din egen central, så får du ett besked på två punkter: är den säker i dag, och klarar den det du planerar?",
+      "meta_line": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket. Beskedet bygger på dina egna svar och du får det direkt, utan att lämna e-post.",
+      "noscript_note": "Elcentral-kollen: svara på sju frågor om din elcentral och få ett besked på två punkter, säker i dag och redo för det du planerar. Verktyget kräver JavaScript."
     },
     "rail": {
       "credential_link": "Auktoriserat elinstallationsföretag",

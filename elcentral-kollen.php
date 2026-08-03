@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.19.5
+ * Version:           2.20.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.19.5' );
+define( 'AMPY_EC_VERSION', '2.20.2' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
@@ -111,11 +111,23 @@ add_action( 'wp_enqueue_scripts', 'ampy_ec_register_assets' );
  * dubblerande rubrik i Bricks ovanför shortcoden.
  */
 function ampy_ec_shortcode( $atts = array() ) {
-	$atts = shortcode_atts( array( 'embed' => '' ), $atts, 'elcentralkollen' );
+	$atts = shortcode_atts( array( 'embed' => '', 'layout' => 'hero', 'placement' => '' ), $atts, 'elcentralkollen' );
+	$layout    = ( 'block' === $atts['layout'] ) ? 'block' : 'hero';
+	$placement = sanitize_key( $atts['placement'] );
 	$data = ampy_ec_get_data();
 	if ( ! $data ) {
 		return '<p>Elcentral-kollen kunde inte laddas (saknad eller skadad datafil).</p>';
 	}
+
+	// ETT verktyg per sida. Två mounts delar window.AmpyEC.data och skulle ge dubbla formulär-id:n
+	// samt en andra uppsättning dataLayer-events från samma sida.
+	static $rendered = false;
+	if ( $rendered ) {
+		return current_user_can( 'edit_posts' )
+			? '<p><strong>Elcentral-kollen:</strong> verktyget finns redan på den här sidan. Använd bara EN [elcentralkollen] per sida.</p>'
+			: '<!-- elcentralkollen: redan renderad på denna sida -->';
+	}
+	$rendered = true;
 
 	wp_enqueue_style( 'ampy-ec' );
 	wp_enqueue_script( 'ampy-ec' );
@@ -128,7 +140,7 @@ function ampy_ec_shortcode( $atts = array() ) {
 		'embed'     => sanitize_key( $atts['embed'] ),
 	) );
 
-	return ampy_ec_render_mount( $data );
+	return ampy_ec_render_mount( $data, $layout, $placement );
 }
 add_shortcode( 'elcentralkollen', 'ampy_ec_shortcode' );
 
