@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.20.3 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.21.3 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -30,7 +30,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.20.3",
+    "version": "2.21.3",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -49,11 +49,10 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
       "url_key": "centralbyte"
     },
     "block": {
-      "_note": "Copy + toggles for BLOCK mode only ([elcentralkollen layout=\"block\"] on a landing page). The standalone page at /elcentralkollen/ never reads these. The tool card itself (start/questions/besked/lead form) is IDENTICAL in both modes — owner directive.",
-      "eyebrow": "Elcentral-kollen",
+      "_note": "Copy + toggles for BLOCK mode only ([elcentralkollen layout=\"block\"] on a landing page). The standalone page at /elcentralkollen/ never reads these. The tool card itself (start/questions/besked/lead form) is IDENTICAL in both modes — owner directive. Owner 2026-08-03: no eyebrow, and ground_line sits UNDER the card (it swapped places with the Elsäkerhetsverket stat, which was dropped).",
       "heading": "Behöver din elcentral bytas?",
-      "lead": "Ett byte är inte alltid svaret. Svara på sju frågor om din egen central, så får du ett besked på två punkter: är den säker i dag, och klarar den det du planerar?",
-      "meta_line": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket. Beskedet bygger på dina egna svar och du får det direkt, utan att lämna e-post.",
+      "lead": "Besvara sju frågor om din elcentral. Du får en rekommendation om vad som bör åtgärdas, eller besked om att allt ser bra ut.",
+      "ground_line": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket. Beskedet bygger på dina egna svar och du får det direkt, utan att lämna e-post.",
       "noscript_note": "Elcentral-kollen: svara på sju frågor om din elcentral och få ett besked på två punkter, säker i dag och redo för det du planerar. Verktyget kräver JavaScript."
     },
     "rail": {
@@ -605,7 +604,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "jordfelsbrytare": "nej"
       },
       "icon": "warn",
-      "text": "Ingen jordfelsbrytare: skyddet som bryter strömmen blixtsnabbt om den tar fel väg, till exempel genom en person, saknas. Det krävs i nya installationer och går att komplettera i efterhand. Vi rekommenderar det starkt."
+      "text": "Ingen jordfelsbrytare: skyddet som bryter strömmen blixtsnabbt om den tar fel väg, till exempel genom en person, saknas. Det krävs i nya installationer och går att komplettera i efterhand. Vi rekommenderar det starkt.",
+      "label": "Ingen jordfelsbrytare",
+      "detail": "Skyddet som bryter strömmen blixtsnabbt om den tar fel väg, till exempel genom en person, saknas. Det krävs i nya installationer och går att komplettera i efterhand. Vi rekommenderar det starkt."
     },
     {
       "id": "f_central_old",
@@ -617,7 +618,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         ]
       },
       "icon": "warn",
-      "text": "Centralen är sannolikt 30 år eller äldre: centraler från den tiden är ofta för klent tilltagna för dagens elbehov och saknar nyare skydd."
+      "text": "Centralen är sannolikt 30 år eller äldre: centraler från den tiden är ofta för klent tilltagna för dagens elbehov och saknar nyare skydd.",
+      "label": "Centralen är sannolikt 30 år eller äldre",
+      "detail": "Centraler från den tiden är ofta för klent tilltagna för dagens elbehov och saknar nyare skydd."
     },
     {
       "id": "f_skruv",
@@ -626,7 +629,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "sakringstyp": "skruv"
       },
       "icon": "warn",
-      "text": "Skruvsäkringar: den äldre typen, som vanligtvis sitter i centraler från 1980-talet eller tidigare."
+      "text": "Skruvsäkringar: den äldre typen, som vanligtvis sitter i centraler från 1980-talet eller tidigare.",
+      "label": "Skruvsäkringar",
+      "detail": "Den äldre typen, som vanligtvis sitter i centraler från 1980-talet eller tidigare."
     },
     {
       "id": "f_central_full",
@@ -635,7 +640,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "cross_axis": "central_full"
       },
       "icon": "warn",
-      "text": "Centralen är sannolikt full: det finns inte plats för fler grupper, de separata kretsar som elen delas upp i, och ett byte ger både utrymme och bättre säkerhet på en gång."
+      "text": "Centralen är sannolikt full: det finns inte plats för fler grupper, de separata kretsar som elen delas upp i, och ett byte ger både utrymme och bättre säkerhet på en gång.",
+      "label": "Centralen är sannolikt full",
+      "detail": "Det finns inte plats för fler grupper, de separata kretsar som elen delas upp i, och ett byte ger både utrymme och bättre säkerhet på en gång."
     },
     {
       "id": "f_blandat",
@@ -644,7 +651,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "sakringstyp": "blandat"
       },
       "icon": "warn",
-      "text": "Blandade säkringar: en del av centralen är moderniserad, men annat är troligen kvar från en äldre generation."
+      "text": "Blandade säkringar: en del av centralen är moderniserad, men annat är troligen kvar från en äldre generation.",
+      "label": "Blandade säkringar",
+      "detail": "En del av centralen är moderniserad, men annat är troligen kvar från en äldre generation."
     },
     {
       "id": "f_varma",
@@ -653,7 +662,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "varningstecken_has": "varma_uttag"
       },
       "icon": "warn",
-      "text": "Varma uttag eller strömbrytare: ett tydligt tecken på glappkontakt, alltså en lös anslutning som hettar upp där strömmen ska passera."
+      "text": "Varma uttag eller strömbrytare: ett tydligt tecken på glappkontakt, alltså en lös anslutning som hettar upp där strömmen ska passera.",
+      "label": "Varma uttag eller strömbrytare",
+      "detail": "Ett tydligt tecken på glappkontakt, alltså en lös anslutning som hettar upp där strömmen ska passera."
     },
     {
       "id": "f_loser_ut",
@@ -662,7 +673,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "varningstecken_has": "loser_ut"
       },
       "icon": "warn",
-      "text": "Säkringar som löser ut ofta: säkringen gör sitt jobb, men att den behöver göra det ofta tyder på överbelastning eller ett fel i kretsen."
+      "text": "Säkringar som löser ut ofta: säkringen gör sitt jobb, men att den behöver göra det ofta tyder på överbelastning eller ett fel i kretsen.",
+      "label": "Säkringar som löser ut ofta",
+      "detail": "Säkringen gör sitt jobb, men att den behöver göra det ofta tyder på överbelastning eller ett fel i kretsen."
     },
     {
       "id": "f_flimrar",
@@ -671,7 +684,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "varningstecken_has": "flimrar"
       },
       "icon": "warn",
-      "text": "Lampor som flimrar: kan bero på en glappande anslutning någonstans i installationen, men ibland på lampan eller dimmern själv."
+      "text": "Lampor som flimrar: kan bero på en glappande anslutning någonstans i installationen, men ibland på lampan eller dimmern själv.",
+      "label": "Lampor som flimrar",
+      "detail": "Kan bero på en glappande anslutning någonstans i installationen, men ibland på lampan eller dimmern själv."
     },
     {
       "id": "f_16a_block",
@@ -680,7 +695,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "ready_state": "inte_redo"
       },
       "icon": "warn",
-      "text": "Med 16 A räcker inte huvudsäkringen för en laddbox som den är. Det löses oftast med lastbalansering, en liten enhet som fördelar strömmen så inget överbelastas. Ibland med en uppsäkring, alltså en större huvudsäkring."
+      "text": "Med 16 A räcker inte huvudsäkringen för en laddbox som den är. Det löses oftast med lastbalansering, en liten enhet som fördelar strömmen så inget överbelastas. Ibland med en uppsäkring, alltså en större huvudsäkring.",
+      "label": "Huvudsäkringen räcker inte för laddbox som den är",
+      "detail": "Med 16 A räcker inte huvudsäkringen för en laddbox som den är. Det löses oftast med lastbalansering, en liten enhet som fördelar strömmen så inget överbelastas. Ibland med en uppsäkring, alltså en större huvudsäkring."
     },
     {
       "id": "f_lastbalansering",
@@ -689,7 +706,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "ready_state": "redo_med_atgard"
       },
       "icon": "info",
-      "text": "Med 20 A laddar du elbil bäst med lastbalansering: en liten enhet som fördelar strömmen mellan bilen och hushållet så inget överbelastas. Vanlig och okomplicerad lösning."
+      "text": "Med 20 A laddar du elbil bäst med lastbalansering: en liten enhet som fördelar strömmen mellan bilen och hushållet så inget överbelastas. Vanlig och okomplicerad lösning.",
+      "label": "Med 20 A laddar du elbil bäst med lastbalansering",
+      "detail": "En liten enhet som fördelar strömmen mellan bilen och hushållet så inget överbelastas. Vanlig och okomplicerad lösning."
     },
     {
       "id": "f_ready_bedomning",
@@ -698,7 +717,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "ready_state": "kraver_bedomning"
       },
       "icon": "info",
-      "text": "Exakt marginal beror på hur mycket el du redan använder, till exempel elvärme eller varmvattenberedare. En kort bedömning på plats räknar ut det åt dig."
+      "text": "Exakt marginal beror på hur mycket el du redan använder, till exempel elvärme eller varmvattenberedare. En kort bedömning på plats räknar ut det åt dig.",
+      "label": "Exakt marginal beror på din elanvändning",
+      "detail": "Exakt marginal beror på hur mycket el du redan använder, till exempel elvärme eller varmvattenberedare. En kort bedömning på plats räknar ut det åt dig."
     },
     {
       "id": "f_central_okand",
@@ -707,7 +728,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "central_alder": "vet_inte"
       },
       "icon": "info",
-      "text": "Du är osäker på centralens ålder: helt vanligt, och inget vi tolkar som en risk. Det är just en sådan sak en besiktning ger svar på."
+      "text": "Du är osäker på centralens ålder: helt vanligt, och inget vi tolkar som en risk. Det är just en sådan sak en besiktning ger svar på.",
+      "label": "Du är osäker på centralens ålder",
+      "detail": "Helt vanligt, och inget vi tolkar som en risk. Det är just en sådan sak en besiktning ger svar på."
     },
     {
       "id": "f_jfb_vetinte",
@@ -716,7 +739,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "jordfelsbrytare": "vet_inte"
       },
       "icon": "info",
-      "text": "Du är osäker på om det finns en jordfelsbrytare: värt att titta efter i centralen, eller att låta en besiktning svara på. Det avgör vi inte på en gissning."
+      "text": "Du är osäker på om det finns en jordfelsbrytare: värt att titta efter i centralen, eller att låta en besiktning svara på. Det avgör vi inte på en gissning.",
+      "label": "Du är osäker på om det finns en jordfelsbrytare",
+      "detail": "Värt att titta efter i centralen, eller att låta en besiktning svara på. Det avgör vi inte på en gissning."
     },
     {
       "id": "f_huvudsakring_vetinte",
@@ -725,7 +750,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "huvudsakring": "vet_inte"
       },
       "icon": "info",
-      "text": "Du är osäker på huvudsäkringens storlek: mycket vanligt, den står på din elnätsfaktura. Vill du veta exakt vad din plan kräver hjälper en kort bedömning till."
+      "text": "Du är osäker på huvudsäkringens storlek: mycket vanligt, den står på din elnätsfaktura. Vill du veta exakt vad din plan kräver hjälper en kort bedömning till.",
+      "label": "Du är osäker på huvudsäkringens storlek",
+      "detail": "Mycket vanligt, den står på din elnätsfaktura. Vill du veta exakt vad din plan kräver hjälper en kort bedömning till."
     },
     {
       "id": "f_nedsakring",
@@ -738,7 +765,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "no_plan": true
       },
       "icon": "info",
-      "text": "Du är förhållandevis högt säkrad utan några stora planer: då kan en nedsäkring, att gå ner till en mindre huvudsäkring, sänka den fasta nätavgiften. Hur mycket du sparar beror på ditt elnätsbolag."
+      "text": "Du är förhållandevis högt säkrad utan några stora planer: då kan en nedsäkring, att gå ner till en mindre huvudsäkring, sänka den fasta nätavgiften. Hur mycket du sparar beror på ditt elnätsbolag.",
+      "label": "Du är förhållandevis högt säkrad utan några stora planer",
+      "detail": "Då kan en nedsäkring, att gå ner till en mindre huvudsäkring, sänka den fasta nätavgiften. Hur mycket du sparar beror på ditt elnätsbolag."
     },
     {
       "id": "f_central_recent",
@@ -747,7 +776,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "central_alder": "recent"
       },
       "icon": "ok",
-      "text": "Centralen är utbytt de senaste åren: då har du en modern central med dagens säkerhetsnivå. Bra utgångsläge."
+      "text": "Centralen är utbytt de senaste åren: då har du en modern central med dagens säkerhetsnivå. Bra utgångsläge.",
+      "label": "Centralen är utbytt de senaste åren",
+      "detail": "Då har du en modern central med dagens säkerhetsnivå. Bra utgångsläge."
     },
     {
       "id": "f_automat",
@@ -756,7 +787,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "sakringstyp": "automat"
       },
       "icon": "ok",
-      "text": "Du har automatsäkringar: vippknapparna du slår av och på, den moderna och säkra typen. Bra utgångsläge."
+      "text": "Du har automatsäkringar: vippknapparna du slår av och på, den moderna och säkra typen. Bra utgångsläge.",
+      "label": "Du har automatsäkringar",
+      "detail": "Vippknapparna du slår av och på, den moderna och säkra typen. Bra utgångsläge."
     },
     {
       "id": "f_jfb_ja",
@@ -765,7 +798,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "jordfelsbrytare": "ja"
       },
       "icon": "ok",
-      "text": "Jordfelsbrytare finns: det viktigaste personskyddet i en modern central, som bryter strömmen blixtsnabbt vid fel. Det är på plats hos dig."
+      "text": "Jordfelsbrytare finns: det viktigaste personskyddet i en modern central, som bryter strömmen blixtsnabbt vid fel. Det är på plats hos dig.",
+      "label": "Jordfelsbrytare finns",
+      "detail": "Det viktigaste personskyddet i en modern central, som bryter strömmen blixtsnabbt vid fel. Det är på plats hos dig."
     },
     {
       "id": "f_redo_marginal",
@@ -774,7 +809,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "ready_state": "redo_marginal"
       },
       "icon": "ok",
-      "text": "Huvudsäkringen räcker med marginal: du kan ladda elbilen samtidigt som hushållet drar ström, utan att det blir trångt om kapaciteten."
+      "text": "Huvudsäkringen räcker med marginal: du kan ladda elbilen samtidigt som hushållet drar ström, utan att det blir trångt om kapaciteten.",
+      "label": "Huvudsäkringen räcker med marginal",
+      "detail": "Du kan ladda elbilen samtidigt som hushållet drar ström, utan att det blir trångt om kapaciteten."
     },
     {
       "id": "f_inga_tecken",
@@ -783,7 +820,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "varningstecken_has": "inget"
       },
       "icon": "ok",
-      "text": "Inga varningstecken i vardagen: inga säkringar som löser ut, varma uttag eller flimrande lampor. Bra tecken."
+      "text": "Inga varningstecken i vardagen: inga säkringar som löser ut, varma uttag eller flimrande lampor. Bra tecken.",
+      "label": "Inga varningstecken i vardagen",
+      "detail": "Inga säkringar som löser ut, varma uttag eller flimrande lampor. Bra tecken."
     },
     {
       "id": "f_brand_lukt",
@@ -792,7 +831,9 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
         "varningstecken_has": "brand_lukt"
       },
       "icon": "warn",
-      "text": "Bränd lukt eller missfärgade uttag: det enda tecknet i kollen som alltid bör kontrolleras av en elektriker, oavsett resten av resultatet."
+      "text": "Bränd lukt eller missfärgade uttag: det enda tecknet i kollen som alltid bör kontrolleras av en elektriker, oavsett resten av resultatet.",
+      "label": "Bränd lukt eller missfärgade uttag",
+      "detail": "Det enda tecknet i kollen som alltid bör kontrolleras av en elektriker, oavsett resten av resultatet."
     }
   ],
   "akut_notis": {
@@ -810,6 +851,8 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
   },
   "copy": {
     "findings_head": "Våra fynd",
+    "findings_expand_all": "Visa alla förklaringar",
+    "findings_collapse_all": "Dölj alla förklaringar",
     "share_green_marginal": "Min elcentral är säker och redo för elbil. Testa din med Ampys Elcentral-kollen.",
     "share_green": "Min elcentral fick grönt ljus i Ampys Elcentral-kollen. Testa din.",
     "share_nudge_green": "Dela ditt gröna besked",

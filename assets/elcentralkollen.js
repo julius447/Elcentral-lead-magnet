@@ -24,6 +24,7 @@
     ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
     minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="12" x2="18" y2="12"/></svg>',
+    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>',
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
     arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
@@ -38,6 +39,9 @@
     phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
   };
   const icon = (name) => ICONS[name] || ICONS.info;
+  // Per-render counter so every foldable finding row gets a unique id for aria-controls, even when
+  // the besked is re-rendered (back to result from the lead form) or two tools share a page.
+  let FINDING_UID = 0;
 
   const START_ILLU = '<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
     + '<circle cx="60" cy="60" r="56" fill="#f0f9f5"/>'
@@ -325,25 +329,22 @@
     }
 
     // BLOCK MODE header: the section framing that replaces the standalone brand rail. Never an <h1>
-    // (the host landing page owns its H1); eyebrow → H2 → lead → one quiet meta line.
+    // (the host landing page owns its H1). Owner 2026-08-03: no eyebrow — H2 → lead, nothing else.
+    // The provenance line is NOT here any more; it sits under the card (renderBlockGround).
     renderBlockHead() {
       const b = (this.data.meta && this.data.meta.block) || {};
       const head = el('header', { class: 'ampy-ec__blockhead' });
-      if (b.eyebrow) head.appendChild(el('p', { class: 'ampy-ec__blockhead-eyebrow' }, b.eyebrow));
       head.appendChild(el('h2', { class: 'ampy-ec__blockhead-title' }, b.heading || this.data.meta.page_heading));
       if (b.lead) head.appendChild(el('p', { class: 'ampy-ec__blockhead-lead' }, b.lead));
-      if (b.meta_line) head.appendChild(el('p', { class: 'ampy-ec__blockhead-meta' }, b.meta_line));
       return head;
     }
-    // The sourced Elsäkerhetsverket stat, re-homed as the ground line UNDER the card in block mode
-    // (in hero mode it lives in the rail). Same string, same source link, one instance either way.
-    renderBlockStat() {
-      const st = (this.data.meta.rail || {}).stat;
-      if (!st || !st.rest) return null;
-      return el('p', { class: 'ampy-ec__blockstat' }, [
-        el('a', { class: 'ampy-ec__blockstat-link', href: st.url, target: '_blank', rel: 'noopener noreferrer' }, (st.link || 'Elsäkerhetsverket')),
-        st.rest
-      ]);
+    // Ground line UNDER the card. Owner 2026-08-03 swapped the two lines and dropped the
+    // Elsäkerhetsverket incident stat, so what grounds the block is the provenance sentence: what the
+    // besked is built on, and that it costs nothing. The stat still lives in the rail on standalone.
+    renderBlockGround() {
+      const b = (this.data.meta && this.data.meta.block) || {};
+      if (!b.ground_line) return null;
+      return el('p', { class: 'ampy-ec__blockground' }, b.ground_line);
     }
 
     buildShell() {
@@ -358,7 +359,7 @@
         shell.appendChild(this.renderBlockHead());
         this.stage = el('div', { class: 'ampy-ec__stage' });
         shell.appendChild(this.stage);
-        const stat = this.renderBlockStat(); if (stat) shell.appendChild(stat);
+        const ground = this.renderBlockGround(); if (ground) shell.appendChild(ground);
         this.mount.appendChild(shell);
         return;
       }
@@ -652,30 +653,85 @@
     renderFindings(dx) {
       const findings = collectFindings(dx, this.data);
       if (!findings.length) return null; // no empty "Våra fynd" heading (e.g. akut escalation where OK findings are suppressed)
+      const c = this.data.copy || {};
       const wrap = el('div', { class: 'ampy-ec__findings-wrap' });
-      wrap.appendChild(el('p', { class: 'ampy-ec__findings-head', id: 'ampy-ec-findings-head' }, this.data.copy.findings_head || 'Våra fynd'));
-      const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': 'ampy-ec-findings-head' });
-      const mkItem = (f, i) => { const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info'); return el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } }, [iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text)]); };
-      // Cap: show 3 + a quiet expander so the CTA stays a thumb-reach from the verdict. CANDOUR
-      // GUARD: a risk (warn) finding is NEVER behind the tap — the cap extends past the last warn,
-      // so only trailing ok/info rows collapse. Nothing is hidden for good. (≤ cap+1 → show all.)
-      const lastWarn = findings.reduce((acc, f, i) => (f.icon === 'warn' ? i : acc), -1);
-      const cap = Math.max(3, lastWarn + 1);
-      if (findings.length <= cap + 1) {
-        findings.forEach((f, i) => list.appendChild(mkItem(f, i)));
-      } else {
-        findings.slice(0, cap).forEach((f, i) => list.appendChild(mkItem(f, i)));
-        const rest = findings.slice(cap);
-        const more = el('button', { class: 'ampy-ec__findings-more', type: 'button', onclick: () => {
-          // Reveal, then move focus INTO the new content before removing the trigger (keyboard/SR
-          // focus must not drop to <body>).
-          let first = null;
-          rest.forEach((f, i) => { const it = mkItem(f, i); if (!first) { first = it; it.tabIndex = -1; } list.appendChild(it); });
-          more.remove();
-          if (first) { try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); } }
-        } }, 'Visa ' + rest.length + ' fynd till');
-        wrap.appendChild(list); wrap.appendChild(more); return wrap;
-      }
+      // Instance-scoped id. It used to be the literal 'ampy-ec-findings-head', which produced a
+      // duplicate id (and therefore a broken aria-labelledby) the moment the block and the
+      // standalone tool appeared on one page. aria-controls below has the same requirement.
+      const uid = 'ampy-ec-f' + (++FINDING_UID);
+      const headId = uid + '-head';
+      const allLabel = el('span', {}, c.findings_expand_all || 'Visa alla förklaringar');
+      const allBtn = el('button', { class: 'ampy-ec__findings-all', type: 'button', 'aria-expanded': 'false' }, [allLabel]);
+      wrap.appendChild(el('div', { class: 'ampy-ec__findings-headrow' }, [
+        el('p', { class: 'ampy-ec__findings-head', id: headId }, c.findings_head || 'Våra fynd'),
+        allBtn
+      ]));
+      const list = el('ul', { class: 'ampy-ec__findings', role: 'list', 'aria-labelledby': headId });
+      // EVERY finding is an always-visible row: its icon and its name are on screen unconditionally.
+      // Only the EXPLANATION folds away, one tap per row.
+      //
+      // Why this replaced the old "show 3 + Visa N fynd till" cap (owner 2026-08-03, "man blir
+      // dränkt i text på mobil"): that cap was computed as Math.max(3, lastWarn + 1), so at a bad
+      // besked — where every finding is a warn — it never collapsed anything and the card grew to
+      // ~1200px (1.5 mobile screens). Capping harder was rejected on the candour gate: `rank` is
+      // THEMATIC, not severity-ordered (f_varma 30 / f_loser_ut 31 / f_flimrar 32 sort BELOW
+      // f_central_old 21 / f_skruv 22), so a hard cap of 3 would have shown static age facts and
+      // hidden the symptoms the visitor actually reported seeing at home. Folding the explanation
+      // instead removes zero findings from the DOM, so nothing can be concealed by construction.
+      // The acute channel is untouched either way: f_brand_lukt is filtered out of this list above
+      // and renders as the always-open .ampy-ec__akut banner ABOVE the verdict.
+      const rows = [];
+      let syncAll = () => {};
+      const mkItem = (f, i) => {
+        const iconName = f.icon === 'ok' ? 'check' : (f.icon === 'warn' ? 'alert' : 'info');
+        const li = el('li', { class: 'ampy-ec__finding ampy-ec__finding--' + f.icon, style: { '--i': String(i) } });
+        // Legacy/incomplete data (no label+detail pair) still renders as a plain, non-folding row.
+        if (!f.label || !f.detail) {
+          li.append(iconSpan(iconName, 'ampy-ec__finding-icon'), el('p', { class: 'ampy-ec__finding-text' }, f.text));
+          return li;
+        }
+        // Explicit modifier rather than :has() — the repo targets older iOS Safari (see CLAUDE.md).
+        li.classList.add('ampy-ec__finding--foldable');
+        const detailId = uid + '-' + i;
+        const detail = el('div', { class: 'ampy-ec__finding-detail', id: detailId, hidden: true }, el('p', {}, f.detail));
+        const head = el('button', {
+          class: 'ampy-ec__finding-head', type: 'button',
+          'aria-expanded': 'false', 'aria-controls': detailId
+        }, [
+          iconSpan(iconName, 'ampy-ec__finding-icon'),
+          el('span', { class: 'ampy-ec__finding-label' }, f.label),
+          iconSpan('chevron', 'ampy-ec__finding-chevron')
+        ]);
+        const set = (open) => {
+          head.setAttribute('aria-expanded', String(open));
+          detail.hidden = !open;
+          li.classList.toggle('is-open', open);
+        };
+        head.addEventListener('click', () => { set(head.getAttribute('aria-expanded') !== 'true'); syncAll(); });
+        rows.push({ set: set, isOpen: () => head.getAttribute('aria-expanded') === 'true' });
+        li.append(head, detail);
+        return li;
+      };
+      findings.forEach((f, i) => list.appendChild(mkItem(f, i)));
+      // ALL rows arrive folded. Auto-opening the top one was measured at +154px (28% of the whole
+      // findings block) to privilege one explanation for no principled reason — and the besked is
+      // already carried in prose by the verdict plaque + the lede directly above. Folded, the list
+      // reads as what it is: a named checklist of exactly what we found.
+      //
+      // "Visa alla förklaringar" is the candour backstop: the entire besked is still one tap from
+      // fully written out, so folding is a reading aid and never a paywall on the detail.
+      syncAll = () => {
+        const allOpen = rows.length > 0 && rows.every(r => r.isOpen());
+        allBtn.setAttribute('aria-expanded', String(allOpen));
+        allLabel.textContent = allOpen
+          ? (c.findings_collapse_all || 'Dölj alla förklaringar')
+          : (c.findings_expand_all || 'Visa alla förklaringar');
+      };
+      allBtn.addEventListener('click', () => {
+        const open = allBtn.getAttribute('aria-expanded') !== 'true';
+        rows.forEach(r => r.set(open)); syncAll();
+      });
+      if (rows.length <= 1) allBtn.remove(); else syncAll();
       wrap.appendChild(list); return wrap;
     }
     resolveCtaUrl(def) {
