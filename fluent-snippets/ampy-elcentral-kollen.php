@@ -1,6 +1,6 @@
 <?php
 /**
- * Elcentral-kollen v2.21.3 - Fluent Snippet 2/3 (type: PHP).
+ * Elcentral-kollen v2.22.3 - Fluent Snippet 2/3 (type: PHP).
  * -----------------------------------------------------------------------------
  * Install all THREE snippets in FluentSnippets, then drop [elcentralkollen] in Bricks:
  *   1. CSS -> ampy-elcentral-kollen.css   2. JS -> ampy-elcentral-kollen.js   3. PHP -> this file
@@ -30,7 +30,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
 		$data = <<<'AMPYEC_DATA_EOF'
 {
   "meta": {
-    "version": "2.21.3",
+    "version": "2.22.3",
     "product_name": "Elcentral-kollen",
     "page_heading": "Är din elcentral säker?",
     "page_lead": "Ta reda på om din central är säker och anpassad för framtida installationer!",
@@ -51,7 +51,7 @@ if ( ! function_exists( 'ampy_ec_shortcode_render' ) ) {
     "block": {
       "_note": "Copy + toggles for BLOCK mode only ([elcentralkollen layout=\"block\"] on a landing page). The standalone page at /elcentralkollen/ never reads these. The tool card itself (start/questions/besked/lead form) is IDENTICAL in both modes — owner directive. Owner 2026-08-03: no eyebrow, and ground_line sits UNDER the card (it swapped places with the Elsäkerhetsverket stat, which was dropped).",
       "heading": "Behöver din elcentral bytas?",
-      "lead": "Besvara sju frågor om din elcentral. Du får en rekommendation om vad som bör åtgärdas, eller besked om att allt ser bra ut.",
+      "lead": "Besvara sju frågor om din elcentral och få en rekommendation om vad som eventuellt bör åtgärdas.",
       "ground_line": "Byggt på Elsäkerhetslagen och Elsäkerhetsverket. Beskedet bygger på dina egna svar och du får det direkt, utan att lämna e-post.",
       "noscript_note": "Elcentral-kollen: svara på sju frågor om din elcentral och få ett besked på två punkter, säker i dag och redo för det du planerar. Verktyget kräver JavaScript."
     },

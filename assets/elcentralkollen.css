@@ -712,8 +712,67 @@ html { font-size: 62.5%; }
 @media (max-width: 767px) {
   .ampy-ec__blockhead-title { text-wrap: wrap; }
 }
-@media (min-width: 1024px) {
-  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-lead { font-size: var(--fs-20); }
+/* ---- DESKTOP (≥1024px): two-pane, exactly like the standalone hero ---------------------------
+   Owner 2026-08-03: the stacked version was "too dominant" on the elcentral landing page — header,
+   paragraph, card and ground line stacked into ~950px of section, with a 760px shell leaving wide
+   empty margins ("för mycket white space på kanterna och att det blir så avlångt").
+   Two-pane fixes both at once: the copy moves BESIDE the card instead of above it, so the section
+   height collapses to the height of the card, and the shell widens to the same 1280 Ampy container
+   the standalone uses. Copy goes left-aligned; the three trust bullets come back (owner), the
+   contact CTAs and the 298 stat deliberately do not.
+   MOBILE IS UNTOUCHED — everything here is inside a min-width query, and the owner asked for the
+   phone layout to stay exactly as it reads today.
+
+   THE BREAKPOINT IS 1280px, NOT 1024px, and that is measured rather than chosen: the shell caps at
+   128rem, so from 1280 up the left column is a constant 500px and the card a constant 636px, which
+   is exactly the width the typography below was tuned against. At 1024 the column collapses to
+   387px — the title breaks and the lead becomes three lines ending in a lone "åtgärdas.". Below
+   1280 the block therefore keeps the stacked, centred layout, which is the approved one. */
+/* The stacked desktop range used to bump the lead to 2.0rem. Removed: at 2.0rem the paragraph's
+   second line is the wide one at every measure it gets (393px vs 481px), which is the exact defect
+   the owner reported. The base 1.8rem breaks after "rekommendation" instead, so line 1 leads. */
+/* The bullets belong to the two-pane composition; centred under a centred heading they read as a
+   stray list. Hidden everywhere the block is stacked (the global rule already hides them ≤1023). */
+@media (max-width: 1279px) {
+  .ampy-ec[data-layout="block"] .ampy-ec__rail-bullets { display: none; }
+}
+@media (min-width: 1280px) {
+  .ampy-ec[data-layout="block"] .ampy-ec__shell {
+    display: grid;
+    grid-template-columns: minmax(36rem, 44fr) minmax(46rem, 56fr); /* = the standalone hero grid */
+    gap: 6.4rem;
+    align-items: start;
+    max-width: 128rem;
+    padding-inline: clamp(1.6rem, 4vw, 4rem);
+  }
+  /* Left column = the copy rail. Vertically centred against the card's own height floor, the same
+     trick the standalone rail uses, so the block reads as one composition and not two stacked boxes. */
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead {
+    text-align: left; max-width: none; margin: 0;
+    min-height: var(--ec-q-minh);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  /* 3.6rem, not the 4rem the centred version used: measured at the real 500px column, 40px wraps
+     ("Behöver din elcentral" 393px / "bytas?" 129px) while 36px fits the title on ONE line at 475px.
+     It also stops the block's H2 from competing with the landing page's own H1 (owner: "risken är
+     att den blir för dominant"). */
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-title { font-size: 3.6rem; text-wrap: wrap; margin-bottom: 2rem; }
+  /* 1.8rem, and no ch-cap. Owner: "texten ska bli lite bredare, så att det inte blir att rad två är
+     bredare än rad ett." At 2.0rem the second line is unavoidably the long one (393px vs 481px) —
+     "rekommendation" cannot fit on line 1 at any wrap mode, balance included, so it is a type-size
+     problem, not a wrapping problem. At 1.8rem the break moves and line 1 becomes 495px vs 292px:
+     widest line first, and the paragraph fills the column instead of sitting in a narrow ch-cap. */
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-lead {
+    font-size: 1.8rem; line-height: 1.55; margin: 0 0 2.8rem; max-width: none;
+  }
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead .ampy-ec__rail-bullets { margin-bottom: 0; }
+  /* Right column = the untouched tool card; the grid owns its width now, not a centring max-width. */
+  .ampy-ec[data-layout="block"] .ampy-ec__stage { max-width: none; margin-inline: 0; }
+  /* The ground line says what bullets 1 and 3 already say ("Byggt på Elsäkerhetslagen och
+     Elsäkerhetsverket" / "Ett ärligt besked, byggt på dina egna svar"), so on desktop it is pure
+     duplication and pure height. It stays on mobile, where the bullets are hidden and it is the
+     only place the provenance is stated. */
+  .ampy-ec[data-layout="block"] .ampy-ec__blockground { display: none; }
 }
 
 /* ============================================================================

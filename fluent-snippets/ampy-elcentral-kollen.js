@@ -339,6 +339,25 @@
       const head = el('header', { class: 'ampy-ec__blockhead' });
       head.appendChild(el('h2', { class: 'ampy-ec__blockhead-title' }, b.heading || this.data.meta.page_heading));
       if (b.lead) head.appendChild(el('p', { class: 'ampy-ec__blockhead-lead' }, b.lead));
+      // The same three trust bullets the standalone rail carries, in the SAME markup and classes so
+      // the craft is 1:1 rather than a lookalike. Desktop only — the CSS hides them below 1024px,
+      // where the owner wants the block exactly as it already reads (centred H2 + lead + card).
+      // Deliberately NOT accompanied by the rail's contact CTAs or the 298 stat (owner 2026-08-03):
+      // the host landing page already owns the asks, and a second stat would re-add the height the
+      // owner is trying to remove.
+      const bullets = ((this.data.meta.rail || {}).bullets) || [];
+      if (bullets.length) {
+        const ul = el('ul', { class: 'ampy-ec__rail-bullets', role: 'list' });
+        bullets.forEach(bu => {
+          const text = bu.link
+            ? el('a', { class: 'ampy-ec__rail-bullet-link', href: bu.link, target: '_blank', rel: 'noopener noreferrer' }, bu.text)
+            : document.createTextNode(bu.text);
+          ul.appendChild(el('li', { class: 'ampy-ec__rail-bullet' }, [
+            iconSpan(bu.icon || 'check', 'ampy-ec__rail-bullet-icon'), el('span', {}, [text])
+          ]));
+        });
+        head.appendChild(ul);
+      }
       return head;
     }
     // Ground line UNDER the card. Owner 2026-08-03 swapped the two lines and dropped the
