@@ -734,9 +734,27 @@ html { font-size: 62.5%; }
    is exactly the width the typography below was tuned against. At 1024 the column collapses to
    387px — the title breaks and the lead becomes three lines ending in a lone "åtgärdas.". Below
    1280 the block therefore keeps the stacked, centred layout, which is the approved one. */
-/* The stacked desktop range used to bump the lead to 2.0rem. Removed: at 2.0rem the paragraph's
-   second line is the wide one at every measure it gets (393px vs 481px), which is the exact defect
-   the owner reported. The base 1.8rem breaks after "rekommendation" instead, so line 1 leads. */
+/* TYPE SIZE MATCHED TO THE HOST PAGE'S "content-block" COMPONENT (owner 2026-08-03).
+   Read off the live rendering of that component on /elservice/elcentral/ (section brxe-uqjxuy,
+   "Varför du bör uppgradera till en ny elcentral"), not guessed from the Bricks JSON:
+     .content-block__heading    = var(--aptext-xl) = clamp(2.4rem, 0.83vw + 2.13rem, 3.2rem) → 32px @1440
+     .content-block__text-basic = var(--aptext-mm) = clamp(1.8rem, 0.21vw + 1.73rem, 2rem)   → 20px @1440
+   The clamp curves are inlined rather than referencing --aptext-*, because those custom properties
+   only exist on ampy.se and the block must also render standalone in the preview and the snippet.
+   Desktop only: below 1024px the block keeps the sizes the owner already approved on mobile.
+   NOTE: this is the SIZE only. The component also runs Outfit 400 / #1e1e1e for the heading and
+   Outfit 300 / 1.4 / #333333 for the text, where the block keeps Plus Jakarta Sans 700 / navy and
+   Outfit 400 / 1.55 — see invariant 7 (1:1 brand parity with Elkollen). Those are separate calls. */
+@media (min-width: 1024px) {
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-title { font-size: clamp(2.4rem, calc(0.83vw + 2.13rem), 3.2rem); }
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-lead {
+    font-size: clamp(1.8rem, calc(0.21vw + 1.73rem), 2rem);
+    /* The measure has to grow with the size or the owner's "line two must not be wider than line
+       one" defect comes straight back. At 20px in the base 52rem cap the break reverts to
+       393/481; at 60rem it is 550/324. The two-pane rule below overrides this to none. */
+    max-width: 60rem;
+  }
+}
 /* The bullets belong to the two-pane composition; centred under a centred heading they read as a
    stray list. Hidden everywhere the block is stacked (the global rule already hides them ≤1023). */
 @media (max-width: 1279px) {
@@ -776,23 +794,22 @@ html { font-size: 62.5%; }
     min-height: var(--ec-q-minh);
     display: flex; flex-direction: column; justify-content: center;
   }
-  /* 4.4rem — the same size as the standalone rail heading, so brand parity holds (invariant 7).
-     This is the single biggest lever on the balance problem, and it works in the y-direction where
-     the problem actually lives. Measured at the 576px column:
-        40px → one line, ink 255px, area ratio 2.14
-        42px → one line, ink 257px, area ratio 2.12
-        44px → TWO lines, ink 308px, area ratio 1.77
-     The wrap is not a cost here: it breaks "Behöver din elcentral" / "bytas?", which is the exact
-     break the owner asked for on mobile. If it ever reads as too dominant next to the page's own H1,
-     4.0rem is a one-value revert and lands back at 2.14. */
-  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-title { font-size: 4.4rem; text-wrap: wrap; margin-bottom: 2rem; }
+  /* Size now comes from the host-page type match above (--aptext-xl curve). It was briefly 4.4rem,
+     the standalone rail size, which bought the best area ratio (1.77 vs 2.14) by wrapping the title
+     to two lines — but matching the page's own component won, and that costs ink height. See the
+     balance note on .ampy-ec__blockhead below. */
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-title { text-wrap: wrap; margin-bottom: 2rem; }
   /* 1.8rem, and no ch-cap. Owner: "texten ska bli lite bredare, så att det inte blir att rad två är
      bredare än rad ett." At 2.0rem the second line is unavoidably the long one (393px vs 481px) —
      "rekommendation" cannot fit on line 1 at any wrap mode, balance included, so it is a type-size
      problem, not a wrapping problem. At 1.8rem the break moves and line 1 becomes 495px vs 292px:
      widest line first, and the paragraph fills the column instead of sitting in a narrow ch-cap. */
+  /* Size comes from the host-page type match above (--aptext-mm curve → 20px @1440). The earlier
+     1.8rem was chosen because at 2.0rem, in the 500px column, line two was unavoidably the wider
+     one (393 vs 481). The column is 576px now, which is what makes 20px work: "rekommendation" fits
+     on line one again. Verified after the change, not assumed. */
   .ampy-ec[data-layout="block"] .ampy-ec__blockhead-lead {
-    font-size: 1.8rem; line-height: 1.55; margin: 0 0 2.8rem; max-width: none;
+    line-height: 1.55; margin: 0 0 2.8rem; max-width: none;
   }
   .ampy-ec[data-layout="block"] .ampy-ec__blockhead .ampy-ec__rail-bullets { margin-bottom: 0; }
   /* Right column = the untouched tool card; the grid owns its width now, not a centring max-width. */
