@@ -293,7 +293,15 @@ html { font-size: 62.5%; }
    .ampy-ec in the Bricks page CSS to the header height (e.g. 9rem), or the new view tucks under it. */
 .ampy-ec { --ec-scroll-offset: 7.8rem; scroll-margin-top: var(--ec-scroll-offset); } /* 66px header + 12px air */
 .ampy-ec__stage { min-width: 0; scroll-margin-top: var(--ec-scroll-offset); }
-@media (min-width: 1081px) { .ampy-ec { --ec-scroll-offset: 8.8rem; } } /* 76px header + 12px air */
+/* 76px header + 12px air. The switch is at 993px, not the 1081px it used to be — measured against
+   BOTH headers on 2026-08-03 and the old breakpoint was wrong for both:
+     live ampy.se (header.brx-sticky, position:sticky): 66px @375 · 73px @1024 · 76px @1440
+     the approved [ampy_header] package (fixed):        66px up to 992px, then 76px
+   At 1024 the old 7.8rem left 5px of air against the live header and only 2px against the new one,
+   instead of 12. 993px is where the new package switches, and it also suits the live header's
+   fluid ramp better. Verified in the QA rig: a card scrolled under the header re-aligns to exactly
+   the offset (top 78 against a 66px header = 12px air). */
+@media (min-width: 993px) { .ampy-ec { --ec-scroll-offset: 8.8rem; } }
 
 /* NOTE: the DESKTOP SCALE (≥1024px) block lives at the END of this file (just before the
    reduced-motion block). It MUST come after every base component rule it overrides — media
