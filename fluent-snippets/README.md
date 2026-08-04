@@ -3,7 +3,7 @@
 **Reader: Chris.** This folder is the same Elcentral-kollen tool, repackaged from a WordPress
 *plugin* into **three snippets** you paste into **FluentSnippets** and drop into a Bricks page.
 The design and behaviour are unchanged — this is a **repackaging only**, a verified 1:1 of the
-plugin at `v2.16.5`. It is built the same way as the Elkollen Fluent Snippets port, so both tools
+plugin; the built files carry the current version in their header comment. It is built the same way as the Elkollen Fluent Snippets port, so both tools
 deploy identically.
 
 ## The three files

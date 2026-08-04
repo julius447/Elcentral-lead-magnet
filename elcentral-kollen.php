@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.25.1
+ * Version:           2.26.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.25.1' );
+define( 'AMPY_EC_VERSION', '2.26.1' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
@@ -89,10 +89,32 @@ function ampy_ec_strip_internal( $node ) {
  * page: the stylesheet was never enqueued in wp_head (so the shortcode enqueued it late = the FOUC
  * this code was written to prevent) and the dynamic OG tags were skipped.
  */
-function ampy_ec_bricks_has_shortcode( $post_id ) {
+function ampy_ec_bricks_shortcode_raw( $post_id ) {
 	$bricks = get_post_meta( $post_id, '_bricks_page_content_2', true );
 	if ( is_array( $bricks ) ) { $bricks = wp_json_encode( $bricks ); }
-	return is_string( $bricks ) && strpos( $bricks, 'elcentralkollen' ) !== false;
+	return is_string( $bricks ) ? $bricks : '';
+}
+
+function ampy_ec_bricks_has_shortcode( $post_id ) {
+	// Match the OPENING BRACKET, not the bare word. A page that merely LINKS to /elcentralkollen/
+	// contains the word too, and would otherwise be treated as hosting the tool — harmless while
+	// this branch was dead, but live now that it works.
+	return strpos( ampy_ec_bricks_shortcode_raw( $post_id ), '[elcentralkollen' ) !== false;
+}
+
+/**
+ * Is the tool on this page in BLOCK mode? A landing page that hosts the block owns its own title,
+ * description and social card — the tool is one section of it, not the page. Writing our OG tags
+ * there would replace the page's own unfurl with the tool's.
+ */
+function ampy_ec_bricks_is_block_only( $post_id ) {
+	$raw = ampy_ec_bricks_shortcode_raw( $post_id );
+	if ( strpos( $raw, '[elcentralkollen' ) === false ) { return false; }
+	// Bricks stores the shortcode json-encoded, so the quotes around block arrive escaped.
+	$has_block = ( strpos( $raw, 'layout=\\"block\\"' ) !== false ) || ( strpos( $raw, "layout='block'" ) !== false ) || ( strpos( $raw, 'layout="block"' ) !== false );
+	if ( ! $has_block ) { return false; }
+	// A page could in theory carry both; only skip OG when EVERY occurrence is the block form.
+	return substr_count( $raw, '[elcentralkollen' ) === substr_count( $raw, 'layout=' );
 }
 
 function ampy_ec_page_has_tool() {
@@ -179,6 +201,8 @@ function ampy_ec_dynamic_og() {
 		// Bricks lagrar sidans innehåll i postmeta (_bricks_page_content_2), inte i post_content →
 		// has_shortcode() ser aldrig shortcoden och HELA OG-blocket skulle hoppas över. Kolla Bricks-datan.
 		if ( ! ampy_ec_bricks_has_shortcode( $post->ID ) ) { return; }
+		// ...but never on a page that only EMBEDS the block: that page owns its own social card.
+		if ( ampy_ec_bricks_is_block_only( $post->ID ) ) { return; }
 	}
 
 	$title = isset( $data['meta']['page_heading'] ) ? $data['meta']['page_heading'] . ' | Ampy' : 'Elcentral-kollen | Ampy';

@@ -7,7 +7,7 @@
 > Dev docs are English; the UI strings in the data file are Swedish by design — do not translate them.
 >
 > **⚠️ Current handover lives in [`../README.md`](../README.md) (for the developer) and
-> [`../CLAUDE.md`](../CLAUDE.md) (for the AI agent), at version 2.16.5.** This file is the deeper
+> [`../CLAUDE.md`](../CLAUDE.md) (for the AI agent), at the version recorded in `data/elcentralkollen-data.json` -> `meta.version`.** This file is the deeper
 > architecture/engine/a11y reference. Where they differ, README/CLAUDE win — a few items below
 > (the lead flow, fonts, the akut "Ring oss" CTA, the cost block) have since changed and are
 > corrected inline.

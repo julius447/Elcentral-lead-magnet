@@ -27,7 +27,7 @@ visually.
 
 | | |
 |---|---|
-| **Version** | `2.16.5` (kept in sync across `data.meta.version`, `AMPY_EC_VERSION` in the PHP, and the JS header) |
+| **Version** | See `data/elcentralkollen-data.json` -> `meta.version` (kept in sync across `data.meta.version`, `AMPY_EC_VERSION` in the PHP, and the JS header) |
 | **Live preview** | https://julius447.github.io/Elcentral-lead-magnet/ (GitHub Pages, from `main`) |
 | **Repo** | https://github.com/julius447/Elcentral-lead-magnet (`main`) |
 | **Tests** | `node assets/engine.test.js` → **ALL GREEN (15/15)** |

@@ -867,11 +867,34 @@
       form.addEventListener('submit', (e) => {
         e.preventDefault(); errorBox.hidden = true;
         if (honey.value) return;
-        if (!namn.input.value.trim() || !epost.input.value.trim() || !tel.input.value.trim() || !post.input.value.trim()) {
-          errorBox.hidden = false; errorBox.textContent = ''; requestAnimationFrame(() => { errorBox.textContent = f.error_required || 'Fyll i alla fält.'; }); return; // unhide FIRST, set text next frame → the role=alert reliably announces (VoiceOver/Safari miss text set while display:none)
-        }
+        // The form is novalidate, so nothing but this checks the values. "Non-empty" is not enough:
+        // "abc" as an e-mail and "q" as a phone number used to pass, show the thank-you screen and
+        // push a conversion — a lead nobody can call, counted as a win. Each check names the field
+        // it failed on so the visitor is not left hunting, and every message lives in the data file.
+        const fail = (msg, field) => {
+          // Unhide, then write the text IMMEDIATELY so it is on screen no matter what happens next.
+          // It used to be written only inside requestAnimationFrame; in a throttled or backgrounded
+          // tab rAF may not run for a long time, and the visitor was left staring at a visible but
+          // EMPTY error box with no idea what was wrong. Observed while testing this change.
+          errorBox.hidden = false;
+          errorBox.textContent = msg;
+          // Then blank and re-set within one frame. Both happen before paint, so there is no visible
+          // flicker, but the mutation is what makes role="alert" actually announce — VoiceOver and
+          // Safari miss text that was set while the node was still display:none.
+          try { requestAnimationFrame(() => { errorBox.textContent = ''; errorBox.textContent = msg; }); } catch (e5) {}
+          if (field) { try { field.focus({ preventScroll: false }); } catch (e4) { field.focus(); } }
+        };
+        const vNamn = namn.input.value.trim(), vEpost = epost.input.value.trim();
+        const vTel = tel.input.value.trim(), vPost = post.input.value.trim();
+        if (!vNamn || !vEpost || !vTel || !vPost) { fail(f.error_required || 'Fyll i alla fält.', !vNamn ? namn.input : (!vEpost ? epost.input : (!vTel ? tel.input : post.input))); return; }
+        // Deliberately permissive: one @, something on each side, a dot in the domain. Anything
+        // stricter starts rejecting real addresses.
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(vEpost)) { fail(f.error_epost || 'Kontrollera e-postadressen.', epost.input); return; }
+        // Swedish numbers are written with spaces, hyphens and +46 — count digits, not characters.
+        if ((vTel.replace(/\D/g, '')).length < 7) { fail(f.error_telefon || 'Kontrollera telefonnumret.', tel.input); return; }
+        if (!/^\d{5}$/.test(vPost.replace(/\s/g, ''))) { fail(f.error_postnummer || 'Postnumret ska vara fem siffror.', post.input); return; }
         submit.disabled = true; submit.textContent = f.submitting || 'Skickar…';
-        this.submitLead(dx, { namn: namn.input.value.trim(), epost: epost.input.value.trim(), telefon: tel.input.value.trim(), postnummer: post.input.value.trim(), samtycke: true, webbplats: honey.value }).then(() => {
+        this.submitLead(dx, { namn: vNamn, epost: vEpost, telefon: vTel, postnummer: vPost, samtycke: true, webbplats: honey.value }).then(() => {
           // The conversion is pushed outside the track() dedupe (lead_submitted has no step → otherwise the 2nd submit is lost).
           try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'ampy_ec_lead_submitted', cell: dx.cell }, this.surfaceParams())); } catch (e3) {}
           block.replaceChildren(el('div', { class: 'ampy-ec__lead-success', tabindex: '-1', 'data-focus': 'true' }, [

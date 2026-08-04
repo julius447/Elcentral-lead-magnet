@@ -1,4 +1,4 @@
-/* Elcentral-kollen v2.25.1 - Fluent Snippet 1/3 (type: CSS).
+/* Elcentral-kollen v2.26.1 - Fluent Snippet 1/3 (type: CSS).
    FORMAT-ONLY port of assets/elcentralkollen.css: every rem -> px (1rem = 10px) so it renders
    identically WITHOUT a global html{font-size:62.5%} (dropped; it would resize the whole WP theme).
    @font-face points at the hosted woff2 (swap to the ampy.se Media Library for GDPR - see README).
@@ -349,11 +349,6 @@
 @keyframes ec-in-fwd { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 @keyframes ec-in-back { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 @media (max-width: 767px) { .ampy-ec { --ec-q-minh: 600px; } .ampy-ec__block { padding: var(--space-9); } .ampy-ec__crumb { margin-bottom: var(--space-9); } }
-/* Forced-colors (Windows high contrast): box-shadow rings are stripped → reintroduce a real outline. */
-@media (forced-colors: active) {
-  .ampy-ec__option:focus-visible, .ampy-ec__cta-primary:focus-visible, .ampy-ec__cta-secondary:focus-visible,
-  .ampy-ec__lead-input:focus, .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible,
-  .ampy-ec__findings-all:focus-visible, .ampy-ec__finding-head:focus-visible, .ampy-ec__readmore-link:focus-visible, .ampy-ec__share:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
 }
 
 /* ============================================================================
@@ -551,7 +546,10 @@
 .ampy-ec__lead-success { text-align: center; padding: var(--space-11) var(--space-4); }
 .ampy-ec__lead-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin-bottom: var(--space-6); border-radius: var(--radius-full); background: var(--tint-success); color: var(--text-success); }
 .ampy-ec__lead-success-icon svg { width: 28px; height: 28px; }
-.ampy-ec__lead-success h2 { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; color: var(--text-primary); }
+/* h2 AND h3: the heading level follows the mode (block mode demotes every inner heading so the
+   landing page keeps its own hierarchy), so styling only h2 left the block's "Tack!" as an
+   unstyled h3 — rendering smaller than the body text right under it. */
+.ampy-ec__lead-success h2, .ampy-ec__lead-success h3 { margin: 0 0 var(--space-4); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: var(--fs-20); font-weight: 700; color: var(--text-primary); }
 .ampy-ec__lead-success p { margin: 0 auto var(--space-7); font-size: var(--fs-15); line-height: 1.55; color: var(--text-secondary); max-width: 46ch; }
 @media (max-width: 767px) {
   .ampy-ec__lead-grid { grid-template-columns: 1fr; }
@@ -739,7 +737,10 @@
 /* ---- Ground line under the card (the provenance sentence; owner swapped it down 2026-08-03) ---- */
 .ampy-ec__blockground {
   max-width: 520px; margin: var(--space-9) auto 0; text-align: center;
-  font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-tertiary);
+  /* --text-secondary, not --text-tertiary: tertiary (#8a8da5) measures 3.09:1 on the block band,
+     under the 4.5:1 that 13px body text needs. On mobile the bullets are hidden, so this line is
+     the ONLY place the provenance appears — it cannot be the least readable thing in the block. */
+  font-size: var(--fs-13); font-weight: 400; line-height: 1.55; color: var(--text-secondary);
 }
 /* MOBILE HEADING BREAK (owner 2026-08-03): at 375px the full title needs 370px but only 343px is
    available, so it always wraps. `balance` split it "Behöver din / elcentral bytas?"; the owner
@@ -901,3 +902,16 @@
   .ampy-ec__steps span, .ampy-ec__option, .ampy-ec__cta-primary { transition: none !important; }
   .ampy-ec__stickycta { transition: none !important; } /* snap in/out, no slide */
 }
+
+/* ============================================================================
+   FORCED COLORS (Windows high contrast) — MUST BE LAST, together with the other
+   end-of-file overrides. Media queries add NO specificity, and this block used to sit at
+   line ~340 while the `outline: none` declarations it needs to beat live at 386, 457, 489,
+   523, 565, 580 and 587 — all LATER, so they won at equal specificity and 7 of the 10
+   selectors had no visible focus indicator at all in high contrast mode. Same cascade trap
+   the DESKTOP SCALE block is annotated for. Do not move this back up.
+   ============================================================================ */
+@media (forced-colors: active) {
+  .ampy-ec__option:focus-visible, .ampy-ec__cta-primary:focus-visible, .ampy-ec__cta-secondary:focus-visible,
+  .ampy-ec__lead-input:focus, .ampy-ec__rail-phone:focus-visible, .ampy-ec__rail-contact:focus-visible,
+  .ampy-ec__findings-all:focus-visible, .ampy-ec__finding-head:focus-visible, .ampy-ec__readmore-link:focus-visible, .ampy-ec__share:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }

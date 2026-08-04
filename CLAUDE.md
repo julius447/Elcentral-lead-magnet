@@ -8,8 +8,11 @@ This file orients an AI coding agent (Claude) working in this repo. Human onboar
 A self-contained WordPress plugin (shortcode `[elcentralkollen]`) that renders a Swedish
 lead-generation tool: a homeowner answers **7 tap-only questions** and gets a **two-axis verdict
 (_Säker?_ / _Redo?_)** from a calibrated 2×2 matrix. No build step, no npm, no framework — pure PHP
-+ vanilla ES6 + CSS. It is a 1:1 visual sibling of Ampy's "Elkollen" tool. Currently at version
-`2.16.5`, live on GitHub Pages, shipping-ready as code; remaining work is configuration (README §6).
++ vanilla ES6 + CSS. It is a 1:1 visual sibling of Ampy's "Elkollen" tool. It is live on GitHub
+Pages and shipping-ready as code; the remaining work is configuration (README §6).
+
+**The current version is `data/elcentralkollen-data.json` → `meta.version`.** Do not restate it in
+prose anywhere — four documents did, and all four had drifted to a version nine releases old.
 
 ## The golden rule
 

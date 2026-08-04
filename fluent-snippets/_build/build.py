@@ -71,7 +71,7 @@ CSS_HARDEN = (
 
 # ---------- JS (byte-identical) ----------
 JS_HEADER = (
-"/* Elcentral-kollen - Fluent Snippet 3/3 (type: JS).\n"
+"/* Elcentral-kollen v%s - Fluent Snippet 3/3 (type: JS).\n" % VERSION +
 "   BYTE-IDENTICAL to assets/elcentralkollen.js. The data is injected by the PHP snippet as\n"
 "   window.AmpyEC.data (the plugin's own boot() reads it), so nothing here is modified. */\n"
 )
