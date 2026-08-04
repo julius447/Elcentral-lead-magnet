@@ -20,7 +20,16 @@ SRC_CSS  = REPO / 'assets' / 'elcentralkollen.css'
 SRC_JS   = REPO / 'assets' / 'elcentralkollen.js'
 SRC_DATA = REPO / 'data' / 'elcentralkollen-data.json'
 OUT      = REPO / 'fluent-snippets'
-FONTBASE = 'https://julius447.github.io/Elcentral-lead-magnet/assets/fonts'
+# Where the production snippet loads the four self-hosted woff2 from.
+#
+# This used to be the GitHub Pages preview domain, which meant the snippet Chris pastes into
+# ampy.se would have made every visitor fetch Ampy's brand fonts from a personal GitHub account.
+# That is the same class of problem invariant 5 exists to prevent (a third-party host seeing every
+# visitor's IP), plus a hard dependency on a repo that could be renamed, made private or deleted.
+# The header package already established the convention below, so both components now load their
+# fonts from the same place on Ampy's own server. The four files ship in fluent-snippets/fonts/
+# and uploading them is a BLOCKING install step (see the delivery README).
+FONTBASE = '/wp-content/uploads/ampy-fonts'
 VERSION  = json.loads(SRC_DATA.read_text())['meta']['version']
 
 # ---------- helpers ----------

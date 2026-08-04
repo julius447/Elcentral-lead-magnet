@@ -31,11 +31,20 @@ html { font-size: 62.5%; }
 }
 
 .ampy-ec {
+  /* The tool is designed light-only (white card, tinted band, teal accents). Declaring the scheme
+     stops Samsung Internet's dark mode and Chrome Android's auto-dark from inverting it into a
+     palette nobody approved, where the verdict pills lose their red/amber/green meaning. */
+  color-scheme: light;
   -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent; /* no grey iOS tap-blink; we provide our own feedback */
   overflow-x: hidden; overflow-x: clip; /* overflow guard in unknown WP/Bricks embed; hidden fallback for iOS Safari <16, clip preserves sticky rail on 16+ */
   --ec-q-minh: 56rem; /* M2: stable question height (desktop) → calm, even scroll between steps */
-  --focus-ring: 0 0 0 3px rgba(0, 169, 145, 0.25); /* ONE focus ring for all inputs + buttons */
+  /* ONE focus ring for all inputs + buttons. WCAG 2.2 (2.4.11/2.4.13) wants the indicator itself at
+     >= 3:1 against what it sits on. It used to be --action-primary at 0.25 alpha, which measures
+     about 1.3:1 on the white card - effectively invisible for a keyboard user. --action-primary
+     even at full strength is only 2.96:1 on white, so the ring uses --action-primary-strong
+     (rgb(0,122,105) = 4.9:1 on white) at near-full opacity. */
+  --focus-ring: 0 0 0 3px rgba(0, 122, 105, 0.9);
   /* Colors */
   --bg-primary: #ffffff;
   --bg-secondary: #f4f5fb;

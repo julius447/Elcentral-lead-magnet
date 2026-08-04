@@ -55,7 +55,9 @@
   const el = (tag, attrs, children) => {
     const node = document.createElement(tag);
     if (attrs) for (const k in attrs) {
-      if (k === 'class') node.className = attrs[k];
+      // Guard the falsy case: iconSpan() passes `class: cls || null`, and assigning null here
+      // stamped a literal class="null" onto every unclassed icon span.
+      if (k === 'class') { if (attrs[k]) node.className = attrs[k]; }
       else if (k === 'html') node.innerHTML = attrs[k];
       else if (k.startsWith('on') && typeof attrs[k] === 'function') node.addEventListener(k.slice(2), attrs[k]);
       else if (k === 'data') for (const dk in attrs[k]) node.dataset[dk] = attrs[k][dk];
@@ -198,7 +200,17 @@
       const vec = new URLSearchParams(window.location.search).get('q');
       // Honesty moat: a truncated/broken ?q= must NEVER show a fabricated verdict. Multi must be a
       // non-empty array (decodeVector returns []=empty for out-of-range digits, and [] != null) → otherwise start.
-      if (vec) { this.answers = this.decodeVector(vec); const complete = this.questions.every(q => { const v = this.answers[q.id]; return q.type === 'multi' ? (Array.isArray(v) && v.length > 0) : v != null; }); this.step = complete ? (this.N + 1) : 0; }
+      if (vec) { this.answers = this.decodeVector(vec); this.step = this.isComplete() ? (this.N + 1) : 0; }
+    }
+    // Drop OUR ?q= and keep everything else. back() and restart() used to rewrite the url as
+    // pathname + hash, which silently deleted utm_*, gclid, fbclid and every other campaign
+    // parameter the visitor arrived with — so a lead that started on a paid click lost its
+    // attribution the moment the visitor pressed "Tillbaka" or "Börja om".
+    urlWithoutQ() {
+      const p = new URLSearchParams(window.location.search);
+      p.delete('q');
+      const qs = p.toString();
+      return window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
     }
     writeResultUrl(push) {
       if (this.isBlock) return; // block mode: the landing page owns its URL + canonical, we never touch it
@@ -234,8 +246,18 @@
     advance() { this.dir = 'fwd'; this.leadOpen = false; this._navScroll = true; if (this.step === 0) this.track('quiz_start', {}); if (this.step >= this.N) { this.step = this.N + 1; this.writeResultUrl(true); } else this.step += 1; this.render(); }
     openLead(source) { this.leadOpen = true; this._navScroll = true; try { this.track('lead_form_open', Object.assign({ cell: diagnose(this.answers, this.data).cell }, source ? { cta_source: source } : {})); } catch (e) {} this.render(); }
     closeLead() { this.leadOpen = false; this._navScroll = true; this.render(); }
-    back() { this.dir = 'back'; this.leadOpen = false; this._navScroll = true; if (this.step > this.N && new URLSearchParams(window.location.search).has('q')) history.replaceState({ step: this.step }, '', window.location.pathname + window.location.hash); if (this.step > 0) this.step -= 1; if (this.step > this.N) this.step = this.N; this.render(); }
-    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; this.leadOpen = false; this._navScroll = true; history.pushState({ step: 0 }, '', window.location.pathname + window.location.hash); this.render(); }
+    back() {
+      this.dir = 'back'; this.leadOpen = false; this._navScroll = true;
+      const leavingResult = this.step > this.N && new URLSearchParams(window.location.search).has('q');
+      if (this.step > 0) this.step -= 1;
+      if (this.step > this.N) this.step = this.N;
+      // Drop ?q= when stepping off the verdict, and stamp the step we are moving TO. It used to
+      // stamp the step we were leaving (the result), which left a history entry claiming
+      // "this is the verdict" while carrying no answers in the url — see the guard in render().
+      if (leavingResult) history.replaceState({ step: this.step }, '', this.urlWithoutQ());
+      this.render();
+    }
+    restart() { this.dir = 'back'; this.answers = {}; this.step = 0; this._tracked = {}; this.leadOpen = false; this._navScroll = true; history.pushState({ step: 0 }, '', this.urlWithoutQ()); this.render(); }
     // Every in-widget navigation (answer tap, Fortsätt, Tillbaka, open/close the lead form, Börja om)
     // scrolls the NEW view's top into view — otherwise a tap at the bottom of a tall step leaves the
     // next title above the viewport. Guarded: skips when the top is already comfortably visible
@@ -439,9 +461,28 @@
       return aside;
     }
 
+    // THE HONESTY MOAT, ENFORCED AT THE RENDER CHOKEPOINT (invariant 2).
+    // Are all seven questions actually answered? Multi answers must be a non-empty array — an empty
+    // array is "seen but nothing picked", which is not an answer.
+    isComplete() {
+      return this.questions.every(q => {
+        const v = this.answers[q.id];
+        return q.type === 'multi' ? (Array.isArray(v) && v.length > 0) : v != null;
+      });
+    }
     render() {
       const noscript = this.mount.querySelector('.ampy-ec__noscript'); if (noscript) noscript.remove();
       if (!this.stage) this.buildShell();
+      // A verdict may NEVER be rendered from incomplete answers. diagnose({}) scores 0, which is a
+      // GREEN "Låg risk" cell — so any path that reaches step > N with empty answers tells a visitor
+      // their panel is safe when they never told us anything. This was reachable in practice:
+      // back() replaceState'd a CLEAN url while leaving state.step at the result step, so a later
+      // popstate (browser back then forward, or an iOS edge swipe) restored step = N+1 with
+      // answers = {} and rendered "Låg risk" to someone who had just answered pre-1970 house,
+      // original panel, screw fuses, no RCD and warm outlets. Reproduced 2026-08-03.
+      // hydrateFromUrl already guards the ?q= entry point; this guards EVERY entry point, including
+      // ones added later.
+      if (this.step > this.N && !this.isComplete()) { this.step = 0; this.leadOpen = false; }
       this._stickyDef = null; // reset each render; renderResult sets it fresh (never reuse a stale def on a non-result view)
       if (this._closeShareMenu) { try { this._closeShareMenu(); } catch (e) {} this._closeShareMenu = null; } // an open share menu must release its document listeners before the stage is replaced
       // JS-set view state → CSS fallback for :has() (rail bullets + contact CTAs on mobile) on iOS Safari <15.4.

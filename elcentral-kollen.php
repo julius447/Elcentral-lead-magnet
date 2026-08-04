@@ -3,7 +3,7 @@
  * Plugin Name:       Elcentral-kollen (Ampy)
  * Plugin URI:        https://ampy.se/
  * Description:       Elcentral-kollen — lead magnet där husägaren svarar på 7 snabba frågor och får ett tvåaxlat besked (Säker? / Redo?) med specifika fynd och en mjuk CTA (kostnadsfri rådgivning). Renderas i Bricks via shortcoden [elcentralkollen]. UI-copy är svensk by design.
- * Version:           2.24.0
+ * Version:           2.25.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ampy
@@ -28,7 +28,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AMPY_EC_VERSION', '2.24.0' );
+define( 'AMPY_EC_VERSION', '2.25.1' );
 define( 'AMPY_EC_FILE',    __FILE__ );
 define( 'AMPY_EC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'AMPY_EC_URL',     plugin_dir_url( __FILE__ ) );
@@ -79,13 +79,28 @@ function ampy_ec_strip_internal( $node ) {
  * Har den aktuella sidan verktyget? Kollar post_content OCH Bricks postmeta
  * (_bricks_page_content_2) — samma detektering som OG-blocket.
  */
+/**
+ * Does this Bricks page contain our shortcode?
+ *
+ * Bricks stores the page as a SERIALISED ARRAY of element definitions in _bricks_page_content_2,
+ * so get_post_meta( ..., true ) hands back an array, not a string. The old check was
+ * `is_string( $bricks ) && strpos( ... )`, which is false for every real Bricks page — the branch
+ * was dead, which is exactly the case it existed to cover. Consequences on the live Bricks landing
+ * page: the stylesheet was never enqueued in wp_head (so the shortcode enqueued it late = the FOUC
+ * this code was written to prevent) and the dynamic OG tags were skipped.
+ */
+function ampy_ec_bricks_has_shortcode( $post_id ) {
+	$bricks = get_post_meta( $post_id, '_bricks_page_content_2', true );
+	if ( is_array( $bricks ) ) { $bricks = wp_json_encode( $bricks ); }
+	return is_string( $bricks ) && strpos( $bricks, 'elcentralkollen' ) !== false;
+}
+
 function ampy_ec_page_has_tool() {
 	if ( ! is_singular() && ! is_page() ) { return false; }
 	$post = get_post();
 	if ( ! $post ) { return false; }
 	if ( has_shortcode( (string) $post->post_content, 'elcentralkollen' ) ) { return true; }
-	$bricks = get_post_meta( $post->ID, '_bricks_page_content_2', true );
-	return is_string( $bricks ) && strpos( $bricks, 'elcentralkollen' ) !== false;
+	return ampy_ec_bricks_has_shortcode( $post->ID );
 }
 
 /**
@@ -163,8 +178,7 @@ function ampy_ec_dynamic_og() {
 	if ( ! has_shortcode( (string) $post->post_content, 'elcentralkollen' ) ) {
 		// Bricks lagrar sidans innehåll i postmeta (_bricks_page_content_2), inte i post_content →
 		// has_shortcode() ser aldrig shortcoden och HELA OG-blocket skulle hoppas över. Kolla Bricks-datan.
-		$bricks = get_post_meta( $post->ID, '_bricks_page_content_2', true );
-		if ( ! ( is_string( $bricks ) && strpos( $bricks, 'elcentralkollen' ) !== false ) ) { return; }
+		if ( ! ampy_ec_bricks_has_shortcode( $post->ID ) ) { return; }
 	}
 
 	$title = isset( $data['meta']['page_heading'] ) ? $data['meta']['page_heading'] . ' | Ampy' : 'Elcentral-kollen | Ampy';

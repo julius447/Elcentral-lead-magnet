@@ -3,13 +3,10 @@
 <head>
   <meta charset="utf-8" />
 <!-- Ampy web fonts (Outfit + Plus Jakarta Sans + JetBrains Mono) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Är din elcentral säker? | Elcentral-kollen | Ampy</title>
   <meta name="description" content="Ta reda på om din central är säker och anpassad för framtida installationer. Gratis, utan mejlkrav." />
-  <link rel="stylesheet" href="../assets/elcentralkollen.css?v=2.24.0" />
+  <link rel="stylesheet" href="../assets/elcentralkollen.css?v=2.25.1" />
   <style>
     /* Material-canvas (lugn topp-vinjett). I produktion: sätt sektionens bakgrund i Bricks. */
     html, body { margin: 0; padding: 0; min-height: 100%; }
@@ -42,6 +39,11 @@
     .qa-bar a:hover { background: rgba(255,255,255,0.06); }
     main { padding-top: 1rem; }
   </style>
+  <!-- Inga Google Fonts (invariant 5, GDPR). Outfit + Plus Jakarta Sans ar self-hostade
+       via @font-face i assets/elcentralkollen.css. Verifierat 2026-08-03: med lankarna
+       borttagna ar renderingen byte-identisk over 7 matta element - de renderade redan
+       fran de self-hostade faces:en (Outfit 400 600 / Plus Jakarta Sans 500 700), och
+       JetBrains Mono som ocksa hamtades anvands inte nagonstans i CSS:en. -->
 </head>
 <body>
   <!-- Sticky-header-sim (endast preview) — speglar riktiga ampy.se-headern, 66/76px fixed. -->
@@ -81,6 +83,6 @@
     </div>
   </main>
 
-  <script src="../assets/elcentralkollen.js?v=2.24.0"></script>
+  <script src="../assets/elcentralkollen.js?v=2.25.1"></script>
 </body>
 </html>
