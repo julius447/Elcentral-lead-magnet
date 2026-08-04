@@ -671,7 +671,13 @@ html { font-size: 62.5%; }
    ============================================================================ */
 .ampy-ec[data-layout="block"] {
   /* Self-contained band: works full-bleed (Bricks full-width section) AND inside a 1280 container. */
-  background: linear-gradient(180deg, #f0f2f9 0%, #f4f5fb 34%, #ffffff 100%);
+  /* Tone matched to the host page: /elservice/elcentral/ paints its tinted sections rgb(245,249,255).
+     The band used to start at #f0f2f9, a neighbouring but different hue, which is exactly the kind of
+     near-miss that reads as "pasted-in widget". The card keeps its figure-ground separation because
+     its border was strengthened at the same time (see the block card rule below).
+     Section padding stays at the 8rem tier deliberately: the page runs 39.6px AND 79.2px, i.e. a
+     1x/2x step, so 80px is the page's own 2x tier and not double its rhythm. */
+  background: linear-gradient(180deg, #f5f9ff 0%, #f7fafd 34%, #ffffff 100%);
   padding-block: clamp(4.8rem, 6vw, 8rem);
   /* NOTE: --ec-q-minh is deliberately NOT overridden here. It used to be 0, which collapsed the
      start card to 636x319 (a 2:1 rectangle) on desktop and 343x303 on mobile. Owner 2026-08-03:
@@ -737,13 +743,31 @@ html { font-size: 62.5%; }
   .ampy-ec[data-layout="block"] .ampy-ec__rail-bullets { display: none; }
 }
 @media (min-width: 1280px) {
+  /* THE CARD IS SQUARE AND THE COPY TAKES THE REST.
+     The standalone's 44fr/56fr was inherited unchanged and put the block at copy 500 / card 636 —
+     the inverse of the page's OWN hero, which runs copy 720 / card 394 (1.83:1 in the copy's
+     favour). Two bands in the same layout family, one scroll apart, with the text measure dropping
+     31% and the painted slab growing 61%. That inversion is what reads as "balansen är off".
+     Fixing it by simply narrowing the card does NOT work, and that is arithmetic rather than
+     opinion: the title (475px) fits one line at both 500 and 576, and the paragraph (787px of text)
+     is two lines at both, so widening the copy column changes its ink height by exactly 0px. You
+     move the emptiness, you do not remove it. So: pin the card to its own height floor (56rem, an
+     owner decision) to make it a literal 560x560 square, give the remainder to the copy, and take
+     the rest of the fix in the y-direction (title size below + card weight below). */
   .ampy-ec[data-layout="block"] .ampy-ec__shell {
     display: grid;
-    grid-template-columns: minmax(36rem, 44fr) minmax(46rem, 56fr); /* = the standalone hero grid */
+    grid-template-columns: minmax(0, 1fr) var(--ec-q-minh); /* 1200 content → copy 576 / gap 64 / card 560 */
     gap: 6.4rem;
     align-items: start;
     max-width: 128rem;
     padding-inline: clamp(1.6rem, 4vw, 4rem);
+  }
+  /* Lower the card's visual weight WITHOUT touching its size: a card defined by its edge reads
+     lighter than a card defined by its float, at identical area. Block-scoped, so the standalone
+     card keeps the approved --shadow-md exactly. */
+  .ampy-ec[data-layout="block"] .ampy-ec__block {
+    box-shadow: 0 2px 4px rgba(11, 13, 42, 0.03), 0 16px 40px -20px rgba(11, 13, 42, 0.10);
+    border-color: #e4e7f0;
   }
   /* Left column = the copy rail. Vertically centred against the card's own height floor, the same
      trick the standalone rail uses, so the block reads as one composition and not two stacked boxes. */
@@ -752,11 +776,16 @@ html { font-size: 62.5%; }
     min-height: var(--ec-q-minh);
     display: flex; flex-direction: column; justify-content: center;
   }
-  /* 3.6rem, not the 4rem the centred version used: measured at the real 500px column, 40px wraps
-     ("Behöver din elcentral" 393px / "bytas?" 129px) while 36px fits the title on ONE line at 475px.
-     It also stops the block's H2 from competing with the landing page's own H1 (owner: "risken är
-     att den blir för dominant"). */
-  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-title { font-size: 3.6rem; text-wrap: wrap; margin-bottom: 2rem; }
+  /* 4.4rem — the same size as the standalone rail heading, so brand parity holds (invariant 7).
+     This is the single biggest lever on the balance problem, and it works in the y-direction where
+     the problem actually lives. Measured at the 576px column:
+        40px → one line, ink 255px, area ratio 2.14
+        42px → one line, ink 257px, area ratio 2.12
+        44px → TWO lines, ink 308px, area ratio 1.77
+     The wrap is not a cost here: it breaks "Behöver din elcentral" / "bytas?", which is the exact
+     break the owner asked for on mobile. If it ever reads as too dominant next to the page's own H1,
+     4.0rem is a one-value revert and lands back at 2.14. */
+  .ampy-ec[data-layout="block"] .ampy-ec__blockhead-title { font-size: 4.4rem; text-wrap: wrap; margin-bottom: 2rem; }
   /* 1.8rem, and no ch-cap. Owner: "texten ska bli lite bredare, så att det inte blir att rad två är
      bredare än rad ett." At 2.0rem the second line is unavoidably the long one (393px vs 481px) —
      "rekommendation" cannot fit on line 1 at any wrap mode, balance included, so it is a type-size
